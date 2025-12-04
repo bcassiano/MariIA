@@ -1,0 +1,7 @@
+google-cloud-aiplatform
+google-cloud-bigquery
+pandas
+db-dtypes
+sqlalchemy
+pyodbc
+python-dotenv
