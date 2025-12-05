@@ -41,3 +41,13 @@ env/
 # OS
 .DS_Store
 Thumbs.db
+
+# Node
+node_modules/
+mobile/node_modules/
+.expo/
+mobile/.expo/
+dist/
+mobile/dist/
+web-build/
+mobile/web-build/

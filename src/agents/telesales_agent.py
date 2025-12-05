@@ -141,6 +141,24 @@ class TelesalesAgent:
         except Exception as e:
             return f"Erro ao gerar insight de IA: {e}"
 
+    def chat(self, user_message: str) -> str:
+        """Conversa livre com o assistente."""
+        if not self.model:
+            return "O modelo de IA não está disponível no momento."
+            
+        try:
+            # Configuração simples para chat
+            response = self.model.generate_content(
+                f"USUÁRIO: {user_message}\nASSISTENTE:",
+                generation_config={
+                    "max_output_tokens": 8192,
+                    "temperature": 0.7,
+                }
+            )
+            return response.text
+        except Exception as e:
+            return f"Erro ao processar mensagem: {e}"
+
 # --- CLI para Teste ---
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Agente de Televendas MariIA")

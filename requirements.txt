@@ -5,3 +5,5 @@ db-dtypes
 sqlalchemy
 pyodbc
 python-dotenv
+fastapi
+uvicorn
