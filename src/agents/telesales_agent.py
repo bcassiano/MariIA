@@ -69,6 +69,7 @@ class TelesalesAgent:
         # Nota: DATEADD aceita parâmetros numéricos, mas para garantir, passamos via params
         query = """
         SELECT TOP 50
+            Codigo_Cliente,
             Nome_Cliente,
             Cidade,
             Estado,
@@ -76,8 +77,26 @@ class TelesalesAgent:
             SUM(Margem_Valor) as Total_Margem
         FROM FAL_IA_Dados_Vendas_Televendas
         WHERE Data_Emissao >= DATEADD(day, -:days, GETDATE())
-        GROUP BY Nome_Cliente, Cidade, Estado
+        GROUP BY Codigo_Cliente, Nome_Cliente, Cidade, Estado
         ORDER BY Total_Venda DESC
+        """
+        return self.db.get_dataframe(query, params={"days": days})
+
+    def get_inactive_customers(self, days: int = 30) -> pd.DataFrame:
+        """Busca clientes sem compras há mais de 'days' dias (Risco de Churn)."""
+        # Otimização: Agrupa apenas pelo Código (mais rápido) e pega o MAX dos textos
+        query = """
+        SELECT TOP 50
+            Codigo_Cliente,
+            MAX(Nome_Cliente) as Nome_Cliente,
+            MAX(Cidade) as Cidade,
+            MAX(Estado) as Estado,
+            MAX(Data_Emissao) as Ultima_Compra,
+            SUM(Valor_Liquido) as Total_Historico
+        FROM FAL_IA_Dados_Vendas_Televendas WITH (NOLOCK)
+        GROUP BY Codigo_Cliente
+        HAVING MAX(Data_Emissao) < DATEADD(day, -:days, GETDATE())
+        ORDER BY Ultima_Compra DESC
         """
         return self.db.get_dataframe(query, params={"days": days})
 
@@ -142,14 +161,54 @@ class TelesalesAgent:
             return f"Erro ao gerar insight de IA: {e}"
 
     def chat(self, user_message: str) -> str:
-        """Conversa livre com o assistente."""
+        """Conversa livre com o assistente, com capacidade de buscar dados de clientes."""
         if not self.model:
             return "O modelo de IA não está disponível no momento."
             
+        # Tenta identificar um código de cliente na mensagem (Ex: C00123)
+        import re
+        customer_match = re.search(r'\b(C\d+)\b', user_message, re.IGNORECASE)
+        
+        context_data = ""
+        
+        # Cenário 1: Cliente Específico
+        if customer_match:
+            card_code = customer_match.group(1).upper()
+            try:
+                history_df = self.get_customer_history(card_code, limit=15)
+                if not history_df.empty:
+                    history_summary = history_df.to_markdown(index=False)
+                    context_data = f"\n\n[DADOS DO SISTEMA PARA O CLIENTE {card_code}]:\n{history_summary}\n\nUse esses dados para responder à pergunta do usuário com base no histórico real."
+                else:
+                    context_data = f"\n\n[SISTEMA]: Busquei no banco de dados, mas não encontrei vendas recentes para o cliente {card_code}."
+            except Exception as e:
+                print(f"Erro ao buscar dados no chat: {e}")
+        
+        # Cenário 2: Perguntas Gerais sobre Vendas/Clientes (Ex: "Quem devo ligar?", "Melhores clientes")
+        elif any(term in user_message.lower() for term in ["venda", "ligar", "clientes", "melhores", "top", "inativos", "parados"]):
+            try:
+                # Busca Top 20 Clientes Ativos
+                active_df = self.get_sales_insights(days=30).head(20)
+                # Busca Top 20 Clientes Inativos
+                inactive_df = self.get_inactive_customers(days=30).head(20)
+                
+                context_data = f"""
+                \n\n[DADOS DO SISTEMA - TOP CLIENTES ATIVOS (30 DIAS)]:
+                {active_df.to_markdown(index=False) if not active_df.empty else "Sem dados."}
+                
+                \n[DADOS DO SISTEMA - CLIENTES INATIVOS/RISCO (30 DIAS)]:
+                {inactive_df.to_markdown(index=False) if not inactive_df.empty else "Sem dados."}
+                
+                \nUse essas listas para sugerir clientes para o vendedor ligar. Priorize inativos com alto histórico ou ativos com queda."""
+            except Exception as e:
+                print(f"Erro ao buscar insights no chat: {e}")
+
         try:
             # Configuração simples para chat
+            prompt = f"USUÁRIO: {user_message}{context_data}\nASSISTENTE:"
+            
             response = self.model.generate_content(
-                f"USUÁRIO: {user_message}\nASSISTENTE:",
+                prompt,
                 generation_config={
                     "max_output_tokens": 8192,
                     "temperature": 0.7,

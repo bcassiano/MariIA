@@ -1,22 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
-import { getInsights } from '../services/api';
+import { getInsights, getInactiveCustomers } from '../services/api';
 
 export default function HomeScreen({ navigation }) {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [errorMsg, setErrorMsg] = useState(null);
     const [days, setDays] = useState(30);
+    const [viewMode, setViewMode] = useState('active'); // 'active' | 'inactive'
 
     useEffect(() => {
-        loadData(days);
-    }, [days]);
+        loadData(days, viewMode);
+    }, [days, viewMode]);
 
-    const loadData = async (selectedDays) => {
+    const loadData = async (selectedDays, mode) => {
         setLoading(true);
         setErrorMsg(null);
         try {
-            const result = await getInsights(selectedDays);
+            let result;
+            if (mode === 'active') {
+                result = await getInsights(selectedDays);
+            } else {
+                result = await getInactiveCustomers(selectedDays);
+            }
+
             if (result.error) {
                 setErrorMsg(result.error);
             } else {
@@ -28,15 +35,32 @@ export default function HomeScreen({ navigation }) {
         setLoading(false);
     };
 
+    const formatCurrency = (value) => {
+        return new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+        }).format(value);
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('pt-BR');
+    };
+
     const renderItem = ({ item }) => (
         <TouchableOpacity
-            style={styles.card}
-            onPress={() => navigation.navigate('Customer', { cardCode: item.Nome_Cliente })}
+            style={[styles.card, viewMode === 'inactive' && styles.cardInactive]}
+            onPress={() => navigation.navigate('Customer', { cardCode: item.Codigo_Cliente })}
         >
             <Text style={styles.customerName}>{item.Nome_Cliente}</Text>
             <View style={styles.row}>
                 <Text style={styles.city}>{item.Cidade} - {item.Estado}</Text>
-                <Text style={styles.value}>R$ {item.Total_Venda?.toFixed(2)}</Text>
+                {viewMode === 'active' ? (
+                    <Text style={styles.value}>{formatCurrency(item.Total_Venda)}</Text>
+                ) : (
+                    <Text style={styles.inactiveDate}>Sem compra desde: {formatDate(item.Ultima_Compra)}</Text>
+                )}
             </View>
         </TouchableOpacity>
     );
@@ -44,7 +68,26 @@ export default function HomeScreen({ navigation }) {
     return (
         <View style={styles.container}>
             <View style={styles.headerContainer}>
-                <Text style={styles.header}>Top Vendas</Text>
+                <Text style={styles.header}>
+                    {viewMode === 'active' ? 'Top Vendas' : 'Clientes Inativos'}
+                </Text>
+
+                {/* Toggle View Mode */}
+                <View style={styles.toggleContainer}>
+                    <TouchableOpacity
+                        style={[styles.toggleButton, viewMode === 'active' && styles.toggleButtonActive]}
+                        onPress={() => setViewMode('active')}
+                    >
+                        <Text style={[styles.toggleText, viewMode === 'active' && styles.toggleTextActive]}>Ativos</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.toggleButton, viewMode === 'inactive' && styles.toggleButtonInactive]}
+                        onPress={() => setViewMode('inactive')}
+                    >
+                        <Text style={[styles.toggleText, viewMode === 'inactive' && styles.toggleTextActive]}>Inativos</Text>
+                    </TouchableOpacity>
+                </View>
+
                 <View style={styles.filterContainer}>
                     {[30, 60, 90].map((d) => (
                         <TouchableOpacity
@@ -61,7 +104,7 @@ export default function HomeScreen({ navigation }) {
             {errorMsg && (
                 <View style={styles.errorContainer}>
                     <Text style={styles.errorText}>Erro: {errorMsg}</Text>
-                    <TouchableOpacity onPress={() => loadData(days)} style={styles.retryButton}>
+                    <TouchableOpacity onPress={() => loadData(days, viewMode)} style={styles.retryButton}>
                         <Text style={styles.retryText}>Tentar Novamente</Text>
                     </TouchableOpacity>
                 </View>
@@ -75,7 +118,7 @@ export default function HomeScreen({ navigation }) {
                     keyExtractor={(item, index) => index.toString()}
                     renderItem={renderItem}
                     refreshing={loading}
-                    onRefresh={() => loadData(days)}
+                    onRefresh={() => loadData(days, viewMode)}
                     ListEmptyComponent={!loading && !errorMsg && <Text>Nenhum dado encontrado.</Text>}
                     style={{ flex: 1 }}
                     contentContainerStyle={{ paddingBottom: 100 }}
@@ -100,7 +143,8 @@ const styles = StyleSheet.create({
         ...Platform.select({
             web: {
                 height: '100vh',
-                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
             }
         })
     },
@@ -113,6 +157,33 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#333',
         marginBottom: 10,
+    },
+    toggleContainer: {
+        flexDirection: 'row',
+        backgroundColor: '#e0e0e0',
+        borderRadius: 25,
+        marginBottom: 15,
+        padding: 4,
+    },
+    toggleButton: {
+        flex: 1,
+        paddingVertical: 8,
+        alignItems: 'center',
+        borderRadius: 20,
+    },
+    toggleButtonActive: {
+        backgroundColor: 'white',
+        elevation: 2,
+    },
+    toggleButtonInactive: {
+        backgroundColor: '#ffebee', // Vermelho claro para inativos
+    },
+    toggleText: {
+        fontWeight: 'bold',
+        color: '#666',
+    },
+    toggleTextActive: {
+        color: '#333',
     },
     filterContainer: {
         flexDirection: 'row',
@@ -140,6 +211,15 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         marginBottom: 10,
         elevation: 2,
+        ...Platform.select({
+            web: {
+                boxShadow: '0px 2px 3.84px rgba(0, 0, 0, 0.25)',
+            }
+        })
+    },
+    cardInactive: {
+        borderLeftWidth: 4,
+        borderLeftColor: '#c62828', // Tarja vermelha para inativos
     },
     customerName: {
         fontSize: 16,
@@ -156,6 +236,11 @@ const styles = StyleSheet.create({
     value: {
         color: '#008000',
         fontWeight: 'bold',
+    },
+    inactiveDate: {
+        color: '#c62828',
+        fontWeight: 'bold',
+        fontSize: 12,
     },
     errorContainer: {
         padding: 15,
@@ -195,8 +280,15 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
         zIndex: 100,
+        ...Platform.select({
+            web: {
+                position: 'fixed',
+                cursor: 'pointer',
+            }
+        })
     },
     chatFabText: {
         fontSize: 30,
+        color: 'white',
     }
 });

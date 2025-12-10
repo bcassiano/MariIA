@@ -61,6 +61,7 @@ export default function ChatScreen() {
                 keyExtractor={item => item.id.toString()}
                 renderItem={renderItem}
                 contentContainerStyle={styles.listContent}
+                style={{ flex: 1 }}
             />
 
             <View style={styles.inputContainer}>
@@ -91,6 +92,13 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#f5f5f5',
+        ...Platform.select({
+            web: {
+                height: '100vh',
+                display: 'flex',
+                flexDirection: 'column',
+            }
+        })
     },
     listContent: {
         padding: 15,
@@ -112,6 +120,11 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         borderBottomLeftRadius: 2,
         elevation: 1,
+        ...Platform.select({
+            web: {
+                boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.2)',
+            }
+        })
     },
     messageText: {
         fontSize: 16,

@@ -73,6 +73,21 @@ def get_insights(days: int = 30):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/inactive")
+def get_inactive(days: int = 30):
+    """Retorna clientes inativos (sem compras) há X dias."""
+    try:
+        df = agent.get_inactive_customers(days)
+        # Converte datas para string
+        if not df.empty and 'Ultima_Compra' in df.columns:
+            df['Ultima_Compra'] = df['Ultima_Compra'].astype(str)
+            
+        return {"data": df.to_dict(orient="records")}
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/customer/{card_code}")
 def get_customer(card_code: str):
     """Retorna o histórico de um cliente."""

@@ -34,6 +34,13 @@ export default function CustomerScreen({ route }) {
         setPitchLoading(false);
     };
 
+    const formatCurrency = (value) => {
+        return new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+        }).format(value);
+    };
+
     const renderHistoryItem = ({ item }) => (
         <View style={styles.historyItem}>
             <View style={styles.row}>
@@ -43,7 +50,7 @@ export default function CustomerScreen({ route }) {
             <Text style={styles.product}>{item.Nome_Produto}</Text>
             <View style={styles.row}>
                 <Text>Qtd: {item.Quantidade}</Text>
-                <Text style={styles.value}>R$ {item.Valor_Liquido?.toFixed(2)}</Text>
+                <Text style={styles.value}>{formatCurrency(item.Valor_Liquido)}</Text>
             </View>
         </View>
     );

@@ -23,6 +23,17 @@ export const getInsights = async (days = 30) => {
     }
 };
 
+export const getInactiveCustomers = async (days = 30) => {
+    try {
+        console.log(`Chamando API em: ${API_URL}/inactive?days=${days}`);
+        const response = await api.get(`/inactive?days=${days}`);
+        return response.data;
+    } catch (error) {
+        console.error("Erro ao buscar inativos:", error);
+        return { error: error.message };
+    }
+};
+
 export const getCustomer = async (cardCode) => {
     try {
         const response = await api.get(`/customer/${cardCode}`);
