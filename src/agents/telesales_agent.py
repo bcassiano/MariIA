@@ -48,7 +48,7 @@ class TelesalesAgent:
     def get_customer_history(self, card_code: str, limit: int = 10) -> pd.DataFrame:
         """Busca histórico recente de um cliente específico (Query Parametrizada)."""
         query = f"""
-        SELECT TOP {limit}
+        SELECT
             Data_Emissao,
             Numero_Documento,
             Status_Documento,
@@ -56,10 +56,19 @@ class TelesalesAgent:
             Nome_Produto,
             Quantidade,
             Valor_Liquido,
-            Margem_Valor
+            Margem_Valor,
+            Nome_Cliente,
+            Tipo_Documento
         FROM FAL_IA_Dados_Vendas_Televendas
-        WHERE Codigo_Cliente = :card_code
-        ORDER BY Data_Emissao DESC
+        WHERE Numero_Documento IN (
+            SELECT TOP {limit} Numero_Documento
+            FROM FAL_IA_Dados_Vendas_Televendas
+            WHERE Codigo_Cliente = :card_code
+            GROUP BY Numero_Documento, Data_Emissao
+            ORDER BY Data_Emissao DESC
+        )
+        AND Codigo_Cliente = :card_code
+        ORDER BY Data_Emissao DESC, Numero_Documento
         """
         # Passa o parâmetro de forma segura
         return self.db.get_dataframe(query, params={"card_code": card_code})
@@ -77,6 +86,7 @@ class TelesalesAgent:
             SUM(Margem_Valor) as Total_Margem
         FROM FAL_IA_Dados_Vendas_Televendas
         WHERE Data_Emissao >= DATEADD(day, -:days, GETDATE())
+          AND Nome_Cliente NOT LIKE '%FANTASTICO ALIMENTOS LTDA%'
         GROUP BY Codigo_Cliente, Nome_Cliente, Cidade, Estado
         ORDER BY Total_Venda DESC
         """
@@ -94,11 +104,27 @@ class TelesalesAgent:
             MAX(Data_Emissao) as Ultima_Compra,
             SUM(Valor_Liquido) as Total_Historico
         FROM FAL_IA_Dados_Vendas_Televendas WITH (NOLOCK)
+        WHERE Nome_Cliente NOT LIKE '%FANTASTICO ALIMENTOS LTDA%'
         GROUP BY Codigo_Cliente
         HAVING MAX(Data_Emissao) < DATEADD(day, -:days, GETDATE())
         ORDER BY Ultima_Compra DESC
         """
         return self.db.get_dataframe(query, params={"days": days})
+
+    def get_customers_by_vendor(self, vendor_name: str) -> pd.DataFrame:
+        """Busca clientes da carteira de um vendedor específico."""
+        query = """
+        SELECT DISTINCT
+            Codigo_Cliente,
+            Nome_Cliente,
+            Cidade,
+            Estado
+        FROM FAL_IA_Dados_Vendas_Televendas WITH (NOLOCK)
+        WHERE Vendedor LIKE :vendor
+          AND Nome_Cliente NOT LIKE '%FANTASTICO ALIMENTOS LTDA%'
+        ORDER BY Nome_Cliente
+        """
+        return self.db.get_dataframe(query, params={"vendor": f"%{vendor_name}%"})
 
     def generate_pitch(self, card_code: str, target_sku: str = "") -> str:
         """Gera um pitch de vendas personalizado para o cliente."""
@@ -183,8 +209,23 @@ class TelesalesAgent:
                     context_data = f"\n\n[SISTEMA]: Busquei no banco de dados, mas não encontrei vendas recentes para o cliente {card_code}."
             except Exception as e:
                 print(f"Erro ao buscar dados no chat: {e}")
+
+        # Cenário 2: Carteira de Vendedor (Otimizado)
+        elif "carteira" in user_message.lower():
+            vendor_match = re.search(r'carteira (?:de|da|do)?\s*([A-Za-zÀ-ÿ]+)', user_message, re.IGNORECASE)
+            if vendor_match:
+                vendor_name = vendor_match.group(1)
+                try:
+                    customers_df = self.get_customers_by_vendor(vendor_name)
+                    if not customers_df.empty:
+                        # Limita a 50 para não estourar tokens
+                        context_data = f"\n\n[DADOS DO SISTEMA - CARTEIRA DE {vendor_name.upper()}]:\n{customers_df.head(50).to_markdown(index=False)}"
+                    else:
+                        context_data = f"\n\n[SISTEMA]: Não encontrei clientes para o vendedor {vendor_name}."
+                except Exception as e:
+                    print(f"Erro ao buscar carteira: {e}")
         
-        # Cenário 2: Perguntas Gerais sobre Vendas/Clientes (Ex: "Quem devo ligar?", "Melhores clientes")
+        # Cenário 3: Perguntas Gerais sobre Vendas/Clientes (Ex: "Quem devo ligar?", "Melhores clientes")
         elif any(term in user_message.lower() for term in ["venda", "ligar", "clientes", "melhores", "top", "inativos", "parados"]):
             try:
                 # Busca Top 20 Clientes Ativos

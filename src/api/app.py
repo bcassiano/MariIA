@@ -23,6 +23,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# --- Segurança (API Key) ---
+from fastapi import Security, Depends
+from fastapi.security.api_key import APIKeyHeader
+
+API_KEY = os.getenv("API_KEY", "mariia-secret-key-123") # Em produção, use .env forte
+api_key_header = APIKeyHeader(name="x-api-key", auto_error=False)
+
+async def get_api_key(api_key_header: str = Security(api_key_header)):
+    if api_key_header == API_KEY:
+        return api_key_header
+    raise HTTPException(status_code=403, detail="Acesso Negado: API Key inválida ou ausente.")
+
 # Instância global do agente (para reuso de conexão)
 agent = TelesalesAgent()
 
@@ -56,11 +68,11 @@ def clean_data(df):
 
 # --- Endpoints ---
 
-@app.get("/")
+@app.get("/", dependencies=[Depends(get_api_key)])
 def health_check():
     return {"status": "online", "agent": "TelesalesAgent"}
 
-@app.get("/insights")
+@app.get("/insights", dependencies=[Depends(get_api_key)])
 def get_insights(days: int = 30):
     """Retorna o ranking de vendas dos últimos N dias."""
     try:
@@ -73,7 +85,7 @@ def get_insights(days: int = 30):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/inactive")
+@app.get("/inactive", dependencies=[Depends(get_api_key)])
 def get_inactive(days: int = 30):
     """Retorna clientes inativos (sem compras) há X dias."""
     try:
@@ -88,24 +100,48 @@ def get_inactive(days: int = 30):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/customer/{card_code}")
+@app.get("/customer/{card_code}", dependencies=[Depends(get_api_key)])
 def get_customer(card_code: str):
     """Retorna o histórico de um cliente."""
     try:
         df = agent.get_customer_history(card_code, limit=20)
-        # Converte datas para string
+        # Agrupa por Documento
+        grouped_history = []
+        customer_name = "Cliente Desconhecido"
+        
         if not df.empty:
             df['Data_Emissao'] = df['Data_Emissao'].astype(str)
-        
-        df = clean_data(df)
-        data = df.to_dict(orient="records")
-        return {"card_code": card_code, "history": data}
+            df = clean_data(df)
+            
+            # Pega o nome do primeiro registro
+            if 'Nome_Cliente' in df.columns:
+                customer_name = df.iloc[0]['Nome_Cliente']
+            
+            # Agrupa usando Pandas
+            for doc_num, group in df.groupby('Numero_Documento'):
+                first_row = group.iloc[0]
+                total_val = group['Valor_Liquido'].sum()
+                
+                doc_obj = {
+                    "document_number": int(doc_num),
+                    "type": first_row['Tipo_Documento'],
+                    "date": first_row['Data_Emissao'],
+                    "status": first_row['Status_Documento'],
+                    "total_value": float(total_val),
+                    "items": group.to_dict(orient="records")
+                }
+                grouped_history.append(doc_obj)
+                
+            # Ordena por data decrescente
+            grouped_history.sort(key=lambda x: x['date'], reverse=True)
+
+        return {"card_code": card_code, "customer_name": customer_name, "history": grouped_history}
     except Exception as e:
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/pitch")
+@app.post("/pitch", dependencies=[Depends(get_api_key)])
 def generate_pitch(request: PitchRequest):
     """Gera um pitch de vendas usando IA."""
     try:
@@ -116,7 +152,7 @@ def generate_pitch(request: PitchRequest):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/chat")
+@app.post("/chat", dependencies=[Depends(get_api_key)])
 def chat_with_agent(request: ChatRequest):
     """Conversa com o assistente."""
     try:

@@ -5,6 +5,7 @@ import { getCustomer, generatePitch } from '../services/api';
 export default function CustomerScreen({ route }) {
     const { cardCode } = route.params;
     const [history, setHistory] = useState([]);
+    const [customerName, setCustomerName] = useState('');
     const [loading, setLoading] = useState(true);
     const [pitchLoading, setPitchLoading] = useState(false);
     const [pitch, setPitch] = useState(null);
@@ -16,8 +17,9 @@ export default function CustomerScreen({ route }) {
     const loadCustomerData = async () => {
         setLoading(true);
         const result = await getCustomer(cardCode);
-        if (result && result.history) {
-            setHistory(result.history);
+        if (result) {
+            if (result.history) setHistory(result.history);
+            if (result.customer_name) setCustomerName(result.customer_name);
         }
         setLoading(false);
     };
@@ -41,24 +43,47 @@ export default function CustomerScreen({ route }) {
         }).format(value);
     };
 
-    const renderHistoryItem = ({ item }) => (
-        <View style={styles.historyItem}>
-            <View style={styles.row}>
-                <Text style={styles.date}>{item.Data_Emissao}</Text>
-                <Text style={styles.status}>{item.Status_Documento}</Text>
+    const DocumentCard = ({ item }) => {
+        const [expanded, setExpanded] = useState(false);
+
+        return (
+            <View style={styles.documentCard}>
+                <TouchableOpacity
+                    style={styles.documentHeader}
+                    onPress={() => setExpanded(!expanded)}
+                >
+                    <View style={styles.row}>
+                        <Text style={styles.date}>{item.date}</Text>
+                        <Text style={styles.docNum}>{item.type || 'Doc'}: {item.document_number}</Text>
+                    </View>
+                    <View style={styles.row}>
+                        <Text style={styles.status}>{item.status}</Text>
+                        <Text style={styles.totalValue}>{formatCurrency(item.total_value)}</Text>
+                    </View>
+                    <Text style={styles.expandText}>{expanded ? "▲ Ocultar Itens" : "▼ Ver Itens"}</Text>
+                </TouchableOpacity>
+
+                {expanded && (
+                    <View style={styles.itemsContainer}>
+                        {item.items.map((prod, index) => (
+                            <View key={index} style={styles.productItem}>
+                                <Text style={styles.productName}>{prod.Nome_Produto}</Text>
+                                <View style={styles.row}>
+                                    <Text style={styles.productQty}>Qtd: {prod.Quantidade}</Text>
+                                    <Text style={styles.productValue}>{formatCurrency(prod.Valor_Liquido)}</Text>
+                                </View>
+                            </View>
+                        ))}
+                    </View>
+                )}
             </View>
-            <Text style={styles.product}>{item.Nome_Produto}</Text>
-            <View style={styles.row}>
-                <Text>Qtd: {item.Quantidade}</Text>
-                <Text style={styles.value}>{formatCurrency(item.Valor_Liquido)}</Text>
-            </View>
-        </View>
-    );
+        );
+    };
 
     return (
         <ScrollView style={styles.container}>
             <View style={styles.headerContainer}>
-                <Text style={styles.title}>{cardCode}</Text>
+                <Text style={styles.title}>{cardCode} - {customerName || 'Carregando...'}</Text>
                 <TouchableOpacity
                     style={styles.pitchButton}
                     onPress={handleGeneratePitch}
@@ -85,9 +110,9 @@ export default function CustomerScreen({ route }) {
             ) : (
                 <FlatList
                     data={history}
-                    keyExtractor={(item, index) => index.toString()}
-                    renderItem={renderHistoryItem}
-                    scrollEnabled={false} // Scroll controlado pelo ScrollView pai
+                    keyExtractor={(item) => item.document_number.toString()}
+                    renderItem={({ item }) => <DocumentCard item={item} />}
+                    scrollEnabled={false}
                     ListEmptyComponent={<Text>Nenhum histórico encontrado.</Text>}
                 />
             )}
@@ -145,12 +170,42 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         marginTop: 10,
     },
-    historyItem: {
+    documentCard: {
         backgroundColor: 'white',
-        padding: 12,
         borderRadius: 8,
+        marginBottom: 10,
+        elevation: 2,
+        overflow: 'hidden',
+    },
+    documentHeader: {
+        padding: 15,
+        backgroundColor: '#fff',
+    },
+    itemsContainer: {
+        backgroundColor: '#f9f9f9',
+        padding: 10,
+        borderTopWidth: 1,
+        borderTopColor: '#eee',
+    },
+    productItem: {
         marginBottom: 8,
-        elevation: 1,
+        paddingBottom: 8,
+        borderBottomWidth: 1,
+        borderBottomColor: '#eee',
+    },
+    productName: {
+        fontSize: 14,
+        color: '#333',
+        marginBottom: 4,
+    },
+    productQty: {
+        fontSize: 12,
+        color: '#666',
+    },
+    productValue: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        color: '#008000',
     },
     row: {
         flexDirection: 'row',
@@ -161,18 +216,24 @@ const styles = StyleSheet.create({
         color: '#666',
         fontSize: 12,
     },
-    status: {
+    docNum: {
         fontSize: 12,
         fontWeight: 'bold',
+        color: '#333',
+    },
+    status: {
+        fontSize: 12,
         color: '#444',
     },
-    product: {
-        fontSize: 14,
-        fontWeight: 'bold',
-        marginBottom: 4,
-    },
-    value: {
+    totalValue: {
         color: '#008000',
         fontWeight: 'bold',
+        fontSize: 14,
     },
+    expandText: {
+        fontSize: 10,
+        color: '#6200ee',
+        textAlign: 'center',
+        marginTop: 5,
+    }
 });
