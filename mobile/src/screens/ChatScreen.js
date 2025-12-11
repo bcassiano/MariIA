@@ -4,7 +4,7 @@ import { sendChatMessage } from '../services/api';
 
 export default function ChatScreen() {
     const [messages, setMessages] = useState([
-        { id: 1, text: "Olá! Sou a MariIA. Como posso ajudar nas suas vendas hoje?", sender: 'bot' }
+        { id: 1, text: "Olá! Sou a Mari IA. Como posso ajudar nas suas vendas hoje?", sender: 'bot' }
     ]);
     const [inputText, setInputText] = useState('');
     const [loading, setLoading] = useState(false);

@@ -43,6 +43,12 @@ export default function CustomerScreen({ route }) {
         }).format(value);
     };
 
+    const formatDate = (dateString) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('pt-BR');
+    };
+
     const DocumentCard = ({ item }) => {
         const [expanded, setExpanded] = useState(false);
 
@@ -53,7 +59,7 @@ export default function CustomerScreen({ route }) {
                     onPress={() => setExpanded(!expanded)}
                 >
                     <View style={styles.row}>
-                        <Text style={styles.date}>{item.date}</Text>
+                        <Text style={styles.date}>{formatDate(item.date)}</Text>
                         <Text style={styles.docNum}>{item.type || 'Doc'}: {item.document_number}</Text>
                     </View>
                     <View style={styles.row}>
@@ -92,14 +98,14 @@ export default function CustomerScreen({ route }) {
                     {pitchLoading ? (
                         <ActivityIndicator color="#fff" />
                     ) : (
-                        <Text style={styles.pitchButtonText}>✨ Gerar Pitch IA</Text>
+                        <Text style={styles.pitchButtonText}>🪄✨ Gerar Pitch IA</Text>
                     )}
                 </TouchableOpacity>
             </View>
 
             {pitch && (
                 <View style={styles.pitchContainer}>
-                    <Text style={styles.pitchTitle}>Sugestão da MariIA:</Text>
+                    <Text style={styles.pitchTitle}>Sugestão da Mari IA:</Text>
                     <Text style={styles.pitchText}>{pitch}</Text>
                 </View>
             )}

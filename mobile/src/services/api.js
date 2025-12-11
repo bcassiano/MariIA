@@ -9,6 +9,9 @@ const API_URL = Platform.OS === 'web' ? 'http://localhost:8000' : 'http://192.16
 
 const api = axios.create({
     baseURL: API_URL,
+    headers: {
+        'x-api-key': process.env.EXPO_PUBLIC_API_KEY
+    }
 });
 
 export const getInsights = async (days = 30) => {

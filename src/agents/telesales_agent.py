@@ -6,6 +6,7 @@ from typing import Dict, List, Optional
 import pandas as pd
 import vertexai
 from vertexai.generative_models import GenerativeModel, SafetySetting
+from cachetools import cached, TTLCache
 
 # Adiciona o diretório raiz ao path para importar módulos
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
@@ -44,6 +45,8 @@ class TelesalesAgent:
         print("DEBUG: Iniciando DatabaseConnector...", flush=True)
         self.db = DatabaseConnector()
         print("DEBUG: Init concluído.", flush=True)
+        # Cache para insights e inativos (10 minutos de duração, máx 100 itens)
+        self.cache = TTLCache(maxsize=100, ttl=600)
 
     def get_customer_history(self, card_code: str, limit: int = 10) -> pd.DataFrame:
         """Busca histórico recente de um cliente específico (Query Parametrizada)."""
@@ -73,6 +76,7 @@ class TelesalesAgent:
         # Passa o parâmetro de forma segura
         return self.db.get_dataframe(query, params={"card_code": card_code})
 
+    @cached(cache=TTLCache(maxsize=100, ttl=600))
     def get_sales_insights(self, days: int = 30) -> pd.DataFrame:
         """Busca insights gerais de vendas recentes (Query Parametrizada)."""
         # Nota: DATEADD aceita parâmetros numéricos, mas para garantir, passamos via params
@@ -92,6 +96,7 @@ class TelesalesAgent:
         """
         return self.db.get_dataframe(query, params={"days": days})
 
+    @cached(cache=TTLCache(maxsize=100, ttl=600))
     def get_inactive_customers(self, days: int = 30) -> pd.DataFrame:
         """Busca clientes sem compras há mais de 'days' dias (Risco de Churn)."""
         # Otimização: Agrupa apenas pelo Código (mais rápido) e pega o MAX dos textos
@@ -150,6 +155,16 @@ class TelesalesAgent:
         2. Calcule a frequência média (ele comprou recentemente?).
         3. Crie um PITCH DE VENDA para ligar para ele hoje.
            {f'Foco especial em vender o produto: {target_sku}' if target_sku else 'Sugira um produto para reposição ou novidade.'}
+        
+        REGRAS DE OURO (ANTI-ALUCINAÇÃO):
+        - Baseie-se ESTRITAMENTE nos dados de histórico fornecidos acima.
+        - NÃO invente produtos, datas ou valores que não estejam na tabela.
+        - Se não houver dados suficientes para uma conclusão, diga "Não há dados suficientes".
+
+        TRANSPARÊNCIA (OBRIGATÓRIO):
+        Ao final do pitch, adicione uma seção "🔍 Por que sugeri isso?":
+        - Cite a fonte dos dados (ex: "Baseado no histórico de 20 compras do ERP").
+        - Explique o cálculo ou lógica (ex: "Cliente compra a cada 15 dias e está há 20 sem comprar", "Margem deste produto é 10% superior à média").
         """
 
         if not self.model:
@@ -161,7 +176,7 @@ class TelesalesAgent:
                 prompt,
                 generation_config={
                     "max_output_tokens": 8192,
-                    "temperature": 0.7,
+                    "temperature": 0.2, # Baixa temperatura para reduzir criatividade/alucinação
                 },
                 safety_settings=[
                     SafetySetting(

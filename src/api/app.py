@@ -62,8 +62,16 @@ def clean_data(df):
     for col in df.select_dtypes(include=['object']).columns:
         df[col] = df[col].apply(lambda x: float(x) if isinstance(x, Decimal) else x)
     
+    # Substitui Infinito por None
+    df = df.replace([np.inf, -np.inf], None)
+
+    # Garante que colunas com NaN virem object para aceitar None
+    for col in df.columns:
+        if df[col].isnull().any():
+            df[col] = df[col].astype(object)
+
     # Substitui NaN por None
-    df = df.replace({np.nan: None})
+    df = df.where(pd.notnull(df), None)
     return df
 
 # --- Endpoints ---
@@ -94,6 +102,7 @@ def get_inactive(days: int = 30):
         if not df.empty and 'Ultima_Compra' in df.columns:
             df['Ultima_Compra'] = df['Ultima_Compra'].astype(str)
             
+        df = clean_data(df)
         return {"data": df.to_dict(orient="records")}
     except Exception as e:
         import traceback

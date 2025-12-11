@@ -1,0 +1,31 @@
+DEBUG: Iniciando Vertex AI...
+DEBUG: Vertex AI OK.
+DEBUG: Iniciando DatabaseConnector...
+DEBUG: Init concluído.
+Fetching insights...
+Columns: ['Codigo_Cliente', 'Nome_Cliente', 'Cidade', 'Estado', 'Total_Venda', 'Total_Margem']
+
+Nulls before cleaning:
+Codigo_Cliente    0
+Nome_Cliente      0
+Cidade            0
+Estado            0
+Total_Venda       4
+Total_Margem      4
+dtype: int64
+
+Infs before cleaning:
+Codigo_Cliente    0
+Nome_Cliente      0
+Cidade            0
+Estado            0
+Total_Venda       0
+Total_Margem      0
+dtype: int64
+
+Cleaning data...
+
+Nulls after cleaning (should be handled by None, but pandas might show False for None in object cols):
+
+Serializing...
+Serialization successful.

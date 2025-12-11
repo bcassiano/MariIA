@@ -53,7 +53,7 @@ export default function HomeScreen({ navigation }) {
             style={[styles.card, viewMode === 'inactive' && styles.cardInactive]}
             onPress={() => navigation.navigate('Customer', { cardCode: item.Codigo_Cliente })}
         >
-            <Text style={styles.customerName}>{item.Nome_Cliente}</Text>
+            <Text style={styles.customerName}>{item.Codigo_Cliente} - {item.Nome_Cliente}</Text>
             <View style={styles.row}>
                 <Text style={styles.city}>{item.Cidade} - {item.Estado}</Text>
                 {viewMode === 'active' ? (
