@@ -1,14 +1,81 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { sendChatMessage } from '../services/api';
 
-export default function ChatScreen() {
+const STORAGE_KEY = '@mariia_chat_history';
+
+export default function ChatScreen({ navigation }) {
     const [messages, setMessages] = useState([
         { id: 1, text: "Olá! Sou a Mari IA. Como posso ajudar nas suas vendas hoje?", sender: 'bot' }
     ]);
     const [inputText, setInputText] = useState('');
     const [loading, setLoading] = useState(false);
     const flatListRef = useRef(null);
+
+    // Carrega histórico ao iniciar
+    useEffect(() => {
+        loadHistory();
+    }, []);
+
+    // Salva histórico sempre que mudar (exceto se estiver vazio/inicial)
+    useEffect(() => {
+        if (messages.length > 1) {
+            saveHistory();
+        }
+    }, [messages]);
+
+    // Configura botão de Nova Conversa no Header
+    useEffect(() => {
+        navigation.setOptions({
+            headerRight: () => (
+                <TouchableOpacity onPress={confirmNewChat} style={styles.newChatButton}>
+                    <Text style={styles.newChatButtonText}>✎ Nova Conversa</Text>
+                </TouchableOpacity>
+            ),
+        });
+    }, [navigation]);
+
+    const loadHistory = async () => {
+        try {
+            const jsonValue = await AsyncStorage.getItem(STORAGE_KEY);
+            if (jsonValue != null) {
+                setMessages(JSON.parse(jsonValue));
+            }
+        } catch (e) {
+            console.error("Erro ao carregar histórico", e);
+        }
+    };
+
+    const saveHistory = async () => {
+        try {
+            const jsonValue = JSON.stringify(messages);
+            await AsyncStorage.setItem(STORAGE_KEY, jsonValue);
+        } catch (e) {
+            console.error("Erro ao salvar histórico", e);
+        }
+    };
+
+    const confirmNewChat = () => {
+        Alert.alert(
+            "Nova Conversa",
+            "Deseja apagar o histórico e iniciar uma nova conversa?",
+            [
+                { text: "Cancelar", style: "cancel" },
+                { text: "Sim, limpar", onPress: startNewChat, style: 'destructive' }
+            ]
+        );
+    };
+
+    const startNewChat = async () => {
+        const initialMsg = [{ id: Date.now(), text: "Olá! Sou a Mari IA. Como posso ajudar nas suas vendas hoje?", sender: 'bot' }];
+        setMessages(initialMsg);
+        try {
+            await AsyncStorage.removeItem(STORAGE_KEY);
+        } catch (e) {
+            console.error("Erro ao limpar histórico", e);
+        }
+    };
 
     const handleSend = async () => {
         if (!inputText.trim()) return;
@@ -19,7 +86,7 @@ export default function ChatScreen() {
         setLoading(true);
 
         try {
-            const result = await sendChatMessage(userMsg.text);
+            const result = await sendChatMessage(userMsg.text, messages);
             const botMsg = {
                 id: Date.now() + 1,
                 text: result.response || "Desculpe, não entendi.",
@@ -32,10 +99,6 @@ export default function ChatScreen() {
         }
         setLoading(false);
     };
-
-    useEffect(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
-    }, [messages]);
 
     const renderItem = ({ item }) => (
         <View style={[
@@ -62,6 +125,7 @@ export default function ChatScreen() {
                 renderItem={renderItem}
                 contentContainerStyle={styles.listContent}
                 style={{ flex: 1 }}
+                onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
             />
 
             <View style={styles.inputContainer}>
@@ -99,6 +163,19 @@ const styles = StyleSheet.create({
                 flexDirection: 'column',
             }
         })
+    },
+    newChatButton: {
+        marginRight: 15,
+        backgroundColor: 'white',
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 20,
+        elevation: 2,
+    },
+    newChatButtonText: {
+        color: '#6200ee',
+        fontWeight: 'bold',
+        fontSize: 12,
     },
     listContent: {
         padding: 15,

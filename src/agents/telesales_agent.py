@@ -133,6 +133,21 @@ class TelesalesAgent:
         """
         return self.db.get_dataframe(query, params={"vendor": f"%{vendor_name}%"})
 
+    @cached(cache=TTLCache(maxsize=1, ttl=3600)) # Cache de 1 hora
+    def get_top_products(self, days: int = 90) -> pd.DataFrame:
+        """Retorna lista dos produtos mais vendidos para referência (Catálogo)."""
+        query = """
+        SELECT TOP 50
+            SKU,
+            MAX(Nome_Produto) as Nome_Produto,
+            SUM(Valor_Liquido) as Total_Vendas
+        FROM FAL_IA_Dados_Vendas_Televendas WITH (NOLOCK)
+        WHERE Data_Emissao >= DATEADD(day, -:days, GETDATE())
+        GROUP BY SKU
+        ORDER BY Total_Vendas DESC
+        """
+        return self.db.get_dataframe(query, params={"days": days})
+
     def generate_pitch(self, card_code: str, target_sku: str = "") -> str:
         """Gera um pitch de vendas personalizado para o cliente."""
         
@@ -203,7 +218,7 @@ class TelesalesAgent:
         except Exception as e:
             return f"Erro ao gerar insight de IA: {e}"
 
-    def chat(self, user_message: str) -> str:
+    def chat(self, user_message: str, history: list = []) -> str:
         """Conversa livre com o assistente, com capacidade de buscar dados de clientes."""
         if not self.model:
             return "O modelo de IA não está disponível no momento."
@@ -213,6 +228,15 @@ class TelesalesAgent:
         customer_match = re.search(r'\b(C\d+)\b', user_message, re.IGNORECASE)
         
         context_data = ""
+        
+        # Carrega catálogo de produtos (Top 50) para evitar alucinações
+        try:
+            products_df = self.get_top_products()
+            if not products_df.empty:
+                products_list = products_df.to_markdown(index=False)
+                context_data += f"\n\n[CATÁLOGO DE PRODUTOS DISPONÍVEIS (TOP 50)]:\n{products_list}\n\nATENÇÃO: Apenas sugira produtos listados acima ou que constem no histórico do cliente. NÃO invente produtos."
+        except Exception as e:
+            print(f"Erro ao carregar produtos: {e}")
         
         # Cenário 1: Cliente Específico
         if customer_match:
@@ -243,7 +267,7 @@ class TelesalesAgent:
                     print(f"Erro ao buscar carteira: {e}")
         
         # Cenário 3: Perguntas Gerais sobre Vendas/Clientes (Ex: "Quem devo ligar?", "Melhores clientes")
-        elif any(term in user_message.lower() for term in ["venda", "ligar", "clientes", "melhores", "top", "inativos", "parados"]):
+        elif any(term in user_message.lower() for term in ["venda", "ligar", "cliente", "melhor", "top", "inativo", "parado", "comprou", "ranking", "faturamento"]):
             try:
                 # Busca Top 20 Clientes Ativos
                 active_df = self.get_sales_insights(days=30).head(20)
@@ -262,14 +286,31 @@ class TelesalesAgent:
                 print(f"Erro ao buscar insights no chat: {e}")
 
         try:
-            # Configuração simples para chat
-            prompt = f"USUÁRIO: {user_message}{context_data}\nASSISTENTE:"
+            # Formata o histórico para o prompt
+            history_text = ""
+            if history:
+                # Pega as últimas 6 mensagens para contexto (evita estourar tokens)
+                recent_history = history[-6:] 
+                for msg in recent_history:
+                    role = "USUÁRIO" if msg.get('sender') == 'user' else "ASSISTENTE"
+                    history_text += f"{role}: {msg.get('text')}\n"
+
+            # Configuração simples para chat com histórico
+            prompt = f"""
+            HISTÓRICO DA CONVERSA:
+            {history_text}
+            
+            CONTEXTO ATUAL:
+            {context_data}
+            
+            USUÁRIO: {user_message}
+            ASSISTENTE:"""
             
             response = self.model.generate_content(
                 prompt,
                 generation_config={
                     "max_output_tokens": 8192,
-                    "temperature": 0.7,
+                    "temperature": 0.2,
                 }
             )
             return response.text

@@ -45,6 +45,7 @@ class PitchRequest(BaseModel):
 
 class ChatRequest(BaseModel):
     message: str
+    history: list = [] # Lista de mensagens anteriores
 
 class CustomerHistoryItem(BaseModel):
     Data_Emissao: str
@@ -165,7 +166,7 @@ def generate_pitch(request: PitchRequest):
 def chat_with_agent(request: ChatRequest):
     """Conversa com o assistente."""
     try:
-        response = agent.chat(request.message)
+        response = agent.chat(request.message, request.history)
         return {"response": response}
     except Exception as e:
         import traceback

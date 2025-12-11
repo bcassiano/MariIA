@@ -60,9 +60,9 @@ export const generatePitch = async (cardCode, targetSku) => {
     }
 };
 
-export const sendChatMessage = async (message) => {
+export const sendChatMessage = async (message, history = []) => {
     try {
-        const response = await api.post('/chat', { message });
+        const response = await api.post('/chat', { message, history });
         return response.data;
     } catch (error) {
         console.error("Erro no chat:", error);
