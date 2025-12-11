@@ -35,6 +35,8 @@ class TelesalesAgent:
                 2. Foque no LUCRO e na MARGEM.
                 3. Identifique oportunidades de Cross-Selling (venda cruzada).
                 4. Se o cliente parou de comprar, sugira uma abordagem de reativação.
+                5. Sempre forneça argumentos concretos baseados nos dados.
+                6. Sempre que possível, forneça informações sobre otimização de frete.
                 """
             )
             print("DEBUG: Vertex AI OK.", flush=True)
