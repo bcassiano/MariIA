@@ -1,27 +1,53 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, Platform, ScrollView } from 'react-native';
 import { getInsights, getInactiveCustomers } from '../services/api';
 
 export default function HomeScreen({ navigation }) {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [errorMsg, setErrorMsg] = useState(null);
-    const [days, setDays] = useState(30);
+    // Filtro inicial: 30 dias
+    const [selectedFilter, setSelectedFilter] = useState({ label: '30', val: 30 });
     const [viewMode, setViewMode] = useState('active'); // 'active' | 'inactive'
 
-    useEffect(() => {
-        loadData(days, viewMode);
-    }, [days, viewMode]);
+    const filters = [
+        { label: '15-25', min: 15, max: 25 },
+        { label: '26-30', min: 26, max: 30 },
+        { label: '30', val: 30 },
+        { label: '60', val: 60 },
+        { label: '90', val: 90 }
+    ];
 
-    const loadData = async (selectedDays, mode) => {
+    useEffect(() => {
+        loadData(selectedFilter, viewMode);
+    }, [selectedFilter, viewMode]);
+
+    const loadData = async (filter, mode) => {
         setLoading(true);
         setErrorMsg(null);
         try {
+            let minDays, maxDays;
+
+            if (filter.min !== undefined) {
+                // Range específico (Ex: 15-25)
+                minDays = filter.min;
+                maxDays = filter.max;
+            } else {
+                // Padrão (30/60/90)
+                if (mode === 'active') {
+                    minDays = 0;
+                    maxDays = filter.val;
+                } else {
+                    minDays = filter.val;
+                    maxDays = 9999;
+                }
+            }
+
             let result;
             if (mode === 'active') {
-                result = await getInsights(selectedDays);
+                result = await getInsights(minDays, maxDays);
             } else {
-                result = await getInactiveCustomers(selectedDays);
+                result = await getInactiveCustomers(minDays, maxDays);
             }
 
             if (result.error) {
@@ -88,17 +114,24 @@ export default function HomeScreen({ navigation }) {
                     </TouchableOpacity>
                 </View>
 
-                <View style={styles.filterContainer}>
-                    {[30, 60, 90].map((d) => (
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.filterContainer}
+                    style={styles.filterScroll}
+                >
+                    {filters.map((f) => (
                         <TouchableOpacity
-                            key={d}
-                            style={[styles.filterButton, days === d && styles.filterButtonActive]}
-                            onPress={() => setDays(d)}
+                            key={f.label}
+                            style={[styles.filterButton, selectedFilter.label === f.label && styles.filterButtonActive]}
+                            onPress={() => setSelectedFilter(f)}
                         >
-                            <Text style={[styles.filterText, days === d && styles.filterTextActive]}>{d} dias</Text>
+                            <Text style={[styles.filterText, selectedFilter.label === f.label && styles.filterTextActive]}>
+                                {f.label} dias
+                            </Text>
                         </TouchableOpacity>
                     ))}
-                </View>
+                </ScrollView>
             </View>
 
             {errorMsg && (
@@ -185,9 +218,14 @@ const styles = StyleSheet.create({
     toggleTextActive: {
         color: '#333',
     },
+    filterScroll: {
+        flexGrow: 0, // Impede que o ScrollView ocupe altura desnecessária
+    },
     filterContainer: {
         flexDirection: 'row',
         gap: 10,
+        paddingHorizontal: 5, // Espaço nas pontas
+        paddingBottom: 5, // Espaço para sombra não cortar
     },
     filterButton: {
         paddingVertical: 6,

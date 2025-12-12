@@ -57,14 +57,20 @@ export default function ChatScreen({ navigation }) {
     };
 
     const confirmNewChat = () => {
-        Alert.alert(
-            "Nova Conversa",
-            "Deseja apagar o histórico e iniciar uma nova conversa?",
-            [
-                { text: "Cancelar", style: "cancel" },
-                { text: "Sim, limpar", onPress: startNewChat, style: 'destructive' }
-            ]
-        );
+        if (Platform.OS === 'web') {
+            if (window.confirm("Deseja apagar o histórico e iniciar uma nova conversa?")) {
+                startNewChat();
+            }
+        } else {
+            Alert.alert(
+                "Nova Conversa",
+                "Deseja apagar o histórico e iniciar uma nova conversa?",
+                [
+                    { text: "Cancelar", style: "cancel" },
+                    { text: "Sim, limpar", onPress: startNewChat, style: 'destructive' }
+                ]
+            );
+        }
     };
 
     const startNewChat = async () => {
@@ -112,6 +118,13 @@ export default function ChatScreen({ navigation }) {
         </View>
     );
 
+    const handleKeyPress = (e) => {
+        if (Platform.OS === 'web' && e.nativeEvent.key === 'Enter' && !e.nativeEvent.shiftKey) {
+            e.preventDefault();
+            handleSend();
+        }
+    };
+
     return (
         <KeyboardAvoidingView
             style={styles.container}
@@ -135,6 +148,8 @@ export default function ChatScreen({ navigation }) {
                     onChangeText={setInputText}
                     placeholder="Digite sua mensagem..."
                     placeholderTextColor="#999"
+                    multiline={true}
+                    onKeyPress={handleKeyPress}
                 />
                 <TouchableOpacity
                     style={styles.sendButton}

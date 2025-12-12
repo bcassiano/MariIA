@@ -31,12 +31,13 @@ class TelesalesAgent:
                 Sua missão é analisar dados de clientes e produtos para gerar insights acionáveis e argumentos de venda.
                 
                 Diretrizes:
-                1. Seja conciso e direto. Vendedores têm pouco tempo.
-                2. Foque no LUCRO e na MARGEM.
-                3. Identifique oportunidades de Cross-Selling (venda cruzada).
-                4. Se o cliente parou de comprar, sugira uma abordagem de reativação.
-                5. Sempre forneça argumentos concretos baseados nos dados.
-                6. Sempre que possível, forneça informações sobre otimização de frete.
+                1. Adote uma postura PROFISSIONAL e EXECUTIVA. Evite gírias ou informalidade excessiva.
+                2. Seja conciso e direto. Vendedores têm pouco tempo.
+                3. Foque no LUCRO, na MARGEM e no FECHAMENTO DA VENDA.
+                4. Identifique oportunidades de Cross-Selling (venda cruzada) usando APENAS produtos do catálogo.
+                5. Se o cliente parou de comprar, sugira uma abordagem de reativação estratégica.
+                6. Sempre forneça argumentos concretos baseados nos dados.
+                7. Sempre que possível, forneça informações sobre otimização de frete.
                 """
             )
             print("DEBUG: Vertex AI OK.", flush=True)
@@ -79,7 +80,7 @@ class TelesalesAgent:
         return self.db.get_dataframe(query, params={"card_code": card_code})
 
     @cached(cache=TTLCache(maxsize=100, ttl=600))
-    def get_sales_insights(self, days: int = 30) -> pd.DataFrame:
+    def get_sales_insights(self, min_days: int = 0, max_days: int = 30) -> pd.DataFrame:
         """Busca insights gerais de vendas recentes (Query Parametrizada)."""
         # Nota: DATEADD aceita parâmetros numéricos, mas para garantir, passamos via params
         query = """
@@ -91,15 +92,15 @@ class TelesalesAgent:
             SUM(Valor_Liquido) as Total_Venda,
             SUM(Margem_Valor) as Total_Margem
         FROM FAL_IA_Dados_Vendas_Televendas
-        WHERE Data_Emissao >= DATEADD(day, -:days, GETDATE())
+        WHERE Data_Emissao BETWEEN DATEADD(day, -:max_days, GETDATE()) AND DATEADD(day, -:min_days, GETDATE())
           AND Nome_Cliente NOT LIKE '%FANTASTICO ALIMENTOS LTDA%'
         GROUP BY Codigo_Cliente, Nome_Cliente, Cidade, Estado
         ORDER BY Total_Venda DESC
         """
-        return self.db.get_dataframe(query, params={"days": days})
+        return self.db.get_dataframe(query, params={"min_days": min_days, "max_days": max_days})
 
     @cached(cache=TTLCache(maxsize=100, ttl=600))
-    def get_inactive_customers(self, days: int = 30) -> pd.DataFrame:
+    def get_inactive_customers(self, min_days: int = 30, max_days: int = 365) -> pd.DataFrame:
         """Busca clientes sem compras há mais de 'days' dias (Risco de Churn)."""
         # Otimização: Agrupa apenas pelo Código (mais rápido) e pega o MAX dos textos
         query = """
@@ -113,10 +114,10 @@ class TelesalesAgent:
         FROM FAL_IA_Dados_Vendas_Televendas WITH (NOLOCK)
         WHERE Nome_Cliente NOT LIKE '%FANTASTICO ALIMENTOS LTDA%'
         GROUP BY Codigo_Cliente
-        HAVING MAX(Data_Emissao) < DATEADD(day, -:days, GETDATE())
+        HAVING MAX(Data_Emissao) BETWEEN DATEADD(day, -:max_days, GETDATE()) AND DATEADD(day, -:min_days, GETDATE())
         ORDER BY Ultima_Compra DESC
         """
-        return self.db.get_dataframe(query, params={"days": days})
+        return self.db.get_dataframe(query, params={"min_days": min_days, "max_days": max_days})
 
     def get_customers_by_vendor(self, vendor_name: str) -> pd.DataFrame:
         """Busca clientes da carteira de um vendedor específico."""
@@ -267,7 +268,7 @@ class TelesalesAgent:
                     print(f"Erro ao buscar carteira: {e}")
         
         # Cenário 3: Perguntas Gerais sobre Vendas/Clientes (Ex: "Quem devo ligar?", "Melhores clientes")
-        elif any(term in user_message.lower() for term in ["venda", "ligar", "cliente", "melhor", "top", "inativo", "parado", "comprou", "ranking", "faturamento"]):
+        elif any(term in user_message.lower() for term in ["venda", "ligar", "cliente", "melhor", "top", "inativo", "parado", "comprou", "ranking", "faturamento", "data", "quando", "ultimo", "ultima", "lista", "tabela", "analise", "sugestao", "estrategia", "potencial"]):
             try:
                 # Busca Top 20 Clientes Ativos
                 active_df = self.get_sales_insights(days=30).head(20)

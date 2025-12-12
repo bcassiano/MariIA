@@ -82,10 +82,10 @@ def health_check():
     return {"status": "online", "agent": "TelesalesAgent"}
 
 @app.get("/insights", dependencies=[Depends(get_api_key)])
-def get_insights(days: int = 30):
+def get_insights(min_days: int = 0, max_days: int = 30):
     """Retorna o ranking de vendas dos últimos N dias."""
     try:
-        df = agent.get_sales_insights(days=days)
+        df = agent.get_sales_insights(min_days=min_days, max_days=max_days)
         df = clean_data(df)
         data = df.to_dict(orient="records")
         return {"data": data}
@@ -95,10 +95,10 @@ def get_insights(days: int = 30):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/inactive", dependencies=[Depends(get_api_key)])
-def get_inactive(days: int = 30):
+def get_inactive(min_days: int = 30, max_days: int = 365):
     """Retorna clientes inativos (sem compras) há X dias."""
     try:
-        df = agent.get_inactive_customers(days)
+        df = agent.get_inactive_customers(min_days=min_days, max_days=max_days)
         # Converte datas para string
         if not df.empty and 'Ultima_Compra' in df.columns:
             df['Ultima_Compra'] = df['Ultima_Compra'].astype(str)

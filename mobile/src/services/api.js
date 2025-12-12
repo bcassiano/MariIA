@@ -14,10 +14,10 @@ const api = axios.create({
     }
 });
 
-export const getInsights = async (days = 30) => {
+export const getInsights = async (minDays = 0, maxDays = 30) => {
     try {
-        console.log(`Chamando API em: ${API_URL}/insights?days=${days}`);
-        const response = await api.get(`/insights?days=${days}`);
+        console.log(`Chamando API em: ${API_URL}/insights?min_days=${minDays}&max_days=${maxDays}`);
+        const response = await api.get(`/insights?min_days=${minDays}&max_days=${maxDays}`);
         return response.data;
     } catch (error) {
         console.error("Erro ao buscar insights:", error);
@@ -26,10 +26,10 @@ export const getInsights = async (days = 30) => {
     }
 };
 
-export const getInactiveCustomers = async (days = 30) => {
+export const getInactiveCustomers = async (minDays = 30, maxDays = 365) => {
     try {
-        console.log(`Chamando API em: ${API_URL}/inactive?days=${days}`);
-        const response = await api.get(`/inactive?days=${days}`);
+        console.log(`Chamando API em: ${API_URL}/inactive?min_days=${minDays}&max_days=${maxDays}`);
+        const response = await api.get(`/inactive?min_days=${minDays}&max_days=${maxDays}`);
         return response.data;
     } catch (error) {
         console.error("Erro ao buscar inativos:", error);
