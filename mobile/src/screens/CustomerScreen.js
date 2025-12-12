@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, Alert } from 'react-native';
-import { getCustomer, generatePitch } from '../services/api';
+import { getCustomer, generatePitch, sendPitchFeedback } from '../services/api';
 
 export default function CustomerScreen({ route }) {
     const { cardCode } = route.params;
@@ -24,16 +24,29 @@ export default function CustomerScreen({ route }) {
         setLoading(false);
     };
 
+    const [pitchId, setPitchId] = useState(null);
+    const [feedbackGiven, setFeedbackGiven] = useState(false);
+
     const handleGeneratePitch = async () => {
         setPitchLoading(true);
         setPitch(null);
+        setPitchId(null);
+        setFeedbackGiven(false);
         const result = await generatePitch(cardCode, ""); // SKU opcional
         if (result && result.pitch) {
             setPitch(result.pitch);
+            setPitchId(result.pitch_id);
         } else {
             Alert.alert("Erro", "Não foi possível gerar o pitch.");
         }
         setPitchLoading(false);
+    };
+
+    const handleFeedback = async (type) => {
+        if (!pitchId) return;
+        setFeedbackGiven(true);
+        await sendPitchFeedback(pitchId, type);
+        Alert.alert("Obrigado!", "Seu feedback ajuda a Mari IA a aprender.");
     };
 
     const formatCurrency = (value) => {
@@ -107,6 +120,29 @@ export default function CustomerScreen({ route }) {
                 <View style={styles.pitchContainer}>
                     <Text style={styles.pitchTitle}>Sugestão da Mari IA:</Text>
                     <Text style={styles.pitchText}>{pitch}</Text>
+
+                    {/* Botões de Feedback */}
+                    {!feedbackGiven ? (
+                        <View style={styles.feedbackContainer}>
+                            <Text style={styles.feedbackLabel}>Isso ajudou?</Text>
+                            <View style={styles.feedbackButtons}>
+                                <TouchableOpacity
+                                    style={[styles.feedbackBtn, styles.usefulBtn]}
+                                    onPress={() => handleFeedback('useful')}
+                                >
+                                    <Text style={styles.feedbackText}>👍 Útil</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={[styles.feedbackBtn, styles.soldBtn]}
+                                    onPress={() => handleFeedback('sold')}
+                                >
+                                    <Text style={styles.feedbackText}>💰 Vendi!</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    ) : (
+                        <Text style={styles.thankYouText}>Obrigado pelo feedback! 🚀</Text>
+                    )}
                 </View>
             )}
 
@@ -169,6 +205,46 @@ const styles = StyleSheet.create({
     pitchText: {
         color: '#333',
         lineHeight: 22,
+    },
+    feedbackContainer: {
+        marginTop: 15,
+        paddingTop: 15,
+        borderTopWidth: 1,
+        borderTopColor: '#ddd',
+        alignItems: 'center',
+    },
+    feedbackLabel: {
+        fontSize: 14,
+        color: '#666',
+        marginBottom: 10,
+    },
+    feedbackButtons: {
+        flexDirection: 'row',
+        gap: 15,
+    },
+    feedbackBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        borderRadius: 20,
+        elevation: 1,
+    },
+    usefulBtn: {
+        backgroundColor: '#e0e0e0',
+    },
+    soldBtn: {
+        backgroundColor: '#4caf50',
+    },
+    feedbackText: {
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    thankYouText: {
+        marginTop: 15,
+        textAlign: 'center',
+        color: '#6200ee',
+        fontWeight: 'bold',
     },
     sectionTitle: {
         fontSize: 18,

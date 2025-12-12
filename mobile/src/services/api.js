@@ -47,16 +47,31 @@ export const getCustomer = async (cardCode) => {
     }
 };
 
-export const generatePitch = async (cardCode, targetSku) => {
+export const generatePitch = async (cardCode, targetSku, userId = "vendedor_mobile") => {
     try {
         const response = await api.post('/pitch', {
             card_code: cardCode,
-            target_sku: targetSku
+            target_sku: targetSku,
+            user_id: userId
         });
         return response.data;
     } catch (error) {
         console.error("Erro ao gerar pitch:", error);
         return { pitch: "Erro ao conectar com a IA." };
+    }
+};
+
+export const sendPitchFeedback = async (pitchId, feedbackType, userId = "vendedor_mobile") => {
+    try {
+        await api.post('/pitch/feedback', {
+            pitch_id: pitchId,
+            feedback_type: feedbackType,
+            user_id: userId
+        });
+        return true;
+    } catch (error) {
+        console.error("Erro ao enviar feedback:", error);
+        return false;
     }
 };
 

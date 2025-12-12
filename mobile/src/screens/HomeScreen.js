@@ -95,7 +95,7 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.container}>
             <View style={styles.headerContainer}>
                 <Text style={styles.header}>
-                    {viewMode === 'active' ? 'Top Vendas' : 'Clientes Inativos'}
+                    {viewMode === 'active' ? 'Clientes top vendas' : 'Clientes em recuperação'}
                 </Text>
 
                 {/* Toggle View Mode */}
@@ -110,7 +110,7 @@ export default function HomeScreen({ navigation }) {
                         style={[styles.toggleButton, viewMode === 'inactive' && styles.toggleButtonInactive]}
                         onPress={() => setViewMode('inactive')}
                     >
-                        <Text style={[styles.toggleText, viewMode === 'inactive' && styles.toggleTextActive]}>Inativos</Text>
+                        <Text style={[styles.toggleText, viewMode === 'inactive' && styles.toggleTextActive]}>Em recuperação</Text>
                     </TouchableOpacity>
                 </View>
 

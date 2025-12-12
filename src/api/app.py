@@ -39,9 +39,7 @@ async def get_api_key(api_key_header: str = Security(api_key_header)):
 agent = TelesalesAgent()
 
 # --- Modelos de Dados (Pydantic) ---
-class PitchRequest(BaseModel):
-    card_code: str
-    target_sku: Optional[str] = ""
+
 
 class ChatRequest(BaseModel):
     message: str
@@ -151,12 +149,51 @@ def get_customer(card_code: str):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
+from src.utils.logger import log_pitch_usage, log_pitch_feedback
+import uuid
+
+class PitchRequest(BaseModel):
+    card_code: str
+    target_sku: str
+    user_id: Optional[str] = None
+
+class FeedbackRequest(BaseModel):
+    pitch_id: str
+    feedback_type: str # 'useful' | 'sold'
+    user_id: Optional[str] = None
+
 @app.post("/pitch", dependencies=[Depends(get_api_key)])
 def generate_pitch(request: PitchRequest):
     """Gera um pitch de vendas usando IA."""
     try:
         pitch = agent.generate_pitch(request.card_code, request.target_sku)
-        return {"pitch": pitch}
+        pitch_id = str(uuid.uuid4())
+        
+        # Log de Uso para Analytics
+        log_pitch_usage(
+            card_code=request.card_code,
+            target_sku=request.target_sku,
+            pitch_generated=pitch,
+            pitch_id=pitch_id,
+            user_id=request.user_id
+        )
+        
+        return {"pitch": pitch, "pitch_id": pitch_id}
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/pitch/feedback", dependencies=[Depends(get_api_key)])
+def pitch_feedback(request: FeedbackRequest):
+    """Registra feedback do usuário sobre o pitch."""
+    try:
+        log_pitch_feedback(
+            pitch_id=request.pitch_id,
+            feedback_type=request.feedback_type,
+            user_id=request.user_id
+        )
+        return {"status": "ok"}
     except Exception as e:
         import traceback
         traceback.print_exc()
