@@ -61,7 +61,7 @@ class TelesalesAgent:
             SKU,
             Nome_Produto,
             Quantidade,
-            Valor_Liquido,
+            COALESCE(Valor_Liquido, Valor_Total_Linha) as Valor_Liquido,
             Margem_Valor,
             Nome_Cliente,
             Tipo_Documento
@@ -89,7 +89,7 @@ class TelesalesAgent:
             Nome_Cliente,
             Cidade,
             Estado,
-            SUM(Valor_Liquido) as Total_Venda,
+            SUM(COALESCE(Valor_Liquido, Valor_Total_Linha)) as Total_Venda,
             SUM(Margem_Valor) as Total_Margem
         FROM FAL_IA_Dados_Vendas_Televendas
         WHERE Data_Emissao BETWEEN DATEADD(day, -:max_days, GETDATE()) AND DATEADD(day, -:min_days, GETDATE())
@@ -100,27 +100,43 @@ class TelesalesAgent:
         return self.db.get_dataframe(query, params={"min_days": min_days, "max_days": max_days})
 
     @cached(cache=TTLCache(maxsize=100, ttl=600))
-    def get_inactive_customers(self, min_days: int = 30, max_days: int = 365) -> pd.DataFrame:
-        """Busca clientes sem compras há mais de 'days' dias (Risco de Churn)."""
+    def get_inactive_customers(self, min_days: int = 30, max_days: int = 365, vendor_filter: str = None) -> pd.DataFrame:
+        """
+        Busca clientes sem compras há mais de 'days' dias (Risco de Churn).
+        Opcionalmente filtra pela carteira do vendedor atual.
+        """
+        
+        # Filtro de vendedor opcional usando a nova coluna Vendedor_Atual
+        vendor_condition = "AND Vendedor_Atual LIKE :vendor" if vendor_filter else ""
+        
         # Otimização: Agrupa apenas pelo Código (mais rápido) e pega o MAX dos textos
-        query = """
+        query = f"""
         SELECT TOP 50
             Codigo_Cliente,
             MAX(Nome_Cliente) as Nome_Cliente,
             MAX(Cidade) as Cidade,
             MAX(Estado) as Estado,
             MAX(Data_Emissao) as Ultima_Compra,
-            SUM(Valor_Liquido) as Total_Historico
+            SUM(COALESCE(Valor_Liquido, Valor_Total_Linha)) as Total_Historico
         FROM FAL_IA_Dados_Vendas_Televendas WITH (NOLOCK)
         WHERE Nome_Cliente NOT LIKE '%FANTASTICO ALIMENTOS LTDA%'
+        {vendor_condition}
         GROUP BY Codigo_Cliente
         HAVING MAX(Data_Emissao) BETWEEN DATEADD(day, -:max_days, GETDATE()) AND DATEADD(day, -:min_days, GETDATE())
         ORDER BY Ultima_Compra DESC
         """
-        return self.db.get_dataframe(query, params={"min_days": min_days, "max_days": max_days})
+        
+        params = {"min_days": min_days, "max_days": max_days}
+        if vendor_filter:
+            params["vendor"] = f"%{vendor_filter}%"
+            
+        return self.db.get_dataframe(query, params=params)
 
     def get_customers_by_vendor(self, vendor_name: str) -> pd.DataFrame:
-        """Busca clientes da carteira de um vendedor específico."""
+        """
+        Busca clientes da carteira ATUAL do vendedor.
+        ATUALIZADO: Agora usa a coluna 'Vendedor_Atual' da View.
+        """
         query = """
         SELECT DISTINCT
             Codigo_Cliente,
@@ -128,7 +144,7 @@ class TelesalesAgent:
             Cidade,
             Estado
         FROM FAL_IA_Dados_Vendas_Televendas WITH (NOLOCK)
-        WHERE Vendedor LIKE :vendor
+        WHERE Vendedor_Atual LIKE :vendor
           AND Nome_Cliente NOT LIKE '%FANTASTICO ALIMENTOS LTDA%'
         ORDER BY Nome_Cliente
         """
@@ -141,7 +157,7 @@ class TelesalesAgent:
         SELECT TOP 50
             SKU,
             MAX(Nome_Produto) as Nome_Produto,
-            SUM(Valor_Liquido) as Total_Vendas
+            SUM(COALESCE(Valor_Liquido, Valor_Total_Linha)) as Total_Vendas
         FROM FAL_IA_Dados_Vendas_Televendas WITH (NOLOCK)
         WHERE Data_Emissao >= DATEADD(day, -:days, GETDATE())
         GROUP BY SKU
@@ -252,7 +268,7 @@ class TelesalesAgent:
             except Exception as e:
                 print(f"Erro ao buscar dados no chat: {e}")
 
-        # Cenário 2: Carteira de Vendedor (Otimizado)
+        # Cenário 2: Carteira de Vendedor (Atualizado para usar Vendedor_Atual)
         elif "carteira" in user_message.lower():
             vendor_match = re.search(r'carteira (?:de|da|do)?\s*([A-Za-zÀ-ÿ]+)', user_message, re.IGNORECASE)
             if vendor_match:
@@ -261,25 +277,31 @@ class TelesalesAgent:
                     customers_df = self.get_customers_by_vendor(vendor_name)
                     if not customers_df.empty:
                         # Limita a 50 para não estourar tokens
-                        context_data = f"\n\n[DADOS DO SISTEMA - CARTEIRA DE {vendor_name.upper()}]:\n{customers_df.head(50).to_markdown(index=False)}"
+                        context_data = f"\n\n[DADOS DO SISTEMA - CARTEIRA ATUAL DE {vendor_name.upper()}]:\n{customers_df.head(50).to_markdown(index=False)}"
                     else:
-                        context_data = f"\n\n[SISTEMA]: Não encontrei clientes para o vendedor {vendor_name}."
+                        context_data = f"\n\n[SISTEMA]: Não encontrei clientes na carteira atual de {vendor_name}."
                 except Exception as e:
                     print(f"Erro ao buscar carteira: {e}")
         
-        # Cenário 3: Perguntas Gerais sobre Vendas/Clientes (Ex: "Quem devo ligar?", "Melhores clientes")
+        # Cenário 3: Perguntas Gerais sobre Vendas/Clientes
         elif any(term in user_message.lower() for term in ["venda", "ligar", "cliente", "melhor", "top", "inativo", "parado", "comprou", "ranking", "faturamento", "data", "quando", "ultimo", "ultima", "lista", "tabela", "analise", "sugestao", "estrategia", "potencial"]):
             try:
                 # Busca Top 20 Clientes Ativos
-                active_df = self.get_sales_insights(days=30).head(20)
-                # Busca Top 20 Clientes Inativos
-                inactive_df = self.get_inactive_customers(days=30).head(20)
+                active_df = self.get_sales_insights(max_days=30).head(20)
+                
+                # Tenta identificar se o usuário quer inativos de UM vendedor específico
+                # Exemplo: "clientes inativos da Renata"
+                vendor_in_message = re.search(r'(?:da|de|do)\s+([A-Za-zÀ-ÿ]+)', user_message, re.IGNORECASE)
+                vendor_filter = vendor_in_message.group(1) if vendor_in_message and "inativo" in user_message.lower() else None
+
+                # Busca Top 20 Clientes Inativos (Com ou sem filtro de carteira)
+                inactive_df = self.get_inactive_customers(max_days=30, vendor_filter=vendor_filter).head(20)
                 
                 context_data = f"""
                 \n\n[DADOS DO SISTEMA - TOP CLIENTES ATIVOS (30 DIAS)]:
                 {active_df.to_markdown(index=False) if not active_df.empty else "Sem dados."}
                 
-                \n[DADOS DO SISTEMA - CLIENTES INATIVOS/RISCO (30 DIAS)]:
+                \n[DADOS DO SISTEMA - CLIENTES INATIVOS/RISCO (30 DIAS) {f'- CARTEIRA {vendor_filter.upper()}' if vendor_filter else ''}]:
                 {inactive_df.to_markdown(index=False) if not inactive_df.empty else "Sem dados."}
                 
                 \nUse essas listas para sugerir clientes para o vendedor ligar. Priorize inativos com alto histórico ou ativos com queda."""
