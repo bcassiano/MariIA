@@ -80,10 +80,13 @@ class TelesalesAgent:
         return self.db.get_dataframe(query, params={"card_code": card_code})
 
     @cached(cache=TTLCache(maxsize=100, ttl=600))
-    def get_sales_insights(self, min_days: int = 0, max_days: int = 30) -> pd.DataFrame:
+    def get_sales_insights(self, min_days: int = 0, max_days: int = 30, vendor_filter: str = None) -> pd.DataFrame:
         """Busca insights gerais de vendas recentes (Query Parametrizada)."""
+        # Filtro de vendedor opcional
+        vendor_condition = "AND Vendedor_Atual LIKE :vendor" if vendor_filter else ""
+
         # Nota: DATEADD aceita parâmetros numéricos, mas para garantir, passamos via params
-        query = """
+        query = f"""
         SELECT TOP 50
             Codigo_Cliente,
             Nome_Cliente,
@@ -94,10 +97,15 @@ class TelesalesAgent:
         FROM FAL_IA_Dados_Vendas_Televendas
         WHERE Data_Emissao BETWEEN DATEADD(day, -:max_days, GETDATE()) AND DATEADD(day, -:min_days, GETDATE())
           AND Nome_Cliente NOT LIKE '%FANTASTICO ALIMENTOS LTDA%'
+          {vendor_condition}
         GROUP BY Codigo_Cliente, Nome_Cliente, Cidade, Estado
         ORDER BY Total_Venda DESC
         """
-        return self.db.get_dataframe(query, params={"min_days": min_days, "max_days": max_days})
+        params = {"min_days": min_days, "max_days": max_days}
+        if vendor_filter:
+            params["vendor"] = f"%{vendor_filter}%"
+            
+        return self.db.get_dataframe(query, params=params)
 
     @cached(cache=TTLCache(maxsize=100, ttl=600))
     def get_inactive_customers(self, min_days: int = 30, max_days: int = 365, vendor_filter: str = None) -> pd.DataFrame:

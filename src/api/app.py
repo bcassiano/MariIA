@@ -36,7 +36,11 @@ async def get_api_key(api_key_header: str = Security(api_key_header)):
     raise HTTPException(status_code=403, detail="Acesso Negado: API Key inválida ou ausente.")
 
 # Instância global do agente (para reuso de conexão)
+# Instância global do agente (para reuso de conexão)
 agent = TelesalesAgent()
+
+# Configuração de Vendedor Atual (Hardcoded conforme solicitação)
+CURRENT_VENDOR = "V.vp - Renata Rodrigues"
 
 # --- Modelos de Dados (Pydantic) ---
 
@@ -83,7 +87,7 @@ def health_check():
 def get_insights(min_days: int = 0, max_days: int = 30):
     """Retorna o ranking de vendas dos últimos N dias."""
     try:
-        df = agent.get_sales_insights(min_days=min_days, max_days=max_days)
+        df = agent.get_sales_insights(min_days=min_days, max_days=max_days, vendor_filter=CURRENT_VENDOR)
         df = clean_data(df)
         data = df.to_dict(orient="records")
         return {"data": data}
@@ -96,7 +100,7 @@ def get_insights(min_days: int = 0, max_days: int = 30):
 def get_inactive(min_days: int = 30, max_days: int = 365):
     """Retorna clientes inativos (sem compras) há X dias."""
     try:
-        df = agent.get_inactive_customers(min_days=min_days, max_days=max_days)
+        df = agent.get_inactive_customers(min_days=min_days, max_days=max_days, vendor_filter=CURRENT_VENDOR)
         # Converte datas para string
         if not df.empty and 'Ultima_Compra' in df.columns:
             df['Ultima_Compra'] = df['Ultima_Compra'].astype(str)
