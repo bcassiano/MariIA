@@ -1,0 +1,3086 @@
+<repository_context>
+  <git_history>
+Commit: 70d0d58
+Author: Bruno Cassiano
+Date: Fri Dec 12 17:36:30 2025 -0300
+Message: Feat: Logs de Pitch IA e Feedback do Usuário (Útil/Vendi)
+
+ logs/pitch_usage.jsonl               |  6 +++
+ mobile/src/screens/CustomerScreen.js | 78 +++++++++++++++++++++++++++++++++++-
+ mobile/src/screens/HomeScreen.js     |  4 +-
+ mobile/src/services/api.js           | 19 ++++++++-
+ src/api/app.py                       | 45 +++++++++++++++++++--
+ src/utils/logger.py                  | 53 ++++++++++++++++++++++++
+ 6 files changed, 196 insertions(+), 9 deletions(-)
+
+Commit: 1468225
+Author: Bruno Cassiano
+Date: Fri Dec 12 12:36:57 2025 -0300
+Message: Feat: Novos filtros de data (15-25, 26-30), melhorias no Chat Web e UI Mobile (Carrossel)
+
+ mobile/src/screens/ChatScreen.js | 31 ++++++++++++++-----
+ mobile/src/screens/HomeScreen.js | 66 +++++++++++++++++++++++++++++++---------
+ mobile/src/services/api.js       | 12 ++++----
+ src/agents/telesales_agent.py    | 27 ++++++++--------
+ src/api/app.py                   |  8 ++---
+ src/debug_filters.py             | 36 ++++++++++++++++++++++
+ src/debug_inactive.py            | 17 +++++++++++
+ 7 files changed, 152 insertions(+), 45 deletions(-)
+
+Commit: 01df4ed
+Author: Bruno Cassiano
+Date: Thu Dec 11 17:59:51 2025 -0300
+Message: feat: Chat history, Context Awareness, and Product Catalog grounding
+
+ mobile/package-lock.json         | 35 ++++++++++++++++
+ mobile/package.json              |  1 +
+ mobile/src/screens/ChatScreen.js | 91 ++++++++++++++++++++++++++++++++++++----
+ mobile/src/services/api.js       |  4 +-
+ src/agents/telesales_agent.py    | 51 +++++++++++++++++++---
+ src/api/app.py                   |  3 +-
+ src/debug_products.py            | 13 ++++++
+ 7 files changed, 183 insertions(+), 15 deletions(-)
+
+Commit: c53ded3
+Author: Bruno Cassiano
+Date: Thu Dec 11 16:21:27 2025 -0300
+Message: feat: Enhanced AI system instructions with concrete arguments and freight optimization
+
+ src/agents/telesales_agent.py | 2 ++
+ 1 file changed, 2 insertions(+)
+
+Commit: 88248ca
+Author: Bruno Cassiano
+Date: Thu Dec 11 16:02:34 2025 -0300
+Message: feat: UI improvements, API Key security, Caching, and Anti-Hallucination fixes
+
+ backend_log.txt                      | 12 ++++++++++++
+ debug_output.txt                     |  8 ++++++++
+ mobile/App.js                        | 22 +++++++++++++++++++---
+ mobile/src/screens/ChatScreen.js     |  2 +-
+ mobile/src/screens/CustomerScreen.js | 12 +++++++++---
+ mobile/src/screens/HomeScreen.js     |  2 +-
+ mobile/src/services/api.js           |  3 +++
+ repro_out.txt                        | 31 +++++++++++++++++++++++++++++++
+ requirements.txt                     |  3 ++-
+ src/agents/telesales_agent.py        | 17 ++++++++++++++++-
+ src/api/app.py                       | 11 ++++++++++-
+ src/debug_db.py                      | 20 ++++++++++++++++++++
+ 12 files changed, 132 insertions(+), 11 deletions(-)
+
+Commit: 5e33ac7
+Author: Bruno Cassiano
+Date: Wed Dec 10 12:51:12 2025 -0300
+Message: Fix: Blank screen, Data discrepancy (SAP vs DB), and Chat performance optimization
+
+ mobile/src/screens/CustomerScreen.js | 117 ++++++++++++++++++++++++++---------
+ src/agents/telesales_agent.py        |  51 +++++++++++++--
+ src/api/app.py                       |  58 +++++++++++++----
+ 3 files changed, 182 insertions(+), 44 deletions(-)
+
+Commit: 6729e01
+Author: Bruno Cassiano
+Date: Wed Dec 10 10:20:43 2025 -0300
+Message: Feat: Inactive Customers, Chat Improvements, and Web Scroll Fixes
+
+ mobile/App.js                        |  20 +++++-
+ mobile/src/screens/ChatScreen.js     |  13 ++++
+ mobile/src/screens/CustomerScreen.js |   9 ++-
+ mobile/src/screens/HomeScreen.js     | 116 +++++++++++++++++++++++++++++++----
+ mobile/src/services/api.js           |  11 ++++
+ src/agents/telesales_agent.py        |  65 +++++++++++++++++++-
+ src/api/app.py                       |  15 +++++
+ 7 files changed, 232 insertions(+), 17 deletions(-)
+
+Commit: c32cae4
+Author: Bruno Cassiano
+Date: Fri Dec 5 11:04:58 2025 -0300
+Message: feat: Implement Mobile App, Chatbot, and API enhancements
+
+ .gitignore                           |   10 +
+ mobile/App.js                        |   21 +
+ mobile/SETUP_MOBILE.md               |   42 +
+ mobile/app.json                      |   30 +
+ mobile/babel.config.js               |    6 +
+ mobile/package-lock.json             | 8792 ++++++++++++++++++++++++++++++++++
+ mobile/package.json                  |   29 +
+ mobile/src/screens/ChatScreen.js     |  153 +
+ mobile/src/screens/CustomerScreen.js |  171 +
+ mobile/src/screens/HomeScreen.js     |  202 +
+ mobile/src/services/api.js           |   59 +
+ package-lock.json                    |    6 +
+ requirements.txt                     |    4 +-
+ src/agents/telesales_agent.py        |   18 +
+ src/api/app.py                       |  117 +
+ src/api/debug_api.py                 |   16 +
+ 16 files changed, 9675 insertions(+), 1 deletion(-)
+
+Commit: 3fc56d0
+Author: Bruno Cassiano
+Date: Thu Dec 4 17:36:52 2025 -0300
+Message: Docs: Add README and CHANGELOG
+
+ CHANGELOG.md | 30 ++++++++++++++++++++++++++++++
+ README.md    | 58 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 88 insertions(+)
+
+Commit: 863bb77
+Author: Bruno Cassiano
+Date: Thu Dec 4 17:29:40 2025 -0300
+Message: Initial commit: MariIA Telesales Agent
+
+ .env.example                                |  11 +
+ .gitignore                                  |  43 +++
+ data/IA_Dados_Vendas_Televendas.sql         | 454 ++++++++++++++++++++++++++++
+ data/teste_input.json                       |   0
+ estoque_teste.csv                           |   5 +
+ requirements.txt                            |   7 +
+ src/agents/__init__.py                      |   0
+ src/agents/inventory_agent.py               | 148 +++++++++
+ src/agents/inventory_replenishment_agent.py |  14 +
+ src/agents/telesales_agent.py               | 164 ++++++++++
+ src/database/connector.py                   |  81 +++++
+ 11 files changed, 927 insertions(+)
+
+  </git_history>
+
+  <source_code>
+    <file path=".gitignore">
+<![CDATA[
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# Environment Variables (CRITICAL)
+.env
+
+# IDEs
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+mobile/node_modules/
+.expo/
+mobile/.expo/
+dist/
+mobile/dist/
+web-build/
+mobile/web-build/
+
+]]>
+    </file>
+    <file path="backend_log.txt">
+<![CDATA[
+DEBUG: Iniciando Vertex AI...
+C:\Users\bruno.cassiano\AppData\Local\Programs\Python\Python313\Lib\site-packages\vertexai\generative_models\_generative_models.py:433: UserWarning: This feature is deprecated as of June 24, 2025 and will be removed on June 24, 2026. For details, see https://cloud.google.com/vertex-ai/generative-ai/docs/deprecations/genai-vertexai-sdk.
+  warning_logs.show_deprecation_warning()
+DEBUG: Vertex AI OK.
+DEBUG: Iniciando DatabaseConnector...
+DEBUG: Init concluφdo.
+INFO:     Started server process [27928]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    [Errno 10048] error while attempting to bind on address ('0.0.0.0', 8000): [winerror 10048] normalmente Θ permitida apenas uma utilizaτπo de cada endereτo de soquete (protocolo/endereτo de rede/porta)
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+
+]]>
+    </file>
+    <file path="CHANGELOG.md">
+<![CDATA[
+# Histórico de Versões (Changelog)
+
+Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
+
+## [1.0.0] - 2025-12-04
+### Adicionado
+- **Agente de Televendas (`TelesalesAgent`)**:
+    - Integração com SQL Server via `FAL_IA_Dados_Vendas_Televendas`.
+    - Geração de Pitches de Venda com Gemini (Vertex AI).
+    - Modos de operação: `--insights` (Ranking) e `--customer` (Foco no Cliente).
+- **Módulo de Conexão (`DatabaseConnector`)**:
+    - Conexão robusta com `SQLAlchemy`.
+    - Tratamento de caracteres especiais em senhas.
+    - Suporte a queries parametrizadas.
+- **Documentação**:
+    - `README.md` com visão geral e instruções.
+    - `.env.example` para configuração segura.
+
+### Segurança
+- **Remoção de Hardcoded Secrets**: Todas as credenciais movidas para variáveis de ambiente.
+- **Correção de SQL Injection**: Implementação de `params={}` nas chamadas SQL.
+- **Gitignore**: Configurado para ignorar `.env`, `__pycache__` e arquivos de sistema.
+
+### Infraestrutura
+- **SQL View**: Criação da view `FAL_IA_Dados_Vendas_Televendas` otimizada para performance (filtros SARGable) e nomenclatura PT-BR.
+- **Vertex AI**: Configuração do Endpoint Global (`aiplatform.googleapis.com`) para acesso a modelos Preview.
+- **Dependências**: Atualização do `requirements.txt` com `python-dotenv`, `tabulate`, `sqlalchemy`, `pyodbc`.
+
+---
+*Versão Inicial do Projeto MariIA.*
+
+]]>
+    </file>
+    <file path="debug_output.txt">
+<![CDATA[
+Columns: ['Vendedor']
+
+First Row Data:
+Vendedor: V.vp - Renata Rodrigues
+
+All Rows for this Doc:
+                  Vendedor
+0  V.vp - Renata Rodrigues
+]]>
+    </file>
+    <file path="estoque_teste.csv">
+<![CDATA[
+sku,contexto
+AZ-500,Setor Farmacêutico
+H4-2000,
+IPH-15-PRO,Eletrônicos de consumo - Apple
+BE-5000,Motor elétrico industrial
+]]>
+    </file>
+    <file path="README.md">
+<![CDATA[
+# MariIA - Inteligência Artificial para Varejo e Televendas
+
+**MariIA** é um ecossistema de agentes inteligentes projetado para otimizar operações de varejo, conectando dados do ERP (SQL Server) com Inteligência Artificial Generativa (Google Vertex AI).
+
+## 🏗️ Arquitetura do Projeto
+
+O projeto segue uma arquitetura modular:
+
+1.  **Camada de Dados (SQL Server)**:
+    *   Views otimizadas (ex: `FAL_IA_Dados_Vendas_Televendas`) consolidam dados de Faturas, Pedidos, Cotações, Entregas e Devoluções.
+    *   Foco em performance e nomes de colunas amigáveis para IA (PT-BR).
+
+2.  **Camada de Conexão (Python)**:
+    *   `src/database/connector.py`: Gerencia conexões seguras usando `SQLAlchemy` e `pyodbc`.
+    *   Suporte a queries parametrizadas para segurança (Anti-SQL Injection).
+
+3.  **Camada de Agentes (AI)**:
+    *   **Telesales Agent** (`src/agents/telesales_agent.py`): Especialista em vendas B2B. Analisa histórico de clientes e gera "Pitches" de venda personalizados usando Gemini 3.0 Pro.
+    *   **Inventory Agent** (`src/agents/inventory_agent.py`): (Em desenvolvimento) Para análise de estoque e reposição.
+
+## 🚀 Como Executar
+
+### Pré-requisitos
+*   Python 3.10+
+*   Acesso ao Google Cloud Project (Vertex AI habilitado)
+*   Acesso ao Banco de Dados SQL Server
+
+### Instalação
+1.  Clone o repositório.
+2.  Crie um ambiente virtual: `python -m venv .venv`
+3.  Instale as dependências: `pip install -r requirements.txt`
+4.  Configure o arquivo `.env` (use `.env.example` como base).
+
+### Uso do Agente de Televendas
+
+**Gerar Insights Gerais (Top Clientes):**
+```bash
+python src/agents/telesales_agent.py --insights
+```
+
+**Gerar Pitch para um Cliente Específico:**
+```bash
+python src/agents/telesales_agent.py --customer C00123
+```
+
+**Vender um Produto Específico:**
+```bash
+python src/agents/telesales_agent.py --customer C00123 --sku "FEIJAO-PRETO"
+```
+
+## 🛡️ Segurança
+*   Credenciais de banco de dados são lidas estritamente de variáveis de ambiente (`.env`).
+*   O arquivo `.env` é ignorado pelo Git (`.gitignore`).
+*   Queries SQL utilizam parâmetros bindados.
+
+## ☁️ Infraestrutura AI
+*   **Modelo**: Gemini 1.5 Pro (Estável) ou Gemini 3.0 Pro (Preview).
+*   **Endpoint**: Global (`aiplatform.googleapis.com`) para garantir acesso aos modelos mais recentes.
+
+]]>
+    </file>
+    <file path="repro_out.txt">
+<![CDATA[
+DEBUG: Iniciando Vertex AI...
+DEBUG: Vertex AI OK.
+DEBUG: Iniciando DatabaseConnector...
+DEBUG: Init concludo.
+Fetching insights...
+Columns: ['Codigo_Cliente', 'Nome_Cliente', 'Cidade', 'Estado', 'Total_Venda', 'Total_Margem']
+
+Nulls before cleaning:
+Codigo_Cliente    0
+Nome_Cliente      0
+Cidade            0
+Estado            0
+Total_Venda       4
+Total_Margem      4
+dtype: int64
+
+Infs before cleaning:
+Codigo_Cliente    0
+Nome_Cliente      0
+Cidade            0
+Estado            0
+Total_Venda       0
+Total_Margem      0
+dtype: int64
+
+Cleaning data...
+
+Nulls after cleaning (should be handled by None, but pandas might show False for None in object cols):
+
+Serializing...
+Serialization successful.
+
+]]>
+    </file>
+    <file path="requirements.txt">
+<![CDATA[
+google-cloud-aiplatform
+google-cloud-bigquery
+pandas
+db-dtypes
+sqlalchemy
+pyodbc
+python-dotenv
+fastapi
+uvicorn
+cachetools
+]]>
+    </file>
+    <file path="data\IA_Dados_Vendas_Televendas.sql">
+<![CDATA[
+CREATE OR ALTER VIEW [dbo].[IA_Dados_Vendas_Televendas] AS
+
+/*
+    VIEW: IA_Dados_Vendas_Televendas
+    OBJETIVO: Fornecer dados consolidados e performáticos para agentes de IA (Televendas).
+    CONTEÚDO: Faturas, Pedidos em Aberto, Entregas, Devoluções e Cotações.
+    OTIMIZAÇÕES:
+    1. Remoção de Subqueries Correlacionadas (Fatores, Frete).
+    2. Filtro de Data SARGable (Index Seek).
+    3. Nomes de colunas em PT-BR padronizados.
+    4. Pré-cálculo de Margem e Lucro.
+*/
+
+WITH Fatores AS (
+    -- CTE para carregar Fatores de Custo e Despesa uma única vez por Ano/Mês
+    SELECT 
+        T101.Name AS Ano,
+        T100.U_Mes AS Mes,
+        MAX(T100.U_CUSTO) AS Fator_Custo,
+        MAX(T100.U_DESPESA) AS Fator_Despesa
+    FROM [@RAL_FATORES] T100 
+    INNER JOIN [@RAL_FATORESANO] T101 ON T101.Code = T100.U_Ano
+    GROUP BY T101.Name, T100.U_Mes
+)
+
+SELECT 
+    -- Identificação do Documento
+    A.Tipo_Documento,
+    A.Numero_Documento,
+    A.Numero_NF,
+    A.Data_Emissao,
+    A.Data_Entrega_Prometida,
+    A.Status_Documento,
+    
+    -- Cliente e Vendedor
+    A.Codigo_Cliente,
+    A.Nome_Cliente,
+    A.Grupo_Cliente,
+    A.Tipo_Cliente,
+    A.Cidade,
+    A.Estado,
+    A.Regiao,
+    A.Macro_Regiao,
+    A.Vendedor,
+    A.Supervisor,
+    A.Equipe_Vendas,
+    A.Area_Atuacao,
+
+    -- Produto
+    A.SKU,
+    A.Nome_Produto,
+    A.Grupo_Produto,
+    A.Categoria_Produto,
+    A.Marca,
+    A.Utilizacao,
+    A.Unidade_Medida,
+    
+    -- Quantidades e Pesos
+    A.Quantidade,
+    A.Peso_KG,
+    
+    -- Valores Monetários (Unitários e Totais)
+    A.Preco_Lista,
+    A.Preco_Unitario_Original, -- Sem desconto
+    A.Valor_Total_Linha,       -- Valor Bruto da Linha
+    A.Percentual_Desconto,
+    A.Valor_Desconto,
+    A.Valor_Liquido,           -- Valor Linha - Desconto
+    
+    -- Custos e Margens (Calculados)
+    A.Custo_Estoque_Unitario,
+    A.Custo_Total_Estoque,
+    
+    -- Cálculos de Negócio (Fatores Aplicados)
+    A.Fator_Custo_Aplicado,
+    A.Fator_Despesa_Aplicado,
+    
+    CAST(A.Custo_Total_Estoque * (1 + ISNULL(A.Fator_Custo_Aplicado, 0)) AS DECIMAL(18,2)) AS Custo_Final_Com_Fator,
+    
+    CAST(A.Valor_Liquido + A.Valor_Imposto - (A.Custo_Total_Estoque * (1 + ISNULL(A.Fator_Custo_Aplicado, 0))) AS DECIMAL(18,2)) AS Lucro_Bruto,
+    
+    -- Margem Líquida Estimada
+    CAST(
+        (A.Valor_Liquido + A.Valor_Imposto - (A.Custo_Total_Estoque * (1 + ISNULL(A.Fator_Custo_Aplicado, 0)))) -- Lucro Bruto
+        - (ISNULL(A.Valor_Comissao, 0) + (A.Valor_Liquido * ISNULL(A.Fator_Despesa_Aplicado, 0))) -- Despesas Comerciais
+        - ISNULL(A.Valor_Frete, 0) -- Frete
+    AS DECIMAL(18,2)) AS Margem_Valor,
+
+    -- Impostos e Extras
+    A.Valor_Imposto,
+    A.Valor_Frete,
+    A.Percentual_Comissao,
+    A.Valor_Comissao
+
+FROM (
+
+    -- 1. FATURAS (VENDAS EFETIVAS)
+    SELECT 
+        'Fatura' AS Tipo_Documento,
+        T0.DocNum AS Numero_Documento,
+        T0.DocNum AS Numero_NF,
+        T0.DocDate AS Data_Emissao,
+        dbo.DataPrometidaPedido(T0.DocEntry, T1.LineNum) AS Data_Entrega_Prometida,
+        CASE WHEN T0.Canceled = 'Y' THEN 'Cancelado' ELSE 'Faturado' END AS Status_Documento,
+        
+        T5.CardCode AS Codigo_Cliente,
+        T5.CardName AS Nome_Cliente,
+        T7.GroupName AS Grupo_Cliente,
+        T24.INDname AS Tipo_Cliente,
+        T19.Name AS Cidade,
+        T6.State AS Estado,
+        T18.GroupName AS Regiao,
+        T9.Name AS Macro_Regiao,
+        T8.SlpName AS Vendedor,
+        T16.firstName AS Supervisor,
+        CAST(T28.name AS VARCHAR) AS Equipe_Vendas,
+        T26.Name AS Area_Atuacao,
+
+        T2.ItemCode AS SKU,
+        T2.ItemName AS Nome_Produto,
+        T3.ItmsGrpNam AS Grupo_Produto,
+        T17.Name AS Categoria_Produto,
+        T2.U_Marca AS Marca,
+        T4.Usage AS Utilizacao,
+        T1.UnitMsr AS Unidade_Medida,
+
+        T1.Quantity AS Quantidade,
+        CASE WHEN (T1.Quantity * T11.Weight1) = 0 THEN (T1.Quantity * T2.SWeight1) ELSE (T1.Quantity * T11.Weight1) END AS Peso_KG,
+
+        T1.U_PrecoDeLista AS Preco_Lista,
+        T1.Price AS Preco_Unitario_Original,
+        CASE WHEN T1.Usage IN ('13', '52') THEN 0 ELSE ROUND(T1.LineTotal, 2) END AS Valor_Total_Linha,
+        T5.U_MW_DESFIN AS Percentual_Desconto,
+        CASE WHEN T1.Usage IN ('13', '52') THEN 0 ELSE (ROUND(T1.LineTotal, 2) * T5.U_MW_DESFIN / 100) END AS Valor_Desconto,
+        (CASE WHEN T1.Usage IN ('13', '52') THEN 0 ELSE ROUND(T1.LineTotal, 2) END) - (CASE WHEN T1.Usage IN ('13', '52') THEN 0 ELSE (ROUND(T1.LineTotal, 2) * T5.U_MW_DESFIN / 100) END) AS Valor_Liquido,
+
+        T1.StockPrice AS Custo_Estoque_Unitario,
+        (T1.StockPrice * T1.Quantity) AS Custo_Total_Estoque,
+
+        -- Join com CTE de Fatores
+        F.Fator_Custo AS Fator_Custo_Aplicado,
+        F.Fator_Despesa AS Fator_Despesa_Aplicado,
+
+        CASE WHEN T3.ItmsGrpNam = 'PA FEIJÃO' THEN ROUND(T1.LineTotal, 2) * -0.01 ELSE T14.TaxSum * -1 END AS Valor_Imposto,
+        
+        -- Lógica Simplificada de Frete (Idealmente deveria ser uma tabela de fretes pré-calculada, mantendo a lógica original por enquanto mas via JOIN se possível, aqui simplificado para performance)
+        CASE 
+            WHEN T30.Incoterms IN (1, 9) THEN 0 
+            ELSE ( (ISNULL(T23.U_Valor_Total_Frete, 0) / NULLIF(T23.U_Peso_Estimado - T23.U_Peso_Estimado_Pallets, 0)) * (CASE WHEN (T1.Quantity * T11.Weight1) = 0 THEN (T1.Quantity * T2.SWeight1) ELSE (T1.Quantity * T11.Weight1) END) )
+        END AS Valor_Frete,
+
+        T13.U_MW_PRCT AS Percentual_Comissao,
+        CASE WHEN T1.Usage IN ('13', '52') THEN 0 ELSE (ROUND(T1.LineTotal, 2) * T13.U_MW_PRCT / 100) END AS Valor_Comissao
+
+    FROM INV4 T14
+    INNER JOIN OINV T0 ON T0.DocEntry = T14.DocEntry
+    INNER JOIN INV1 T1 ON T0.DocEntry = T1.DocEntry AND T1.LineNum = T14.LineNum
+    INNER JOIN INV12 T30 ON T0.DocEntry = T30.DocEntry
+    LEFT JOIN OITM T2 ON T1.ItemCode = T2.ItemCode
+    INNER JOIN OUOM T11 ON T11.UomCode = T1.UomCode
+    LEFT JOIN OCRD T5 ON T0.CardCode = T5.CardCode
+    LEFT JOIN OUSG T4 ON T1.Usage = T4.ID
+    LEFT JOIN OSLP T8 ON T8.SlpCode = T0.SlpCode
+    LEFT JOIN CRD1 T6 ON T6.CardCode = T5.CardCode AND T6.Address = 'FATURAMENTO'
+    LEFT JOIN OCRG T7 ON T7.GroupCode = T5.GroupCode
+    LEFT JOIN OITB T3 ON T3.ItmsGrpCod = T2.ItmsGrpCod
+    LEFT JOIN [@MW_MACRO] T9 ON T9.Code = T5.U_MW_MACRO
+    LEFT JOIN [@MW_CDV0] T12 ON T8.SlpName = T12.U_MW_SlpCode
+    LEFT JOIN [@MW_CDV1] T13 ON T12.Code = T13.Code AND T2.ItemCode = T13.U_MW_ItemCode
+    LEFT JOIN OHEM T15 ON T15.salesPrson = T8.SlpCode
+    LEFT JOIN OHEM T16 ON T16.empID = T15.manager
+    LEFT JOIN [@CATPROD] T17 ON T17.Code = T2.U_CATPROD
+    LEFT JOIN OCQG T18 ON T18.GroupCode = CASE WHEN T5.QryGroup1 = 'Y' THEN 1 ELSE 0 END -- Simplificado, idealmente expandir
+    INNER JOIN OCNT T19 ON T6.County = T19.AbsId
+    LEFT JOIN [@BIM_ORDEMCARGA] T23 ON T1.U_OC_num = T23.DocEntry
+    LEFT JOIN OOND T24 ON T24.INDCODE = T5.INDUSTRYC
+    LEFT JOIN [@RAL_AREAATUCAO] T26 ON T26.Code = T5.U_AreaAtuacao
+    LEFT JOIN HTM1 T27 ON T27.empID = T15.empID
+    LEFT JOIN OHTM T28 ON T28.teamID = T27.teamID
+    -- Join Otimizado para Fatores
+    LEFT JOIN Fatores F ON F.Ano = DATEPART(YEAR, T0.DocDate) AND F.Mes = DATEPART(MONTH, T0.DocDate)
+
+    WHERE T14.staType IN (25, 31) 
+      AND T0.Canceled = 'N' 
+      AND T14.TaxStatus = 'Y' 
+      AND T0.DocStatus IN ('O', 'C')
+      AND T1.CFOPCODE IN ('5101','5102','5123','5122','5118','5201','5551','5910','6101','6102','6108','6120','6910','6122','6551','7101','7102','7501','6501','5949')
+      AND T0.DocDate >= DATEADD(YEAR, -4, GETDATE()) -- Filtro SARGable
+
+    UNION ALL
+
+    -- 2. PEDIDOS EM ABERTO
+    SELECT 
+        'Pedido' AS Tipo_Documento,
+        T0.DocNum AS Numero_Documento,
+        NULL AS Numero_NF,
+        T0.DocDate AS Data_Emissao,
+        T0.DocDueDate AS Data_Entrega_Prometida,
+        'Aberto' AS Status_Documento,
+        
+        T5.CardCode, T5.CardName, T7.GroupName, T24.INDname, T19.Name, T6.State, T18.GroupName, T9.Name, T8.SlpName, T16.firstName, T28.name, T26.Name,
+        T2.ItemCode, T2.ItemName, T3.ItmsGrpNam, T17.Name, T2.U_Marca, T4.Usage, T1.UnitMsr,
+        
+        T1.OpenQty AS Quantidade,
+        CASE WHEN (T1.OpenQty * T11.Weight1) = 0 THEN (T1.OpenQty * T2.SWeight1) ELSE (T1.OpenQty * T11.Weight1) END AS Peso_KG,
+        
+        T1.U_PrecoDeLista, T1.Price,
+        CASE WHEN T1.Usage IN ('13', '52') THEN 0 ELSE ROUND(T1.LineTotal, 2) END,
+        T5.U_MW_DESFIN,
+        CASE WHEN T1.Usage IN ('13', '52') THEN 0 ELSE (ROUND(T1.LineTotal, 2) * T5.U_MW_DESFIN / 100) END,
+        (CASE WHEN T1.Usage IN ('13', '52') THEN 0 ELSE ROUND(T1.LineTotal, 2) END) - (CASE WHEN T1.Usage IN ('13', '52') THEN 0 ELSE (ROUND(T1.LineTotal, 2) * T5.U_MW_DESFIN / 100) END),
+        
+        T1.StockPrice, (T1.StockPrice * T1.OpenQty),
+        
+        F.Fator_Custo, F.Fator_Despesa,
+        
+        CASE WHEN T3.ItmsGrpNam = 'PA FEIJÃO' THEN ROUND(T1.LineTotal, 2) * -0.01 ELSE T14.TaxSum * -1 END,
+        
+        -- Frete (Simplificado para NULL em pedidos abertos se não houver cálculo complexo, ou manter lógica original via subquery se estritamente necessário, aqui deixo 0 para performance, ajustar se crítico)
+        0 AS Valor_Frete, 
+        
+        T13.U_MW_PRCT,
+        CASE WHEN T1.Usage IN ('13', '52') THEN 0 ELSE (ROUND(T1.LineTotal, 2) * T13.U_MW_PRCT / 100) END
+
+    FROM RDR4 T14
+    INNER JOIN ORDR T0 ON T0.DocEntry = T14.DocEntry
+    INNER JOIN RDR1 T1 ON T0.DocEntry = T1.DocEntry AND T1.LineNum = T14.LineNum
+    INNER JOIN RDR12 T30 ON T0.DocEntry = T30.DocEntry
+    INNER JOIN OITM T2 ON T1.ItemCode = T2.ItemCode
+    INNER JOIN OUOM T11 ON T11.UomCode = T1.UomCode
+    INNER JOIN OCRD T5 ON T5.CardCode = T0.CardCode
+    LEFT JOIN CRD1 T6 ON T6.CardCode = T5.CardCode AND T6.Address = 'FATURAMENTO'
+    LEFT JOIN OSLP T8 ON T0.SlpCode = T8.SlpCode
+    LEFT JOIN OCRG T7 ON T7.GroupCode = T5.GroupCode
+    INNER JOIN OUSG T4 ON T4.ID = T1.Usage
+    LEFT JOIN OITB T3 ON T3.ItmsGrpCod = T2.ItmsGrpCod
+    LEFT JOIN [@MW_MACRO] T9 ON T9.Code = T5.U_MW_MACRO
+    LEFT JOIN [@MW_CDV0] T12 ON T8.SlpName = T12.U_MW_SlpCode
+    LEFT JOIN [@MW_CDV1] T13 ON T12.Code = T13.Code AND T2.ItemCode = T13.U_MW_ItemCode
+    LEFT JOIN OHEM T15 ON T15.salesPrson = T8.SlpCode
+    LEFT JOIN OHEM T16 ON T16.empID = T15.manager
+    LEFT JOIN [@CATPROD] T17 ON T17.Code = T2.U_CATPROD
+    LEFT JOIN OCQG T18 ON T18.GroupCode = CASE WHEN T5.QryGroup1 = 'Y' THEN 1 ELSE 0 END
+    INNER JOIN OCNT T19 ON T6.County = T19.AbsId
+    LEFT JOIN OOND T24 ON T24.INDCODE = T5.INDUSTRYC
+    LEFT JOIN [@RAL_AREAATUCAO] T26 ON T26.Code = T5.U_AreaAtuacao
+    LEFT JOIN HTM1 T27 ON T27.empID = T15.empID
+    LEFT JOIN OHTM T28 ON T28.teamID = T27.teamID
+    LEFT JOIN Fatores F ON F.Ano = DATEPART(YEAR, T0.DocDate) AND F.Mes = DATEPART(MONTH, T0.DocDate)
+
+    WHERE T14.staType IN (25, 31) 
+      AND T0.DocStatus = 'O' 
+      AND T14.TaxStatus = 'Y' 
+      AND T1.OpenQty > 0
+      AND T0.DocDate >= DATEADD(YEAR, -4, GETDATE())
+
+    UNION ALL
+
+    -- 3. COTAÇÕES
+    SELECT 
+        'Cotacao' AS Tipo_Documento,
+        T0.DocNum AS Numero_Documento,
+        NULL AS Numero_NF,
+        T0.DocDate AS Data_Emissao,
+        T0.DocDueDate AS Data_Entrega_Prometida,
+        'Aberto' AS Status_Documento,
+        
+        T5.CardCode, T5.CardName, T7.GroupName, T24.INDname, T19.Name, T6.State, T18.GroupName, T9.Name, T8.SlpName, T16.firstName, T28.name, T26.Name,
+        T2.ItemCode, T2.ItemName, T3.ItmsGrpNam, T17.Name, T2.U_Marca, T4.Usage, T1.UnitMsr,
+        
+        T1.OpenQty AS Quantidade,
+        CASE WHEN (T1.OpenQty * T11.Weight1) = 0 THEN (T1.OpenQty * T2.SWeight1) ELSE (T1.OpenQty * T11.Weight1) END AS Peso_KG,
+        
+        T1.U_PrecoDeLista, T1.Price,
+        CASE WHEN T1.Usage IN ('13', '52') THEN 0 ELSE ROUND(T1.OpenQty * T1.Price, 2) END,
+        T5.U_MW_DESFIN,
+        CASE WHEN T1.Usage IN ('13', '52') THEN 0 ELSE (ROUND(T1.OpenQty * T1.Price, 2) * (T5.U_MW_DESFIN / 100)) END,
+        (CASE WHEN T1.Usage IN ('13', '52') THEN 0 ELSE ROUND(T1.OpenQty * T1.Price, 2) END) - (CASE WHEN T1.Usage IN ('13', '52') THEN 0 ELSE (ROUND(T1.OpenQty * T1.Price, 2) * (T5.U_MW_DESFIN / 100)) END),
+        
+        T1.StockPrice, (T1.StockPrice * T1.OpenQty),
+        
+        F.Fator_Custo, F.Fator_Despesa,
+        
+        CASE WHEN T3.ItmsGrpNam = 'PA FEIJÃO' THEN ROUND(T1.LineTotal, 2) * -0.01 ELSE T14.TaxSum * -1 END,
+        0 AS Valor_Frete,
+        T13.U_MW_PRCT,
+        CASE WHEN T1.Usage IN ('13', '52') THEN 0 ELSE (ROUND(T1.LineTotal, 2) * T13.U_MW_PRCT / 100) END
+
+    FROM QUT4 T14
+    INNER JOIN OQUT T0 ON T0.DocEntry = T14.DocEntry
+    INNER JOIN QUT1 T1 ON T0.DocEntry = T1.DocEntry AND T1.LineNum = T14.LineNum
+    INNER JOIN QUT12 T30 ON T0.DocEntry = T30.DocEntry
+    INNER JOIN OITM T2 ON T1.ItemCode = T2.ItemCode
+    INNER JOIN OUOM T11 ON T11.UomCode = T1.UomCode
+    INNER JOIN OCRD T5 ON T5.CardCode = T0.CardCode
+    LEFT JOIN CRD1 T6 ON T6.CardCode = T5.CardCode AND T6.Address = 'FATURAMENTO'
+    LEFT JOIN OSLP T8 ON T0.SlpCode = T8.SlpCode
+    LEFT JOIN OCRG T7 ON T7.GroupCode = T5.GroupCode
+    INNER JOIN OUSG T4 ON T4.ID = T1.Usage
+    LEFT JOIN OITB T3 ON T3.ItmsGrpCod = T2.ItmsGrpCod
+    LEFT JOIN [@MW_MACRO] T9 ON T9.Code = T5.U_MW_MACRO
+    LEFT JOIN [@MW_CDV0] T12 ON T8.SlpName = T12.U_MW_SlpCode
+    LEFT JOIN [@MW_CDV1] T13 ON T12.Code = T13.Code AND T2.ItemCode = T13.U_MW_ItemCode
+    LEFT JOIN OHEM T15 ON T15.salesPrson = T8.SlpCode
+    LEFT JOIN OHEM T16 ON T16.empID = T15.manager
+    LEFT JOIN [@CATPROD] T17 ON T17.Code = T2.U_CATPROD
+    LEFT JOIN OCQG T18 ON T18.GroupCode = CASE WHEN T5.QryGroup1 = 'Y' THEN 1 ELSE 0 END
+    INNER JOIN OCNT T19 ON T6.County = T19.AbsId
+    LEFT JOIN OOND T24 ON T24.INDCODE = T5.INDUSTRYC
+    LEFT JOIN [@RAL_AREAATUCAO] T26 ON T26.Code = T5.U_AreaAtuacao
+    LEFT JOIN HTM1 T27 ON T27.empID = T15.empID
+    LEFT JOIN OHTM T28 ON T28.teamID = T27.teamID
+    LEFT JOIN Fatores F ON F.Ano = DATEPART(YEAR, T0.DocDate) AND F.Mes = DATEPART(MONTH, T0.DocDate)
+
+    WHERE T14.staType IN (25, 31) 
+      AND T0.DocStatus = 'O' 
+      AND T14.TaxStatus = 'Y' 
+      AND T1.OpenQty <> 0
+      AND T0.DocDate >= DATEADD(YEAR, -4, GETDATE())
+
+    UNION ALL
+
+    -- 4. ENTREGAS EM ABERTO
+    SELECT 
+        'Entrega' AS Tipo_Documento,
+        T0.DocNum AS Numero_Documento,
+        T0.DocNum AS Numero_NF,
+        T0.DocDate AS Data_Emissao,
+        T0.DocDueDate AS Data_Entrega_Prometida,
+        'Aberto' AS Status_Documento,
+        
+        T5.CardCode, T5.CardName, T7.GroupName, T24.INDname, T19.Name, T6.State, T18.GroupName, T9.Name, T8.SlpName, T16.firstName, T28.name, T26.Name,
+        T2.ItemCode, T2.ItemName, T3.ItmsGrpNam, T17.Name, T2.U_Marca, T4.Usage, T1.UnitMsr,
+        
+        T1.Quantity AS Quantidade,
+        CASE WHEN (T1.Quantity * T11.Weight1) = 0 THEN (T1.Quantity * T2.SWeight1) ELSE (T1.Quantity * T11.Weight1) END AS Peso_KG,
+        
+        T1.U_PrecoDeLista, T1.Price,
+        CASE WHEN T1.Usage IN ('13', '52') THEN 0 ELSE ROUND(T1.LineTotal, 2) END,
+        T5.U_MW_DESFIN,
+        CASE WHEN T1.Usage IN ('13', '52') THEN 0 ELSE (ROUND(T1.LineTotal, 2) * T5.U_MW_DESFIN / 100) END,
+        (CASE WHEN T1.Usage IN ('13', '52') THEN 0 ELSE ROUND(T1.LineTotal, 2) END) - (CASE WHEN T1.Usage IN ('13', '52') THEN 0 ELSE (ROUND(T1.LineTotal, 2) * T5.U_MW_DESFIN / 100) END),
+        
+        T1.StockPrice, (T1.StockPrice * T1.Quantity),
+        
+        F.Fator_Custo, F.Fator_Despesa,
+        
+        CASE WHEN T3.ItmsGrpNam = 'PA FEIJÃO' THEN ROUND(T1.LineTotal, 2) * -0.01 ELSE T14.TaxSum * -1 END,
+        
+        CASE 
+            WHEN T30.Incoterms IN (1, 9) THEN 0 
+            ELSE ( (ISNULL(T23.U_Valor_Total_Frete, 0) / NULLIF(T23.U_Peso_Estimado - T23.U_Peso_Estimado_Pallets, 0)) * (CASE WHEN (T1.Quantity * T11.Weight1) = 0 THEN (T1.Quantity * T2.SWeight1) ELSE (T1.Quantity * T11.Weight1) END) )
+        END AS Valor_Frete,
+        
+        T13.U_MW_PRCT,
+        CASE WHEN T1.Usage IN ('13', '52') THEN 0 ELSE (ROUND(T1.LineTotal, 2) * T13.U_MW_PRCT / 100) END
+
+    FROM DLN4 T14
+    INNER JOIN ODLN T0 ON T0.DocEntry = T14.DocEntry
+    INNER JOIN DLN1 T1 ON T0.DocEntry = T1.DocEntry AND T1.LineNum = T14.LineNum
+    INNER JOIN DLN12 T30 ON T0.DocEntry = T30.DocEntry
+    LEFT JOIN OITM T2 ON T1.ItemCode = T2.ItemCode
+    INNER JOIN OUOM T11 ON T11.UomCode = T1.UomCode
+    LEFT JOIN OCRD T5 ON T0.CardCode = T5.CardCode
+    LEFT JOIN OUSG T4 ON T1.Usage = T4.ID
+    LEFT JOIN OSLP T8 ON T8.SlpCode = T0.SlpCode
+    LEFT JOIN CRD1 T6 ON T6.CardCode = T5.CardCode AND T6.Address = 'FATURAMENTO'
+    LEFT JOIN OCRG T7 ON T7.GroupCode = T5.GroupCode
+    LEFT JOIN OITB T3 ON T3.ItmsGrpCod = T2.ItmsGrpCod
+    LEFT JOIN [@MW_MACRO] T9 ON T9.Code = T5.U_MW_MACRO
+    LEFT JOIN [@MW_CDV0] T12 ON T8.SlpName = T12.U_MW_SlpCode
+    LEFT JOIN [@MW_CDV1] T13 ON T12.Code = T13.Code AND T2.ItemCode = T13.U_MW_ItemCode
+    LEFT JOIN OHEM T15 ON T15.salesPrson = T8.SlpCode
+    LEFT JOIN OHEM T16 ON T16.empID = T15.manager
+    LEFT JOIN [@CATPROD] T17 ON T17.Code = T2.U_CATPROD
+    LEFT JOIN OCQG T18 ON T18.GroupCode = CASE WHEN T5.QryGroup1 = 'Y' THEN 1 ELSE 0 END
+    INNER JOIN OCNT T19 ON T6.County = T19.AbsId
+    LEFT JOIN [@BIM_ORDEMCARGA] T23 ON T1.U_OC_num = T23.DocEntry
+    LEFT JOIN OOND T24 ON T24.INDCODE = T5.INDUSTRYC
+    LEFT JOIN [@RAL_AREAATUCAO] T26 ON T26.Code = T5.U_AreaAtuacao
+    LEFT JOIN HTM1 T27 ON T27.empID = T15.empID
+    LEFT JOIN OHTM T28 ON T28.teamID = T27.teamID
+    LEFT JOIN Fatores F ON F.Ano = DATEPART(YEAR, T0.DocDate) AND F.Mes = DATEPART(MONTH, T0.DocDate)
+
+    WHERE T14.staType IN (25, 31) 
+      AND T0.Canceled = 'N' 
+      AND T14.TaxStatus = 'Y' 
+      AND T0.DocStatus = 'O'
+      AND T0.DocDate >= DATEADD(YEAR, -4, GETDATE())
+
+    UNION ALL
+
+    -- 5. DEVOLUÇÕES
+    SELECT 
+        'Devolucao' AS Tipo_Documento,
+        NULL AS Numero_Documento,
+        T0.DocNum AS Numero_NF,
+        T0.DocDate AS Data_Emissao,
+        NULL AS Data_Entrega_Prometida,
+        'Devolvido' AS Status_Documento,
+        
+        T5.CardCode, T5.CardName, T7.GroupName, T24.INDname, T19.Name, T6.State, T18.GroupName, T9.Name, T8.SlpName, T16.firstName, T31.name, T29.Name,
+        T2.ItemCode, T2.ItemName, T3.ItmsGrpNam, T17.Name, T2.U_Marca, CONCAT(T4.Usage, ' - DEV'), T1.UnitMsr,
+        
+        (T1.Quantity * -1) AS Quantidade,
+        CASE WHEN (T1.Quantity * T11.Weight1) = 0 THEN (T1.Quantity * T2.SWeight1) * -1 ELSE (T1.Quantity * T11.Weight1) * -1 END AS Peso_KG,
+        
+        T1.U_PrecoDeLista, T1.Price,
+        CASE WHEN T1.Usage IN ('13', '52') THEN 0 ELSE ROUND(T1.LineTotal, 2) * -1 END,
+        T5.U_MW_DESFIN,
+        CASE WHEN T1.Usage IN ('13', '52') THEN 0 ELSE (ROUND(T1.LineTotal, 2) * T5.U_MW_DESFIN / 100) * -1 END,
+        (CASE WHEN T1.Usage IN ('13', '52') THEN 0 ELSE ROUND(T1.LineTotal, 2) * -1 END) - (CASE WHEN T1.Usage IN ('13', '52') THEN 0 ELSE (ROUND(T1.LineTotal, 2) * T5.U_MW_DESFIN / 100) * -1 END),
+        
+        T1.StockPrice, ((T1.StockPrice * T1.Quantity) * -1),
+        
+        F.Fator_Custo, F.Fator_Despesa,
+        
+        CASE WHEN T3.ItmsGrpNam = 'PA FEIJÃO' THEN ROUND(T1.LineTotal, 2) * 0.01 ELSE T14.TaxSum END,
+        0 AS Valor_Frete,
+        T13.U_MW_PRCT,
+        CASE WHEN T1.Usage IN ('13', '52') THEN 0 ELSE (ROUND(T1.LineTotal, 2) * T13.U_MW_PRCT / 100) * -1 END
+
+    FROM RIN4 T14
+    INNER JOIN ORIN T0 ON T0.DocEntry = T14.DocEntry
+    INNER JOIN RIN1 T1 ON T0.DocEntry = T1.DocEntry AND T1.LineNum = T14.LineNum
+    INNER JOIN OUOM T11 ON T11.UomCode = T1.UomCode
+    LEFT JOIN OITM T2 ON T1.ItemCode = T2.ItemCode
+    LEFT JOIN OCRD T5 ON T0.CardCode = T5.CardCode
+    LEFT JOIN OUSG T4 ON T1.Usage = T4.ID
+    LEFT JOIN OSLP T8 ON T8.SlpCode = T0.SlpCode
+    LEFT JOIN CRD1 T6 ON T6.CardCode = T5.CardCode AND T6.Address = 'FATURAMENTO'
+    LEFT JOIN OCRG T7 ON T7.GroupCode = T5.GroupCode
+    LEFT JOIN OITB T3 ON T3.ItmsGrpCod = T2.ItmsGrpCod
+    LEFT JOIN [@MW_MACRO] T9 ON T9.Code = T5.U_MW_MACRO
+    LEFT JOIN [@MW_CDV0] T12 ON T8.SlpName = T12.U_MW_SlpCode
+    LEFT JOIN [@MW_CDV1] T13 ON T12.Code = T13.Code AND T2.ItemCode = T13.U_MW_ItemCode
+    LEFT JOIN OHEM T15 ON T15.salesPrson = T8.SlpCode
+    LEFT JOIN OHEM T16 ON T16.empID = T15.manager
+    LEFT JOIN [@CATPROD] T17 ON T17.Code = T2.U_CATPROD
+    LEFT JOIN OCQG T18 ON T18.GroupCode = CASE WHEN T5.QryGroup1 = 'Y' THEN 1 ELSE 0 END
+    INNER JOIN OCNT T19 ON T6.County = T19.AbsId
+    LEFT JOIN OOND T24 ON T24.INDCODE = T5.INDUSTRYC
+    LEFT JOIN [@RAL_AREAATUCAO] T29 ON T29.Code = T5.U_AreaAtuacao
+    LEFT JOIN HTM1 T30 ON T30.empID = T15.empID
+    LEFT JOIN OHTM T31 ON T31.teamID = T30.teamID
+    LEFT JOIN Fatores F ON F.Ano = DATEPART(YEAR, T0.DocDate) AND F.Mes = DATEPART(MONTH, T0.DocDate)
+
+    WHERE T14.staType IN (25, 31) 
+      AND T14.TaxStatus = 'Y' 
+      AND T0.Canceled = 'N' 
+      AND T0.DocStatus IN ('O', 'C')
+      AND T0.DocDate >= DATEADD(YEAR, -4, GETDATE())
+
+) A;
+
+]]>
+    </file>
+    <file path="data\teste_input.json">
+<![CDATA[
+
+]]>
+    </file>
+    <file path="logs\pitch_usage.jsonl">
+<![CDATA[
+{"timestamp": "2025-12-12T14:12:13.224344", "card_code": "C007463", "target_sku": "", "pitch_generated": "Aqui está a análise executiva do cliente **FABIO VIEIRA ALVARES MARQUES (C007463)**, baseada estritamente nos dados fornecidos.\n\n### 1. Perfil de Compra\n*   **Monoproduto:** O cliente compra exclusivamente **FARELO DE ARROZ ENSACADO (SKU: SB00317)**. Não há registro de outros itens no histórico.\n*   **Volume Alto e Constante:** As compras variam entre **6.000kg e 7.700kg** por fatura (carga fechada/truck).\n*   **Sensibilidade a Preço/Margem:** O cliente manteve compras mesmo em períodos de margem negativa (junho a agosto), mas o volume e a rentabilidade aumentaram significativamente em dezembro.\n\n### 2. Frequência e Recência\n*   **Status:** **CLIENTE ATIVO E AQUECIDO.**\n*   **Recência:** Última compra faturada em **11/12/2025**.\n*   **Frequência Média:** O cliente realiza cerca de **3 a 5 compras por mês**.\n*   **Comportamento Recente:** Houve um pico de demanda em dezembro, com **3 faturamentos em apenas 2 dias** (10/12 e 11/12), totalizando mais de 23 toneladas em 48 horas.\n\n---\n\n### 3. Pitch de Venda (Abordagem Executiva)\n\n**Objetivo:** Aproveitar o momento de alta demanda (dezembro) e a recuperação da margem para garantir o abastecimento contínuo ou fechar o pedido em aberto de outubro.\n\n**Script Sugerido:**\n\n\"Olá, Fabio. Aqui é o [Seu Nome].\n\nEstou analisando sua movimentação recente e vi que aceleramos forte as entregas de **Farelo de Arroz** agora em dezembro, com três cargas faturadas nos dias 10 e 11.\n\nComo sua operação está rodando em ritmo alto e conseguimos recuperar a rentabilidade do produto nas últimas semanas, quero me antecipar:\n\n1.  **Reposição Imediata:** Já quer deixar programada a carga da próxima semana para garantir esse preço atual?\n2.  **Pedido em Aberto:** Notei que temos um pedido (Doc 227275) de outubro com saldo de 30 toneladas em aberto. Podemos usar esse saldo para as próximas entregas e travar a condição?\n\nO objetivo é não deixar faltar produto no seu pátio, já que o senhor está girando mais de 20 toneladas por semana.\"\n\n---\n\n### 🔍 Por que sugeri isso? (Transparência dos Dados)\n\n1.  **Foco no Lucro:** Os dados mostram que as vendas de **Dezembro/2025** tiveram margens positivas robustas (ex: R$ 1.211,21 de margem no doc 240576), ao contrário dos meses de Junho/Julho/Agosto onde a margem foi negativa. É o melhor momento para vender.\n2.  **Padrão de Volume:** O cliente comprou 3 vezes entre 10/12 e 11/12. Isso indica uma necessidade urgente de estoque ou aumento de produção na ponta dele.\n3.  **Oportunidade de \"Cross-Selling\" (Upsell):** Não há outros produtos no histórico para cross-sell. A sugestão foca no **Pedido 227275 (Status: Aberto)** de 30.000kg listado na tabela, que ainda não foi totalmente consumido ou faturado, servindo como gancho para fidelização.\n4.  **Logística:** As cargas são padronizadas (aprox. 6 a 7 toneladas). O pitch visa manter esse padrão para otimização de frete.", "metadata": {}}
+{"timestamp": "2025-12-12T14:19:23.813614", "event": "pitch_generated", "pitch_id": "4fff8c6a-dec6-4ced-a88d-7567e42d6345", "user_id": "vendedor_mobile", "card_code": "C007463", "target_sku": "", "pitch_generated": "Aqui está a análise executiva do cliente **FABIO VIEIRA ALVARES MARQUES (C007463)**, baseada estritamente nos dados fornecidos.\n\n### 1. Perfil de Compra\n*   **Cliente Monoproduto:** 100% do histórico é concentrado no SKU **SB00317 (FARELO DE ARROZ ENSACADO)**.\n*   **Volume Elevado:** Média de compra por fatura gira em torno de **6.500 a 7.700 unidades** (provavelmente carga fechada/caminhão).\n*   **Recuperação de Margem:** O cliente operou com margem negativa entre Junho e Agosto. A partir de Setembro, e confirmando em Dezembro, as margens tornaram-se **positivas e robustas** (ex: R$ 1.211,21 de margem na nota 240576). O cliente aceitou o repasse de preço.\n\n### 2. Frequência Média\n*   **Status:** **ATIVO E QUENTE**.\n*   **Recência:** Última compra faturada em **11/12/2025**.\n*   **Ciclo:** Em períodos de pico (ex: Julho/Agosto), comprava semanalmente (a cada 4-7 dias). Houve um hiato entre Outubro e Dezembro, mas retomou com força total agora (3 faturas em 2 dias: 10 e 11/12).\n\n---\n\n### 3. PITCH DE VENDA (Abordagem Executiva)\n\n**Objetivo:** Aproveitar o momento de compra ativa para programar a próxima carga (evitando ruptura) e tentar converter o Pedido em Aberto de Outubro.\n\n**Script Sugerido:**\n\n\"Olá, Fabio. Tudo bem?\n\nEstou acompanhando suas cargas de **Farelo de Arroz** que faturamos agora nos dias 10 e 11. Como sua operação retomou o ritmo semanal intenso, estou ligando para **programar sua reposição para a próxima semana**.\n\nNotei que temos um pedido antigo (nº 227275) de 30.000 unidades ainda constando como 'Aberto' no sistema.\n\n**Minha sugestão:** Vamos aproveitar a logística das entregas recentes para já deixar agendado o saldo desse pedido ou fechar uma nova carga para garantir o abastecimento de final de ano? A margem atual está saudável e quero travar esse preço para você antes de qualquer virada de tabela.\"\n\n---\n\n### 🔍 Por que sugeri isso? (Transparência)\n\n1.  **Fonte dos Dados:** Histórico de 20 transações (Faturas e Pedidos) listados na tabela.\n2.  **Lógica da Frequência:** O cliente comprou nos dias 10/12 (duas vezes) e 11/12. Isso indica que ele está em momento de abastecimento crítico. Historicamente, ele comprava toda semana. Não podemos esperar ele ligar; o vendedor deve antecipar a demanda da próxima semana.\n3.  **Foco no Lucro:** As faturas de Dezembro (240576, 240579) mostram margens de **R$ 1.211,00**, muito superiores às margens negativas de agosto (ex: -R$ 766,00). É o momento ideal para vender, pois a operação está lucrativa.\n4.  **Oportunidade (Pedido Aberto):** Existe um pedido (227275) de 01/10 com 30.000 unidades com status \"Aberto\". É necessário verificar se isso é um pedido \"esqueleto\" (contrato) ou uma pendência real para faturar.", "metadata": {}}
+{"timestamp": "2025-12-12T14:19:33.142260", "event": "pitch_feedback", "pitch_id": "4fff8c6a-dec6-4ced-a88d-7567e42d6345", "user_id": "vendedor_mobile", "feedback_type": "useful"}
+{"timestamp": "2025-12-12T14:24:06.936860", "event": "pitch_generated", "pitch_id": "bfe00fab-68c4-428f-a6f8-9e8524ffa2fa", "user_id": null, "card_code": "C005027", "target_sku": "", "pitch_generated": "Aqui está a análise executiva do cliente **AAGC COMERCIO VAREJISTA DE ALIMENTOS LTDA (C005027)**, com foco em reativação imediata e mix de produtos.\n\n### 1. 📊 Perfil de Compra e Frequência\n\n*   **Perfil:** Varejista de giro rápido com foco em **Cesta Básica (Arroz e Feijão)**.\n*   **Curva A (Carro-Chefe):** O produto de maior volume e valor é o **ARROZ BRANCO FANTASTICO GRAOS NOBRES T1 (FD 6/5KG)**. Ele compra consistentemente fardos de 5kg.\n*   **Mix Secundário:** Arroz Branco Saboroso (1kg e 2kg), Feijão Carioca (Fantástico e Saboroso) e Feijão Preto.\n*   **Frequência Média:** O cliente compra, em média, a cada **14 a 20 dias**.\n*   **Status Atual:**\n    *   Último Faturamento: **04/11/2025** (Apenas Arroz).\n    *   Pedidos em Aberto: Existem pedidos de 21/10 e 22/10 ainda com status \"Aberto\". *Atenção: Verifique se há trava financeira ou logística.*\n\n### 2. 🎯 Estratégia de Abordagem (Gap de Mix)\n\n**Insight Crítico:** No último faturamento (04/11), o cliente comprou **APENAS ARROZ** (Fantástico e Saboroso). Ele **não repôs Feijão nem Arroz Parboilizado** nessa nota fiscal. O estoque desses itens deve estar crítico, pois a última compra faturada de Feijão e Parboilizado foi em meados de Setembro (ou nos pedidos em aberto de Outubro, caso tenham sido entregues).\n\n### 3. 📞 Pitch de Venda (B2B Direto)\n\n**Assunto:** Reposição de Feijão e Parboilizado (Mix em falta)\n\n\"Bom dia, [Nome do Comprador]. Aqui é o [Seu Nome].\n\nEstou analisando sua última entrada de mercadoria do dia 04/11 e vi que abastecemos bem o **Arroz Branco Fantástico 5kg** e o **Saboroso**.\n\nPorém, notei que **ficou de fora o Feijão (Carioca e Preto) e o Arroz Parboilizado**, que o senhor costuma girar bem. Sua última nota faturada com esses itens já tem um tempo considerável.\n\nPara não haver ruptura na gôndola, sugiro montarmos um pedido focado em:\n1.  **Feijão Carioca Fantástico (FD 30/1kg):** Para acompanhar o Arroz Nobre que já chegou.\n2.  **Arroz Parboilizado Fantástico (FD 6/5kg):** Item que não saiu na nota do dia 04/11.\n3.  *Oportunidade:* **Arroz Arbório Fantástico:** Vi que testou em Setembro. Como foi a saída? Vamos repor uma caixa para manter o mix premium?\n\nConsigo fechar essa carga para envio imediato. Vamos rodar o pedido?\"\n\n---\n\n### 🔍 Por que sugeri isso? (Transparência)\n\n1.  **Fonte dos Dados:** Histórico de notas fiscais faturadas (tabela fornecida).\n2.  **Lógica do Gap de Mix:**\n    *   Na nota `240566` (04/11), o cliente comprou **15 fardos** de Arroz Fantástico 5kg e Arroz Saboroso, mas **zero** Feijão e **zero** Parboilizado.\n    *   O histórico mostra que ele comprava Feijão Carioca e Preto regularmente (em 18/09, 04/09, 28/08).\n    *   A margem do Arroz Fantástico 5kg na última compra foi excelente (~26%), indicando que ele não tem objeção forte a preço na marca líder, o que facilita a venda do Feijão da mesma marca.\n3.  **Otimização:** Focar nos itens que *não* foram comprados na última semana garante que você não está oferecendo o que ele já tem cheio no estoque.", "metadata": {}}
+{"timestamp": "2025-12-12T14:24:58.478999", "event": "pitch_generated", "pitch_id": "06702358-1d2a-4347-9b9a-dfea7601efb7", "user_id": "vendedor_mobile", "card_code": "C005027", "target_sku": "", "pitch_generated": "Aqui está a análise executiva do cliente **AAGC COMERCIO VAREJISTA DE ALIMENTOS LTDA (C005027)** e a estratégia de abordagem.\n\n### 1. Perfil de Compra\n*   **Segmento:** Varejo Alimentar (Supermercado/Mercearia).\n*   **Curva A (Carro-Chefe):** **ARROZ BRANCO FANTASTICO GRAOS NOBRES T1 (FD 6/5KG)**. É o item de maior volume, recorrência e, crucialmente, **maior margem absoluta** (aprox. R$ 500,00 de margem por pedido médio).\n*   **Mix de Produtos:** Compra casada consistente de Arroz Branco (Premium e Combate/Saboroso) + Feijão (Carioca e Preto).\n*   **Comportamento de Marca:** Trabalha com tierização clara. Usa a marca **Fantástico** para margem/qualidade e **Saboroso** para preço/combate.\n\n### 2. Frequência Média\n*   **Ciclo:** Quinzenal (Média de compras a cada 14-15 dias).\n*   **Status Atual:** **ATIVO**.\n*   **Última Fatura:** 04/11/2025 (Há poucos dias, considerando a data base da simulação).\n*   **Alerta:** Existem pedidos \"Aberto\" datados de 21/10 e 22/10. O cliente comprou novamente em 04/11 (Faturado), mas apenas Arroz Branco.\n\n### 3. Pitch de Venda (Abordagem Executiva)\n\n**Objetivo:** Cross-selling de Feijão e Parboilizado (ausentes na última nota faturada) e verificação dos pedidos em aberto.\n\n**Script:**\n\n\"Bom dia, [Nome do Comprador]. Aqui é o [Seu Nome], especialista da [Sua Empresa].\n\nEstou analisando sua movimentação e vi que faturamos com sucesso o **Arroz Fantástico 5kg** e o **Saboroso** no dia 04/11. Excelente pedido para garantir a ponta da gôndola.\n\nPorém, notei uma **ruptura no seu padrão de compra**: nesta última nota não saíram o **Feijão Carioca (Fantástico/Saboroso)** nem o **Arroz Parboilizado**, que o senhor costuma repor quinzenalmente junto com o Branco.\n\nComo o fim de ano se aproxima, não podemos deixar furar o mix básico. Tenho uma condição para fechar uma carga mista agora, descendo o **Feijão Carioca Fantástico** e completando com o **Parboilizado** para otimizar esse frete.\n\nPodemos rodar esse complemento hoje para manter sua margem média equilibrada?\"\n\n---\n\n### 🔍 Por que sugeri isso? (Transparência & Dados)\n\n1.  **Fonte dos Dados:** Histórico de Faturamento (ERP) de Julho a Novembro de 2025.\n2.  **Lógica do \"Gap\" de Produto:**\n    *   Na fatura de **04/11**, o cliente comprou **apenas** Arroz Branco (Fantástico e Saboroso).\n    *   No histórico (ex: 18/09, 04/09, 13/08), ele quase sempre compra **Feijão** e **Arroz Parboilizado** junto.\n    *   Há pedidos em \"Aberto\" de Feijão em 21/10. Se não foram faturados, o estoque dele de feijão está perigosamente baixo ou zerado.\n3.  **Foco na Margem:** O Arroz Fantástico 5kg (comprado dia 04/11) tem margem alta (~26%). O Feijão tem margem menor, mas é essencial para o giro. Vender o complemento agora garante que ele não procure o feijão na concorrência.", "metadata": {}}
+{"timestamp": "2025-12-12T14:46:27.162539", "event": "pitch_generated", "pitch_id": "46402c14-b043-46d3-a7d8-65341938902e", "user_id": "vendedor_mobile", "card_code": "C005616", "target_sku": "", "pitch_generated": "**ANÁLISE DE CLIENTE: COMERCIAL DE PRODUTOS ALIMENTICIOS JULIO COSTA LTDA. (C005616)**\n\n### 1. Perfil de Compra\n*   **Classificação:** Cliente de Alto Volume / Atacadista (Curva A).\n*   **Carro-Chefe (Volume):** ARROZ BRANCO SABOROSO T1 (FD 6/5KG). O cliente compra volumes altos (35 a 70 fardos por pedido) com regularidade.\n*   **Mix de Produtos:** Possui um mix diversificado e saudável. Além do item de combate (Saboroso), compra regularmente a linha Premium \"Fantástico\" (Arroz Nobres, Parboilizado, Integral), toda a linha de Feijões (Preto, Fradinho, Branco) e Massas (Espaguete, Parafuso, Penne).\n*   **Comportamento:** Tende a separar pedidos de volume (apenas Arroz Saboroso) de pedidos de mix (vários SKUs menores).\n\n### 2. Frequência Média\n*   **Status:** **ATIVO E QUENTE**.\n*   **Última Compra:** 08/09/2025 (Há 2 dias - considerando data atual como pós-08/09).\n*   **Cadência:** Compra semanalmente (4 pedidos em Agosto, 2 já em Setembro).\n*   **Alerta:** O cliente fez uma reposição massiva de Arroz Saboroso dia 08/09, mas **não repôs itens essenciais do mix que não compra desde Agosto.**\n\n---\n\n### 3. PITCH DE VENDAS (Abordagem Executiva)\n\n**Objetivo:** Reativar a linha de **Feijão Carioca** (ruptura detectada) e aproveitar o pedido para incluir itens de maior margem.\n\n\"Bom dia, [Nome do Comprador]. Aqui é o [Seu Nome].\n\nEstou analisando sua movimentação e vi que garantimos o estoque do **Arroz Saboroso** no dia 08. Excelente decisão dado o volume.\n\nPorém, meu sistema apontou um risco de ruptura no seu **Feijão Carioca**.\nA última compra das linhas **Fantástico e Saboroso (Carioca)** foi em **02/08**, há mais de 30 dias. Considerando seu giro, você já deve estar sem produto na prateleira.\n\nMinha sugestão para fechar agora:\n1.  Reposição imediata de **30 fardos de Feijão Carioca** (Mix entre Fantástico e Saboroso) para não perder venda.\n2.  Aproveitamos para repor o **Macarrão Fantástico** que você levou dia 03/09 e girou rápido.\n\nConsigo manter a condição da última semana se fecharmos essa grade agora. Podemos rodar o pedido?\"\n\n---\n\n### 🔍 Por que sugeri isso? (Transparência dos Dados)\n\n1.  **Risco de Ruptura (Feijão Carioca):**\n    *   **Fonte:** Histórico de Compras (ERP).\n    *   **Lógica:** O cliente comprou Feijão Carioca (Fantástico e Saboroso) pela última vez em **02/08/2025**. Desde então, fez 6 pedidos (dias 12/08, 13/08, 29/08, 03/09 e 08/09) e em **nenhum** deles incluiu Feijão Carioca. Para um atacadista de alimentos, ficar 30+ dias sem repor o feijão mais consumido do Brasil indica estoque zerado.\n\n2.  **Oportunidade de Mix (Macarrão):**\n    *   **Fonte:** Pedido 238041 de 03/09/2025.\n    *   **Lógica:** O cliente introduziu/repôs Macarrão (Espaguete, Parafuso, Penne) recentemente. É um produto de margem agregada que ajuda a compor o valor do pedido e diluir o frete, já que o Arroz Saboroso (commodity) tem margem mais apertada.\n\n3.  **Timing:**\n    *   O cliente comprou dia 08/09 apenas Arroz Saboroso (Doc 238511). Ele está ativo, com crédito e comprando. É o momento ideal para oferecer o que ficou para trás.", "metadata": {}}
+
+]]>
+    </file>
+    <file path="mobile\App.js">
+<![CDATA[
+import 'react-native-gesture-handler';
+import React from 'react';
+import { Platform } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import HomeScreen from './src/screens/HomeScreen';
+import CustomerScreen from './src/screens/CustomerScreen';
+import ChatScreen from './src/screens/ChatScreen';
+
+const Stack = createStackNavigator();
+
+export default function App() {
+    // Fix para Web: Garante que o corpo da página permita scroll e carrega fonte
+    if (Platform.OS === 'web') {
+        const style = document.createElement('style');
+        style.textContent = `
+            @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap');
+            html, body, #root {
+                height: 100%;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    return (
+        <NavigationContainer>
+            <Stack.Navigator
+                screenOptions={{
+                    cardStyle: { flex: 1 } // Garante que as telas ocupem todo o espaço
+                }}
+            >
+                <Stack.Screen
+                    name="Home"
+                    component={HomeScreen}
+                    options={{
+                        title: 'Mari IA',
+                        headerStyle: {
+                            backgroundColor: '#6200ee',
+                        },
+                        headerTintColor: '#fff',
+                        headerTitleStyle: {
+                            fontWeight: 'bold',
+                            fontSize: 24,
+                            fontFamily: 'Montserrat',
+                        },
+                    }}
+                />
+                <Stack.Screen name="Customer" component={CustomerScreen} options={{ title: 'Detalhes do Cliente' }} />
+                <Stack.Screen name="Chat" component={ChatScreen} options={{ title: 'Assistente Mari IA' }} />
+            </Stack.Navigator>
+        </NavigationContainer>
+    );
+}
+
+]]>
+    </file>
+    <file path="mobile\app.json">
+<![CDATA[
+{
+    "expo": {
+        "name": "MariIA Telesales",
+        "slug": "mariia-telesales",
+        "version": "1.0.0",
+        "orientation": "portrait",
+        "icon": "./assets/icon.png",
+        "userInterfaceStyle": "light",
+        "splash": {
+            "image": "./assets/splash.png",
+            "resizeMode": "contain",
+            "backgroundColor": "#ffffff"
+        },
+        "assetBundlePatterns": [
+            "**/*"
+        ],
+        "ios": {
+            "supportsTablet": true
+        },
+        "android": {
+            "adaptiveIcon": {
+                "foregroundImage": "./assets/adaptive-icon.png",
+                "backgroundColor": "#ffffff"
+            }
+        },
+        "web": {
+            "favicon": "./assets/favicon.png"
+        }
+    }
+}
+]]>
+    </file>
+    <file path="mobile\babel.config.js">
+<![CDATA[
+module.exports = function (api) {
+    api.cache(true);
+    return {
+        presets: ['babel-preset-expo'],
+    };
+};
+
+]]>
+    </file>
+    <file path="mobile\package.json">
+<![CDATA[
+{
+  "name": "mariia-mobile",
+  "version": "1.0.0",
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-navigation/native": "^6.1.9",
+    "@react-navigation/stack": "^6.3.20",
+    "axios": "^1.7.7",
+    "expo": "~54.0.0",
+    "expo-status-bar": "~3.0.9",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-gesture-handler": "~2.28.0",
+    "react-native-safe-area-context": "~5.6.0",
+    "react-native-screens": "~4.16.0",
+    "react-native-web": "^0.21.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.0"
+  },
+  "private": true
+}
+
+]]>
+    </file>
+    <file path="mobile\SETUP_MOBILE.md">
+<![CDATA[
+# Configuração do App Mobile (MariIA)
+
+A estrutura de código fonte já foi criada na pasta `mobile/`. Agora você precisa inicializar o projeto Expo e instalar as dependências.
+
+## 1. Inicializar o Projeto Expo
+Abra um terminal na pasta `mobile/` e execute:
+
+```bash
+cd mobile
+npx create-expo-app . --template blank
+```
+*(Se perguntar se quer sobrescrever arquivos, diga **NÃO** ou faça backup do `App.js` antes. O ideal é instalar as dependências abaixo se o projeto já existir)*.
+
+**Alternativa Segura (Recomendada):**
+Como eu já criei os arquivos de código (`App.js`, `src/`), apenas instale as dependências necessárias para eles funcionarem:
+
+1. Crie o `package.json` (se não existir):
+   ```bash
+   npm init -y
+   ```
+
+2. Instale o Expo e bibliotecas:
+   ```bash
+   npx install-expo-modules@latest
+   npm install react-native-web react-dom @expo/metro-runtime
+   npm install @react-navigation/native @react-navigation/stack
+   npm install react-native-screens react-native-safe-area-context
+   npm install axios
+   ```
+
+## 2. Rodar o App
+```bash
+npx expo start
+```
+- Pressione `a` para abrir no Android (Emulador ou USB).
+- Pressione `w` para abrir no Web Browser.
+- Escaneie o QR Code com o app Expo Go no seu celular.
+
+## 3. Configuração de IP
+No arquivo `src/services/api.js`, verifique o `API_URL`:
+- Se usar Emulador Android: `http://10.0.2.2:8000`
+- Se usar Celular Físico: Troque pelo IP da sua máquina (ex: `http://192.168.1.X:8000`)
+
+]]>
+    </file>
+    <file path="mobile\src\screens\ChatScreen.js">
+<![CDATA[
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { sendChatMessage } from '../services/api';
+
+const STORAGE_KEY = '@mariia_chat_history';
+
+export default function ChatScreen({ navigation }) {
+    const [messages, setMessages] = useState([
+        { id: 1, text: "Olá! Sou a Mari IA. Como posso ajudar nas suas vendas hoje?", sender: 'bot' }
+    ]);
+    const [inputText, setInputText] = useState('');
+    const [loading, setLoading] = useState(false);
+    const flatListRef = useRef(null);
+
+    // Carrega histórico ao iniciar
+    useEffect(() => {
+        loadHistory();
+    }, []);
+
+    // Salva histórico sempre que mudar (exceto se estiver vazio/inicial)
+    useEffect(() => {
+        if (messages.length > 1) {
+            saveHistory();
+        }
+    }, [messages]);
+
+    // Configura botão de Nova Conversa no Header
+    useEffect(() => {
+        navigation.setOptions({
+            headerRight: () => (
+                <TouchableOpacity onPress={confirmNewChat} style={styles.newChatButton}>
+                    <Text style={styles.newChatButtonText}>✎ Nova Conversa</Text>
+                </TouchableOpacity>
+            ),
+        });
+    }, [navigation]);
+
+    const loadHistory = async () => {
+        try {
+            const jsonValue = await AsyncStorage.getItem(STORAGE_KEY);
+            if (jsonValue != null) {
+                setMessages(JSON.parse(jsonValue));
+            }
+        } catch (e) {
+            console.error("Erro ao carregar histórico", e);
+        }
+    };
+
+    const saveHistory = async () => {
+        try {
+            const jsonValue = JSON.stringify(messages);
+            await AsyncStorage.setItem(STORAGE_KEY, jsonValue);
+        } catch (e) {
+            console.error("Erro ao salvar histórico", e);
+        }
+    };
+
+    const confirmNewChat = () => {
+        if (Platform.OS === 'web') {
+            if (window.confirm("Deseja apagar o histórico e iniciar uma nova conversa?")) {
+                startNewChat();
+            }
+        } else {
+            Alert.alert(
+                "Nova Conversa",
+                "Deseja apagar o histórico e iniciar uma nova conversa?",
+                [
+                    { text: "Cancelar", style: "cancel" },
+                    { text: "Sim, limpar", onPress: startNewChat, style: 'destructive' }
+                ]
+            );
+        }
+    };
+
+    const startNewChat = async () => {
+        const initialMsg = [{ id: Date.now(), text: "Olá! Sou a Mari IA. Como posso ajudar nas suas vendas hoje?", sender: 'bot' }];
+        setMessages(initialMsg);
+        try {
+            await AsyncStorage.removeItem(STORAGE_KEY);
+        } catch (e) {
+            console.error("Erro ao limpar histórico", e);
+        }
+    };
+
+    const handleSend = async () => {
+        if (!inputText.trim()) return;
+
+        const userMsg = { id: Date.now(), text: inputText, sender: 'user' };
+        setMessages(prev => [...prev, userMsg]);
+        setInputText('');
+        setLoading(true);
+
+        try {
+            const result = await sendChatMessage(userMsg.text, messages);
+            const botMsg = {
+                id: Date.now() + 1,
+                text: result.response || "Desculpe, não entendi.",
+                sender: 'bot'
+            };
+            setMessages(prev => [...prev, botMsg]);
+        } catch (error) {
+            const errorMsg = { id: Date.now() + 1, text: "Erro de conexão.", sender: 'bot' };
+            setMessages(prev => [...prev, errorMsg]);
+        }
+        setLoading(false);
+    };
+
+    const renderItem = ({ item }) => (
+        <View style={[
+            styles.messageBubble,
+            item.sender === 'user' ? styles.userBubble : styles.botBubble
+        ]}>
+            <Text style={[
+                styles.messageText,
+                item.sender === 'user' ? styles.userText : styles.botText
+            ]}>{item.text}</Text>
+        </View>
+    );
+
+    const handleKeyPress = (e) => {
+        if (Platform.OS === 'web' && e.nativeEvent.key === 'Enter' && !e.nativeEvent.shiftKey) {
+            e.preventDefault();
+            handleSend();
+        }
+    };
+
+    return (
+        <KeyboardAvoidingView
+            style={styles.container}
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            keyboardVerticalOffset={80}
+        >
+            <FlatList
+                ref={flatListRef}
+                data={messages}
+                keyExtractor={item => item.id.toString()}
+                renderItem={renderItem}
+                contentContainerStyle={styles.listContent}
+                style={{ flex: 1 }}
+                onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+            />
+
+            <View style={styles.inputContainer}>
+                <TextInput
+                    style={styles.input}
+                    value={inputText}
+                    onChangeText={setInputText}
+                    placeholder="Digite sua mensagem..."
+                    placeholderTextColor="#999"
+                    multiline={true}
+                    onKeyPress={handleKeyPress}
+                />
+                <TouchableOpacity
+                    style={styles.sendButton}
+                    onPress={handleSend}
+                    disabled={loading}
+                >
+                    {loading ? (
+                        <ActivityIndicator color="#fff" />
+                    ) : (
+                        <Text style={styles.sendButtonText}>Enviar</Text>
+                    )}
+                </TouchableOpacity>
+            </View>
+        </KeyboardAvoidingView>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#f5f5f5',
+        ...Platform.select({
+            web: {
+                height: '100vh',
+                display: 'flex',
+                flexDirection: 'column',
+            }
+        })
+    },
+    newChatButton: {
+        marginRight: 15,
+        backgroundColor: 'white',
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 20,
+        elevation: 2,
+    },
+    newChatButtonText: {
+        color: '#6200ee',
+        fontWeight: 'bold',
+        fontSize: 12,
+    },
+    listContent: {
+        padding: 15,
+        paddingBottom: 20,
+    },
+    messageBubble: {
+        maxWidth: '80%',
+        padding: 12,
+        borderRadius: 15,
+        marginBottom: 10,
+    },
+    userBubble: {
+        alignSelf: 'flex-end',
+        backgroundColor: '#6200ee',
+        borderBottomRightRadius: 2,
+    },
+    botBubble: {
+        alignSelf: 'flex-start',
+        backgroundColor: 'white',
+        borderBottomLeftRadius: 2,
+        elevation: 1,
+        ...Platform.select({
+            web: {
+                boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.2)',
+            }
+        })
+    },
+    messageText: {
+        fontSize: 16,
+    },
+    userText: {
+        color: 'white',
+    },
+    botText: {
+        color: '#333',
+    },
+    inputContainer: {
+        flexDirection: 'row',
+        padding: 10,
+        backgroundColor: 'white',
+        elevation: 5,
+        borderTopWidth: 1,
+        borderTopColor: '#eee',
+    },
+    input: {
+        flex: 1,
+        backgroundColor: '#f0f0f0',
+        borderRadius: 20,
+        paddingHorizontal: 15,
+        paddingVertical: 10,
+        marginRight: 10,
+        fontSize: 16,
+    },
+    sendButton: {
+        backgroundColor: '#6200ee',
+        borderRadius: 20,
+        paddingHorizontal: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    sendButtonText: {
+        color: 'white',
+        fontWeight: 'bold',
+    },
+});
+
+]]>
+    </file>
+    <file path="mobile\src\screens\CustomerScreen.js">
+<![CDATA[
+import React, { useEffect, useState } from 'react';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, Alert } from 'react-native';
+import { getCustomer, generatePitch, sendPitchFeedback } from '../services/api';
+
+export default function CustomerScreen({ route }) {
+    const { cardCode } = route.params;
+    const [history, setHistory] = useState([]);
+    const [customerName, setCustomerName] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [pitchLoading, setPitchLoading] = useState(false);
+    const [pitch, setPitch] = useState(null);
+
+    useEffect(() => {
+        loadCustomerData();
+    }, []);
+
+    const loadCustomerData = async () => {
+        setLoading(true);
+        const result = await getCustomer(cardCode);
+        if (result) {
+            if (result.history) setHistory(result.history);
+            if (result.customer_name) setCustomerName(result.customer_name);
+        }
+        setLoading(false);
+    };
+
+    const [pitchId, setPitchId] = useState(null);
+    const [feedbackGiven, setFeedbackGiven] = useState(false);
+
+    const handleGeneratePitch = async () => {
+        setPitchLoading(true);
+        setPitch(null);
+        setPitchId(null);
+        setFeedbackGiven(false);
+        const result = await generatePitch(cardCode, ""); // SKU opcional
+        if (result && result.pitch) {
+            setPitch(result.pitch);
+            setPitchId(result.pitch_id);
+        } else {
+            Alert.alert("Erro", "Não foi possível gerar o pitch.");
+        }
+        setPitchLoading(false);
+    };
+
+    const handleFeedback = async (type) => {
+        if (!pitchId) return;
+        setFeedbackGiven(true);
+        await sendPitchFeedback(pitchId, type);
+        Alert.alert("Obrigado!", "Seu feedback ajuda a Mari IA a aprender.");
+    };
+
+    const formatCurrency = (value) => {
+        return new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+        }).format(value);
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('pt-BR');
+    };
+
+    const DocumentCard = ({ item }) => {
+        const [expanded, setExpanded] = useState(false);
+
+        return (
+            <View style={styles.documentCard}>
+                <TouchableOpacity
+                    style={styles.documentHeader}
+                    onPress={() => setExpanded(!expanded)}
+                >
+                    <View style={styles.row}>
+                        <Text style={styles.date}>{formatDate(item.date)}</Text>
+                        <Text style={styles.docNum}>{item.type || 'Doc'}: {item.document_number}</Text>
+                    </View>
+                    <View style={styles.row}>
+                        <Text style={styles.status}>{item.status}</Text>
+                        <Text style={styles.totalValue}>{formatCurrency(item.total_value)}</Text>
+                    </View>
+                    <Text style={styles.expandText}>{expanded ? "▲ Ocultar Itens" : "▼ Ver Itens"}</Text>
+                </TouchableOpacity>
+
+                {expanded && (
+                    <View style={styles.itemsContainer}>
+                        {item.items.map((prod, index) => (
+                            <View key={index} style={styles.productItem}>
+                                <Text style={styles.productName}>{prod.Nome_Produto}</Text>
+                                <View style={styles.row}>
+                                    <Text style={styles.productQty}>Qtd: {prod.Quantidade}</Text>
+                                    <Text style={styles.productValue}>{formatCurrency(prod.Valor_Liquido)}</Text>
+                                </View>
+                            </View>
+                        ))}
+                    </View>
+                )}
+            </View>
+        );
+    };
+
+    return (
+        <ScrollView style={styles.container}>
+            <View style={styles.headerContainer}>
+                <Text style={styles.title}>{cardCode} - {customerName || 'Carregando...'}</Text>
+                <TouchableOpacity
+                    style={styles.pitchButton}
+                    onPress={handleGeneratePitch}
+                    disabled={pitchLoading}
+                >
+                    {pitchLoading ? (
+                        <ActivityIndicator color="#fff" />
+                    ) : (
+                        <Text style={styles.pitchButtonText}>🪄✨ Gerar Pitch IA</Text>
+                    )}
+                </TouchableOpacity>
+            </View>
+
+            {pitch && (
+                <View style={styles.pitchContainer}>
+                    <Text style={styles.pitchTitle}>Sugestão da Mari IA:</Text>
+                    <Text style={styles.pitchText}>{pitch}</Text>
+
+                    {/* Botões de Feedback */}
+                    {!feedbackGiven ? (
+                        <View style={styles.feedbackContainer}>
+                            <Text style={styles.feedbackLabel}>Isso ajudou?</Text>
+                            <View style={styles.feedbackButtons}>
+                                <TouchableOpacity
+                                    style={[styles.feedbackBtn, styles.usefulBtn]}
+                                    onPress={() => handleFeedback('useful')}
+                                >
+                                    <Text style={styles.feedbackText}>👍 Útil</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={[styles.feedbackBtn, styles.soldBtn]}
+                                    onPress={() => handleFeedback('sold')}
+                                >
+                                    <Text style={styles.feedbackText}>💰 Vendi!</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    ) : (
+                        <Text style={styles.thankYouText}>Obrigado pelo feedback! 🚀</Text>
+                    )}
+                </View>
+            )}
+
+            <Text style={styles.sectionTitle}>Histórico Recente</Text>
+            {loading ? (
+                <ActivityIndicator size="large" color="#0000ff" />
+            ) : (
+                <FlatList
+                    data={history}
+                    keyExtractor={(item) => item.document_number.toString()}
+                    renderItem={({ item }) => <DocumentCard item={item} />}
+                    scrollEnabled={false}
+                    ListEmptyComponent={<Text>Nenhum histórico encontrado.</Text>}
+                />
+            )}
+        </ScrollView>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#f5f5f5',
+        padding: 15,
+    },
+    headerContainer: {
+        marginBottom: 20,
+    },
+    title: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 10,
+    },
+    pitchButton: {
+        backgroundColor: '#6200ee',
+        padding: 15,
+        borderRadius: 8,
+        alignItems: 'center',
+        elevation: 3,
+    },
+    pitchButtonText: {
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
+    pitchContainer: {
+        backgroundColor: '#e8eaf6',
+        padding: 15,
+        borderRadius: 8,
+        marginBottom: 20,
+        borderLeftWidth: 4,
+        borderLeftColor: '#6200ee',
+    },
+    pitchTitle: {
+        fontWeight: 'bold',
+        color: '#6200ee',
+        marginBottom: 5,
+    },
+    pitchText: {
+        color: '#333',
+        lineHeight: 22,
+    },
+    feedbackContainer: {
+        marginTop: 15,
+        paddingTop: 15,
+        borderTopWidth: 1,
+        borderTopColor: '#ddd',
+        alignItems: 'center',
+    },
+    feedbackLabel: {
+        fontSize: 14,
+        color: '#666',
+        marginBottom: 10,
+    },
+    feedbackButtons: {
+        flexDirection: 'row',
+        gap: 15,
+    },
+    feedbackBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        borderRadius: 20,
+        elevation: 1,
+    },
+    usefulBtn: {
+        backgroundColor: '#e0e0e0',
+    },
+    soldBtn: {
+        backgroundColor: '#4caf50',
+    },
+    feedbackText: {
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    thankYouText: {
+        marginTop: 15,
+        textAlign: 'center',
+        color: '#6200ee',
+        fontWeight: 'bold',
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 10,
+        marginTop: 10,
+    },
+    documentCard: {
+        backgroundColor: 'white',
+        borderRadius: 8,
+        marginBottom: 10,
+        elevation: 2,
+        overflow: 'hidden',
+    },
+    documentHeader: {
+        padding: 15,
+        backgroundColor: '#fff',
+    },
+    itemsContainer: {
+        backgroundColor: '#f9f9f9',
+        padding: 10,
+        borderTopWidth: 1,
+        borderTopColor: '#eee',
+    },
+    productItem: {
+        marginBottom: 8,
+        paddingBottom: 8,
+        borderBottomWidth: 1,
+        borderBottomColor: '#eee',
+    },
+    productName: {
+        fontSize: 14,
+        color: '#333',
+        marginBottom: 4,
+    },
+    productQty: {
+        fontSize: 12,
+        color: '#666',
+    },
+    productValue: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        color: '#008000',
+    },
+    row: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 4,
+    },
+    date: {
+        color: '#666',
+        fontSize: 12,
+    },
+    docNum: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    status: {
+        fontSize: 12,
+        color: '#444',
+    },
+    totalValue: {
+        color: '#008000',
+        fontWeight: 'bold',
+        fontSize: 14,
+    },
+    expandText: {
+        fontSize: 10,
+        color: '#6200ee',
+        textAlign: 'center',
+        marginTop: 5,
+    }
+});
+
+]]>
+    </file>
+    <file path="mobile\src\screens\HomeScreen.js">
+<![CDATA[
+import React, { useEffect, useState } from 'react';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, Platform, ScrollView } from 'react-native';
+import { getInsights, getInactiveCustomers } from '../services/api';
+
+export default function HomeScreen({ navigation }) {
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [errorMsg, setErrorMsg] = useState(null);
+    // Filtro inicial: 30 dias
+    const [selectedFilter, setSelectedFilter] = useState({ label: '30', val: 30 });
+    const [viewMode, setViewMode] = useState('active'); // 'active' | 'inactive'
+
+    const filters = [
+        { label: '15-25', min: 15, max: 25 },
+        { label: '26-30', min: 26, max: 30 },
+        { label: '30', val: 30 },
+        { label: '60', val: 60 },
+        { label: '90', val: 90 }
+    ];
+
+    useEffect(() => {
+        loadData(selectedFilter, viewMode);
+    }, [selectedFilter, viewMode]);
+
+    const loadData = async (filter, mode) => {
+        setLoading(true);
+        setErrorMsg(null);
+        try {
+            let minDays, maxDays;
+
+            if (filter.min !== undefined) {
+                // Range específico (Ex: 15-25)
+                minDays = filter.min;
+                maxDays = filter.max;
+            } else {
+                // Padrão (30/60/90)
+                if (mode === 'active') {
+                    minDays = 0;
+                    maxDays = filter.val;
+                } else {
+                    minDays = filter.val;
+                    maxDays = 9999;
+                }
+            }
+
+            let result;
+            if (mode === 'active') {
+                result = await getInsights(minDays, maxDays);
+            } else {
+                result = await getInactiveCustomers(minDays, maxDays);
+            }
+
+            if (result.error) {
+                setErrorMsg(result.error);
+            } else {
+                setData(result.data || []);
+            }
+        } catch (e) {
+            setErrorMsg("Erro inesperado: " + e.message);
+        }
+        setLoading(false);
+    };
+
+    const formatCurrency = (value) => {
+        return new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+        }).format(value);
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('pt-BR');
+    };
+
+    const renderItem = ({ item }) => (
+        <TouchableOpacity
+            style={[styles.card, viewMode === 'inactive' && styles.cardInactive]}
+            onPress={() => navigation.navigate('Customer', { cardCode: item.Codigo_Cliente })}
+        >
+            <Text style={styles.customerName}>{item.Codigo_Cliente} - {item.Nome_Cliente}</Text>
+            <View style={styles.row}>
+                <Text style={styles.city}>{item.Cidade} - {item.Estado}</Text>
+                {viewMode === 'active' ? (
+                    <Text style={styles.value}>{formatCurrency(item.Total_Venda)}</Text>
+                ) : (
+                    <Text style={styles.inactiveDate}>Sem compra desde: {formatDate(item.Ultima_Compra)}</Text>
+                )}
+            </View>
+        </TouchableOpacity>
+    );
+
+    return (
+        <View style={styles.container}>
+            <View style={styles.headerContainer}>
+                <Text style={styles.header}>
+                    {viewMode === 'active' ? 'Clientes top vendas' : 'Clientes em recuperação'}
+                </Text>
+
+                {/* Toggle View Mode */}
+                <View style={styles.toggleContainer}>
+                    <TouchableOpacity
+                        style={[styles.toggleButton, viewMode === 'active' && styles.toggleButtonActive]}
+                        onPress={() => setViewMode('active')}
+                    >
+                        <Text style={[styles.toggleText, viewMode === 'active' && styles.toggleTextActive]}>Ativos</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.toggleButton, viewMode === 'inactive' && styles.toggleButtonInactive]}
+                        onPress={() => setViewMode('inactive')}
+                    >
+                        <Text style={[styles.toggleText, viewMode === 'inactive' && styles.toggleTextActive]}>Em recuperação</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.filterContainer}
+                    style={styles.filterScroll}
+                >
+                    {filters.map((f) => (
+                        <TouchableOpacity
+                            key={f.label}
+                            style={[styles.filterButton, selectedFilter.label === f.label && styles.filterButtonActive]}
+                            onPress={() => setSelectedFilter(f)}
+                        >
+                            <Text style={[styles.filterText, selectedFilter.label === f.label && styles.filterTextActive]}>
+                                {f.label} dias
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
+            </View>
+
+            {errorMsg && (
+                <View style={styles.errorContainer}>
+                    <Text style={styles.errorText}>Erro: {errorMsg}</Text>
+                    <TouchableOpacity onPress={() => loadData(days, viewMode)} style={styles.retryButton}>
+                        <Text style={styles.retryText}>Tentar Novamente</Text>
+                    </TouchableOpacity>
+                </View>
+            )}
+
+            {loading ? (
+                <ActivityIndicator size="large" color="#0000ff" />
+            ) : (
+                <FlatList
+                    data={data}
+                    keyExtractor={(item, index) => index.toString()}
+                    renderItem={renderItem}
+                    refreshing={loading}
+                    onRefresh={() => loadData(days, viewMode)}
+                    ListEmptyComponent={!loading && !errorMsg && <Text>Nenhum dado encontrado.</Text>}
+                    style={{ flex: 1 }}
+                    contentContainerStyle={{ paddingBottom: 100 }}
+                />
+            )}
+
+            <TouchableOpacity
+                style={styles.chatFab}
+                onPress={() => navigation.navigate('Chat')}
+            >
+                <Text style={styles.chatFabText}>💬</Text>
+            </TouchableOpacity>
+        </View>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#f5f5f5',
+        padding: 10,
+        ...Platform.select({
+            web: {
+                height: '100vh',
+                display: 'flex',
+                flexDirection: 'column',
+            }
+        })
+    },
+    headerContainer: {
+        marginTop: 40,
+        marginBottom: 20,
+    },
+    header: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 10,
+    },
+    toggleContainer: {
+        flexDirection: 'row',
+        backgroundColor: '#e0e0e0',
+        borderRadius: 25,
+        marginBottom: 15,
+        padding: 4,
+    },
+    toggleButton: {
+        flex: 1,
+        paddingVertical: 8,
+        alignItems: 'center',
+        borderRadius: 20,
+    },
+    toggleButtonActive: {
+        backgroundColor: 'white',
+        elevation: 2,
+    },
+    toggleButtonInactive: {
+        backgroundColor: '#ffebee', // Vermelho claro para inativos
+    },
+    toggleText: {
+        fontWeight: 'bold',
+        color: '#666',
+    },
+    toggleTextActive: {
+        color: '#333',
+    },
+    filterScroll: {
+        flexGrow: 0, // Impede que o ScrollView ocupe altura desnecessária
+    },
+    filterContainer: {
+        flexDirection: 'row',
+        gap: 10,
+        paddingHorizontal: 5, // Espaço nas pontas
+        paddingBottom: 5, // Espaço para sombra não cortar
+    },
+    filterButton: {
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 20,
+        backgroundColor: '#e0e0e0',
+    },
+    filterButtonActive: {
+        backgroundColor: '#6200ee',
+    },
+    filterText: {
+        color: '#333',
+        fontWeight: '600',
+    },
+    filterTextActive: {
+        color: 'white',
+    },
+    card: {
+        backgroundColor: 'white',
+        padding: 15,
+        borderRadius: 10,
+        marginBottom: 10,
+        elevation: 2,
+        ...Platform.select({
+            web: {
+                boxShadow: '0px 2px 3.84px rgba(0, 0, 0, 0.25)',
+            }
+        })
+    },
+    cardInactive: {
+        borderLeftWidth: 4,
+        borderLeftColor: '#c62828', // Tarja vermelha para inativos
+    },
+    customerName: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginBottom: 5,
+    },
+    row: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    city: {
+        color: '#666',
+    },
+    value: {
+        color: '#008000',
+        fontWeight: 'bold',
+    },
+    inactiveDate: {
+        color: '#c62828',
+        fontWeight: 'bold',
+        fontSize: 12,
+    },
+    errorContainer: {
+        padding: 15,
+        backgroundColor: '#ffebee',
+        marginBottom: 15,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#ffcdd2'
+    },
+    errorText: {
+        color: '#c62828',
+        marginBottom: 10,
+    },
+    retryButton: {
+        backgroundColor: '#c62828',
+        padding: 10,
+        borderRadius: 5,
+        alignItems: 'center'
+    },
+    retryText: {
+        color: 'white',
+        fontWeight: 'bold'
+    },
+    chatFab: {
+        position: 'absolute',
+        bottom: 20,
+        right: 20,
+        backgroundColor: '#6200ee',
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        justifyContent: 'center',
+        alignItems: 'center',
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        zIndex: 100,
+        ...Platform.select({
+            web: {
+                position: 'fixed',
+                cursor: 'pointer',
+            }
+        })
+    },
+    chatFabText: {
+        fontSize: 30,
+        color: 'white',
+    }
+});
+
+]]>
+    </file>
+    <file path="mobile\src\services\api.js">
+<![CDATA[
+import axios from 'axios';
+import { Platform } from 'react-native';
+
+// Define a URL base dependendo do dispositivo
+// Web: localhost
+// Mobile (Físico/Emulador): IP da sua máquina na rede local
+// IMPORTANTE: Se o IP mudar, atualize aqui!
+const API_URL = Platform.OS === 'web' ? 'http://localhost:8000' : 'http://192.168.0.55:8000';
+
+const api = axios.create({
+    baseURL: API_URL,
+    headers: {
+        'x-api-key': process.env.EXPO_PUBLIC_API_KEY
+    }
+});
+
+export const getInsights = async (minDays = 0, maxDays = 30) => {
+    try {
+        console.log(`Chamando API em: ${API_URL}/insights?min_days=${minDays}&max_days=${maxDays}`);
+        const response = await api.get(`/insights?min_days=${minDays}&max_days=${maxDays}`);
+        return response.data;
+    } catch (error) {
+        console.error("Erro ao buscar insights:", error);
+        // Retorna o erro para ser exibido na tela
+        return { data: [], error: error.message + (error.response ? ` (${error.response.status})` : "") };
+    }
+};
+
+export const getInactiveCustomers = async (minDays = 30, maxDays = 365) => {
+    try {
+        console.log(`Chamando API em: ${API_URL}/inactive?min_days=${minDays}&max_days=${maxDays}`);
+        const response = await api.get(`/inactive?min_days=${minDays}&max_days=${maxDays}`);
+        return response.data;
+    } catch (error) {
+        console.error("Erro ao buscar inativos:", error);
+        return { error: error.message };
+    }
+};
+
+export const getCustomer = async (cardCode) => {
+    try {
+        const response = await api.get(`/customer/${cardCode}`);
+        return response.data;
+    } catch (error) {
+        console.error("Erro ao buscar cliente:", error);
+        return null;
+    }
+};
+
+export const generatePitch = async (cardCode, targetSku, userId = "vendedor_mobile") => {
+    try {
+        const response = await api.post('/pitch', {
+            card_code: cardCode,
+            target_sku: targetSku,
+            user_id: userId
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Erro ao gerar pitch:", error);
+        return { pitch: "Erro ao conectar com a IA." };
+    }
+};
+
+export const sendPitchFeedback = async (pitchId, feedbackType, userId = "vendedor_mobile") => {
+    try {
+        await api.post('/pitch/feedback', {
+            pitch_id: pitchId,
+            feedback_type: feedbackType,
+            user_id: userId
+        });
+        return true;
+    } catch (error) {
+        console.error("Erro ao enviar feedback:", error);
+        return false;
+    }
+};
+
+export const sendChatMessage = async (message, history = []) => {
+    try {
+        const response = await api.post('/chat', { message, history });
+        return response.data;
+    } catch (error) {
+        console.error("Erro no chat:", error);
+        return { response: "Erro ao conectar com a IA." };
+    }
+};
+
+export default api;
+
+]]>
+    </file>
+    <file path="src\debug_db.py">
+<![CDATA[
+import sys
+import os
+sys.path.append(os.getcwd())
+from src.database.connector import DatabaseConnector
+
+db = DatabaseConnector()
+query = "SELECT DISTINCT Vendedor FROM FAL_IA_Dados_Vendas_Televendas WHERE Vendedor LIKE '%Renata%'"
+df = db.get_dataframe(query)
+
+if not df.empty:
+    with open('debug_output.txt', 'w', encoding='utf-8') as f:
+        f.write(f"Columns: {df.columns.tolist()}\n\n")
+        f.write("First Row Data:\n")
+        for col, val in df.iloc[0].items():
+            f.write(f"{col}: {val}\n")
+        
+        f.write("\nAll Rows for this Doc:\n")
+        f.write(df.to_string())
+else:
+    print("Document not found.")
+
+]]>
+    </file>
+    <file path="src\debug_filters.py">
+<![CDATA[
+from agents.telesales_agent import TelesalesAgent
+import pandas as pd
+
+agent = TelesalesAgent()
+
+def test_filter(min_d, max_d):
+    print(f"\n--- TESTANDO FILTRO: {min_d} a {max_d} dias ---")
+    try:
+        df = agent.get_inactive_customers(min_days=min_d, max_days=max_d)
+        print(f"Total encontrado: {len(df)}")
+        if not df.empty:
+            print(df[['Codigo_Cliente', 'Ultima_Compra']].head().to_markdown(index=False))
+        else:
+            print("Nenhum registro.")
+            
+        # Debug extra: Ver range de datas
+        print("--- RANGE DE DATAS NO BANCO ---")
+        query = "SELECT MIN(Data_Emissao) as Mais_Antiga, MAX(Data_Emissao) as Mais_Recente FROM FAL_IA_Dados_Vendas_Televendas"
+        df_range = agent.db.get_dataframe(query)
+        print(df_range)
+        
+        print("--- CLIENTES INATIVOS RECENTES (> 10 DIAS) ---")
+        query = """
+        SELECT TOP 10 Codigo_Cliente, MAX(Data_Emissao) as Ultima
+        FROM FAL_IA_Dados_Vendas_Televendas
+        GROUP BY Codigo_Cliente
+        HAVING MAX(Data_Emissao) < DATEADD(day, -10, GETDATE())
+        ORDER BY Ultima DESC
+        """
+        print(agent.db.get_dataframe(query))
+            
+    except Exception as e:
+        print(f"Erro: {e}")
+
+test_filter(15, 25)
+test_filter(26, 30)
+
+]]>
+    </file>
+    <file path="src\debug_inactive.py">
+<![CDATA[
+from agents.telesales_agent import TelesalesAgent
+import pandas as pd
+
+agent = TelesalesAgent()
+try:
+    df = agent.get_inactive_customers(days=30)
+    print(f"--- CLIENTES INATIVOS (Total: {len(df)}) ---")
+    if not df.empty:
+        print(df.head().to_markdown(index=False))
+        print("\n--- COLUNAS ---")
+        print(df.columns.tolist())
+        print("\n--- AMOSTRA DE DATAS ---")
+        print(df['Ultima_Compra'].head())
+    else:
+        print("Nenhum cliente inativo encontrado.")
+except Exception as e:
+    print(f"Erro: {e}")
+
+]]>
+    </file>
+    <file path="src\debug_products.py">
+<![CDATA[
+from agents.telesales_agent import TelesalesAgent
+import pandas as pd
+
+agent = TelesalesAgent()
+try:
+    df = agent.get_top_products(days=90)
+    print(f"--- TOP 50 PRODUTOS (Total: {len(df)}) ---")
+    if not df.empty:
+        print(df.to_markdown(index=False))
+    else:
+        print("Nenhum produto encontrado.")
+except Exception as e:
+    print(f"Erro: {e}")
+
+]]>
+    </file>
+    <file path="src\agents\inventory_agent.py">
+<![CDATA[
+import vertexai
+from vertexai.generative_models import GenerativeModel, SafetySetting
+import sys
+import argparse
+import csv
+import json
+import time
+from typing import List, Dict
+
+# --- CONFIGURAÇÕES DE INFRAESTRUTURA ---
+PROJECT_ID = "amazing-firefly-475113-p3"
+LOCATION = "us-central1"
+GLOBAL_ENDPOINT = "aiplatform.googleapis.com"
+MODEL_ID = "gemini-3-pro-preview"
+
+# Inicialização
+vertexai.init(project=PROJECT_ID, location=LOCATION, api_endpoint=GLOBAL_ENDPOINT)
+
+class InventoryAgent:
+    def __init__(self):
+        self.system_instruction = """
+        Você é um Analista Sênior de Inventário e Logística. 
+        Sua missão é analisar SKUs técnicos, identificar especificações críticas e categorizar produtos.
+        Seja direto, técnico e use terminologia padrão da indústria.
+        Se a informação for ambígua, declare a ambiguidade.
+        """
+        try:
+            self.model = GenerativeModel(
+                model_name=MODEL_ID,
+                system_instruction=self.system_instruction
+            )
+        except Exception as e:
+            print(f"ERRO DE INICIALIZAÇÃO: {e}")
+            sys.exit(1)
+
+    def analyze_sku(self, sku_code: str, context_data: str = "") -> str:
+        """Processa um único SKU e retorna texto puro."""
+        prompt = f"""
+        TAREFA: Analise o SKU: {sku_code}
+        CONTEXTO: {context_data}
+        
+        SAÍDA (Responda estritamente neste formato JSON sem markdown):
+        {{
+            "categoria": "...",
+            "especificacoes": ["...", "..."],
+            "riscos": ["..."],
+            "ambiguidade_detectada": true/false
+        }}
+        """
+        
+        generation_config = {
+            "max_output_tokens": 8192,
+            "temperature": 0.2,
+            "top_p": 0.95,
+            "response_mime_type": "application/json" # Força saída JSON estruturada
+        }
+
+        safety_settings = [
+            SafetySetting(category=SafetySetting.HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold=SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH),
+            SafetySetting(category=SafetySetting.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold=SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH),
+            SafetySetting(category=SafetySetting.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold=SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH),
+            SafetySetting(category=SafetySetting.HarmCategory.HARM_CATEGORY_HARASSMENT, threshold=SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH),
+        ]
+
+        try:
+            response = self.model.generate_content(
+                prompt, 
+                generation_config=generation_config,
+                safety_settings=safety_settings
+            )
+            return response.text
+        except Exception as e:
+            return json.dumps({"erro": str(e)})
+
+    def process_batch(self, input_file: str, output_file: str):
+        """Lê CSV, processa SKUs e salva JSONL."""
+        print(f"--- Iniciando Processamento em Lote: {input_file} ---")
+        
+        results = []
+        try:
+            with open(input_file, mode='r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                
+                # Validação básica de colunas
+                if 'sku' not in reader.fieldnames:
+                    print("ERRO: O arquivo CSV deve ter uma coluna chamada 'sku'.")
+                    return
+
+                rows = list(reader)
+                total = len(rows)
+                
+                print(f">>> {total} itens encontrados na fila.")
+
+                for i, row in enumerate(rows):
+                    sku = row['sku']
+                    context = row.get('contexto', '') # Coluna opcional
+                    
+                    print(f"[{i+1}/{total}] Processando: {sku}...")
+                    
+                    analysis_json = self.analyze_sku(sku, context)
+                    
+                    try:
+                        parsed_data = json.loads(analysis_json)
+                    except:
+                        parsed_data = {"raw_text": analysis_json, "error": "Falha no parse JSON"}
+
+                    result_record = {
+                        "sku": sku,
+                        "input_context": context,
+                        "analysis": parsed_data
+                    }
+                    results.append(result_record)
+                    
+                    # Rate limiting preventivo para não estourar a cota da API Preview
+                    time.sleep(1) 
+
+            # Salvar resultado
+            with open(output_file, 'w', encoding='utf-8') as f:
+                json.dump(results, f, indent=2, ensure_ascii=False)
+            
+            print(f"\n>>> SUCESSO! Resultados salvos em: {output_file}")
+
+        except FileNotFoundError:
+            print(f"ERRO: Arquivo {input_file} não encontrado.")
+
+# --- CLI ---
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Agente de Inventário Gemini 3.0")
+    
+    # Grupo mutuamente exclusivo: ou processa um SKU ou um Arquivo
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--sku", type=str, help="SKU único")
+    group.add_argument("--file", type=str, help="Arquivo CSV de entrada (colunas: sku, contexto)")
+    
+    parser.add_argument("--context", type=str, default="", help="Contexto (apenas para modo SKU único)")
+    parser.add_argument("--out", type=str, default="resultado_analise.json", help="Arquivo de saída (apenas para modo arquivo)")
+    
+    args = parser.parse_args()
+    
+    agent = InventoryAgent()
+    
+    if args.sku:
+        # Modo Debug (Single Shot)
+        print(f"\n>>> MODO SINGLE: {args.sku}")
+        print(agent.analyze_sku(args.sku, args.context))
+    elif args.file:
+        # Modo Produção (Batch)
+        agent.process_batch(args.file, args.out)
+]]>
+    </file>
+    <file path="src\agents\inventory_replenishment_agent.py">
+<![CDATA[
+# --- CONFIGURAÇÃO ---
+PROJECT_ID = "amazing-firefly-475113-p3"
+
+# MUDANÇA: Tentando Oregon para fugir do bloqueio da Central
+LOCATION = "us-west1" 
+
+# ... (resto do código de init) ...
+
+# MUDANÇA: Lista reordenada para priorizar o que funciona
+modelos_para_tentar = [
+    "gemini-1.0-pro",       # Mais antigo e estável (provável que funcione)
+    "gemini-1.5-flash-001", # Mais novo (pode ter fila)
+    "gemini-1.5-pro-001"
+]
+]]>
+    </file>
+    <file path="src\agents\telesales_agent.py">
+<![CDATA[
+import sys
+import os
+import json
+import argparse
+from typing import Dict, List, Optional
+import pandas as pd
+import vertexai
+from vertexai.generative_models import GenerativeModel, SafetySetting
+from cachetools import cached, TTLCache
+
+# Adiciona o diretório raiz ao path para importar módulos
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
+from src.database.connector import DatabaseConnector
+
+# Configurações Vertex AI
+PROJECT_ID = os.getenv("PROJECT_ID", "amazing-firefly-475113-p3")
+LOCATION = os.getenv("LOCATION", "us-central1")
+GLOBAL_ENDPOINT = "aiplatform.googleapis.com"
+MODEL_ID = "gemini-3-pro-preview" 
+
+class TelesalesAgent:
+    def __init__(self):
+        print("DEBUG: Iniciando Vertex AI...", flush=True)
+        try:
+            # FIX: Força o endpoint global para evitar 404 em modelos preview/novos
+            vertexai.init(project=PROJECT_ID, location=LOCATION, api_endpoint=GLOBAL_ENDPOINT)
+            self.model = GenerativeModel(
+                model_name=MODEL_ID,
+                system_instruction="""
+                Você é um Assistente Especialista em Televendas (B2B).
+                Sua missão é analisar dados de clientes e produtos para gerar insights acionáveis e argumentos de venda.
+                
+                Diretrizes:
+                1. Adote uma postura PROFISSIONAL e EXECUTIVA. Evite gírias ou informalidade excessiva.
+                2. Seja conciso e direto. Vendedores têm pouco tempo.
+                3. Foque no LUCRO, na MARGEM e no FECHAMENTO DA VENDA.
+                4. Identifique oportunidades de Cross-Selling (venda cruzada) usando APENAS produtos do catálogo.
+                5. Se o cliente parou de comprar, sugira uma abordagem de reativação estratégica.
+                6. Sempre forneça argumentos concretos baseados nos dados.
+                7. Sempre que possível, forneça informações sobre otimização de frete.
+                """
+            )
+            print("DEBUG: Vertex AI OK.", flush=True)
+        except Exception as e:
+            print(f"AVISO: Falha ao iniciar Vertex AI ({e}). O agente funcionará apenas em modo de dados.", flush=True)
+            self.model = None
+            
+        print("DEBUG: Iniciando DatabaseConnector...", flush=True)
+        self.db = DatabaseConnector()
+        print("DEBUG: Init concluído.", flush=True)
+        # Cache para insights e inativos (10 minutos de duração, máx 100 itens)
+        self.cache = TTLCache(maxsize=100, ttl=600)
+
+    def get_customer_history(self, card_code: str, limit: int = 10) -> pd.DataFrame:
+        """Busca histórico recente de um cliente específico (Query Parametrizada)."""
+        query = f"""
+        SELECT
+            Data_Emissao,
+            Numero_Documento,
+            Status_Documento,
+            SKU,
+            Nome_Produto,
+            Quantidade,
+            Valor_Liquido,
+            Margem_Valor,
+            Nome_Cliente,
+            Tipo_Documento
+        FROM FAL_IA_Dados_Vendas_Televendas
+        WHERE Numero_Documento IN (
+            SELECT TOP {limit} Numero_Documento
+            FROM FAL_IA_Dados_Vendas_Televendas
+            WHERE Codigo_Cliente = :card_code
+            GROUP BY Numero_Documento, Data_Emissao
+            ORDER BY Data_Emissao DESC
+        )
+        AND Codigo_Cliente = :card_code
+        ORDER BY Data_Emissao DESC, Numero_Documento
+        """
+        # Passa o parâmetro de forma segura
+        return self.db.get_dataframe(query, params={"card_code": card_code})
+
+    @cached(cache=TTLCache(maxsize=100, ttl=600))
+    def get_sales_insights(self, min_days: int = 0, max_days: int = 30) -> pd.DataFrame:
+        """Busca insights gerais de vendas recentes (Query Parametrizada)."""
+        # Nota: DATEADD aceita parâmetros numéricos, mas para garantir, passamos via params
+        query = """
+        SELECT TOP 50
+            Codigo_Cliente,
+            Nome_Cliente,
+            Cidade,
+            Estado,
+            SUM(Valor_Liquido) as Total_Venda,
+            SUM(Margem_Valor) as Total_Margem
+        FROM FAL_IA_Dados_Vendas_Televendas
+        WHERE Data_Emissao BETWEEN DATEADD(day, -:max_days, GETDATE()) AND DATEADD(day, -:min_days, GETDATE())
+          AND Nome_Cliente NOT LIKE '%FANTASTICO ALIMENTOS LTDA%'
+        GROUP BY Codigo_Cliente, Nome_Cliente, Cidade, Estado
+        ORDER BY Total_Venda DESC
+        """
+        return self.db.get_dataframe(query, params={"min_days": min_days, "max_days": max_days})
+
+    @cached(cache=TTLCache(maxsize=100, ttl=600))
+    def get_inactive_customers(self, min_days: int = 30, max_days: int = 365) -> pd.DataFrame:
+        """Busca clientes sem compras há mais de 'days' dias (Risco de Churn)."""
+        # Otimização: Agrupa apenas pelo Código (mais rápido) e pega o MAX dos textos
+        query = """
+        SELECT TOP 50
+            Codigo_Cliente,
+            MAX(Nome_Cliente) as Nome_Cliente,
+            MAX(Cidade) as Cidade,
+            MAX(Estado) as Estado,
+            MAX(Data_Emissao) as Ultima_Compra,
+            SUM(Valor_Liquido) as Total_Historico
+        FROM FAL_IA_Dados_Vendas_Televendas WITH (NOLOCK)
+        WHERE Nome_Cliente NOT LIKE '%FANTASTICO ALIMENTOS LTDA%'
+        GROUP BY Codigo_Cliente
+        HAVING MAX(Data_Emissao) BETWEEN DATEADD(day, -:max_days, GETDATE()) AND DATEADD(day, -:min_days, GETDATE())
+        ORDER BY Ultima_Compra DESC
+        """
+        return self.db.get_dataframe(query, params={"min_days": min_days, "max_days": max_days})
+
+    def get_customers_by_vendor(self, vendor_name: str) -> pd.DataFrame:
+        """Busca clientes da carteira de um vendedor específico."""
+        query = """
+        SELECT DISTINCT
+            Codigo_Cliente,
+            Nome_Cliente,
+            Cidade,
+            Estado
+        FROM FAL_IA_Dados_Vendas_Televendas WITH (NOLOCK)
+        WHERE Vendedor LIKE :vendor
+          AND Nome_Cliente NOT LIKE '%FANTASTICO ALIMENTOS LTDA%'
+        ORDER BY Nome_Cliente
+        """
+        return self.db.get_dataframe(query, params={"vendor": f"%{vendor_name}%"})
+
+    @cached(cache=TTLCache(maxsize=1, ttl=3600)) # Cache de 1 hora
+    def get_top_products(self, days: int = 90) -> pd.DataFrame:
+        """Retorna lista dos produtos mais vendidos para referência (Catálogo)."""
+        query = """
+        SELECT TOP 50
+            SKU,
+            MAX(Nome_Produto) as Nome_Produto,
+            SUM(Valor_Liquido) as Total_Vendas
+        FROM FAL_IA_Dados_Vendas_Televendas WITH (NOLOCK)
+        WHERE Data_Emissao >= DATEADD(day, -:days, GETDATE())
+        GROUP BY SKU
+        ORDER BY Total_Vendas DESC
+        """
+        return self.db.get_dataframe(query, params={"days": days})
+
+    def generate_pitch(self, card_code: str, target_sku: str = "") -> str:
+        """Gera um pitch de vendas personalizado para o cliente."""
+        
+        # 1. Coleta dados do cliente
+        history_df = self.get_customer_history(card_code, limit=20)
+        
+        if history_df.empty:
+            return f"Não encontrei dados para o cliente {card_code}."
+
+        # Resume os dados para o prompt (evita estourar tokens)
+        history_summary = history_df.to_markdown(index=False)
+        
+        # 2. Monta o prompt
+        prompt = f"""
+        ANALISE ESTE CLIENTE ({card_code}):
+        
+        Histórico Recente de Compras:
+        {history_summary}
+        
+        TAREFA:
+        1. Identifique o perfil de compra (o que ele mais compra?).
+        2. Calcule a frequência média (ele comprou recentemente?).
+        3. Crie um PITCH DE VENDA para ligar para ele hoje.
+           {f'Foco especial em vender o produto: {target_sku}' if target_sku else 'Sugira um produto para reposição ou novidade.'}
+        
+        REGRAS DE OURO (ANTI-ALUCINAÇÃO):
+        - Baseie-se ESTRITAMENTE nos dados de histórico fornecidos acima.
+        - NÃO invente produtos, datas ou valores que não estejam na tabela.
+        - Se não houver dados suficientes para uma conclusão, diga "Não há dados suficientes".
+
+        TRANSPARÊNCIA (OBRIGATÓRIO):
+        Ao final do pitch, adicione uma seção "🔍 Por que sugeri isso?":
+        - Cite a fonte dos dados (ex: "Baseado no histórico de 20 compras do ERP").
+        - Explique o cálculo ou lógica (ex: "Cliente compra a cada 15 dias e está há 20 sem comprar", "Margem deste produto é 10% superior à média").
+        """
+
+        if not self.model:
+            return "Modelo de IA não disponível. Apenas dados carregados."
+
+        # 3. Chama o Gemini
+        try:
+            response = self.model.generate_content(
+                prompt,
+                generation_config={
+                    "max_output_tokens": 8192,
+                    "temperature": 0.2, # Baixa temperatura para reduzir criatividade/alucinação
+                },
+                safety_settings=[
+                    SafetySetting(
+                        category=SafetySetting.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+                        threshold=SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH
+                    ),
+                    SafetySetting(
+                        category=SafetySetting.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                        threshold=SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH
+                    ),
+                    SafetySetting(
+                        category=SafetySetting.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+                        threshold=SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH
+                    ),
+                    SafetySetting(
+                        category=SafetySetting.HarmCategory.HARM_CATEGORY_HARASSMENT,
+                        threshold=SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH
+                    ),
+                ]
+            )
+            return response.text
+        except Exception as e:
+            return f"Erro ao gerar insight de IA: {e}"
+
+    def chat(self, user_message: str, history: list = []) -> str:
+        """Conversa livre com o assistente, com capacidade de buscar dados de clientes."""
+        if not self.model:
+            return "O modelo de IA não está disponível no momento."
+            
+        # Tenta identificar um código de cliente na mensagem (Ex: C00123)
+        import re
+        customer_match = re.search(r'\b(C\d+)\b', user_message, re.IGNORECASE)
+        
+        context_data = ""
+        
+        # Carrega catálogo de produtos (Top 50) para evitar alucinações
+        try:
+            products_df = self.get_top_products()
+            if not products_df.empty:
+                products_list = products_df.to_markdown(index=False)
+                context_data += f"\n\n[CATÁLOGO DE PRODUTOS DISPONÍVEIS (TOP 50)]:\n{products_list}\n\nATENÇÃO: Apenas sugira produtos listados acima ou que constem no histórico do cliente. NÃO invente produtos."
+        except Exception as e:
+            print(f"Erro ao carregar produtos: {e}")
+        
+        # Cenário 1: Cliente Específico
+        if customer_match:
+            card_code = customer_match.group(1).upper()
+            try:
+                history_df = self.get_customer_history(card_code, limit=15)
+                if not history_df.empty:
+                    history_summary = history_df.to_markdown(index=False)
+                    context_data = f"\n\n[DADOS DO SISTEMA PARA O CLIENTE {card_code}]:\n{history_summary}\n\nUse esses dados para responder à pergunta do usuário com base no histórico real."
+                else:
+                    context_data = f"\n\n[SISTEMA]: Busquei no banco de dados, mas não encontrei vendas recentes para o cliente {card_code}."
+            except Exception as e:
+                print(f"Erro ao buscar dados no chat: {e}")
+
+        # Cenário 2: Carteira de Vendedor (Otimizado)
+        elif "carteira" in user_message.lower():
+            vendor_match = re.search(r'carteira (?:de|da|do)?\s*([A-Za-zÀ-ÿ]+)', user_message, re.IGNORECASE)
+            if vendor_match:
+                vendor_name = vendor_match.group(1)
+                try:
+                    customers_df = self.get_customers_by_vendor(vendor_name)
+                    if not customers_df.empty:
+                        # Limita a 50 para não estourar tokens
+                        context_data = f"\n\n[DADOS DO SISTEMA - CARTEIRA DE {vendor_name.upper()}]:\n{customers_df.head(50).to_markdown(index=False)}"
+                    else:
+                        context_data = f"\n\n[SISTEMA]: Não encontrei clientes para o vendedor {vendor_name}."
+                except Exception as e:
+                    print(f"Erro ao buscar carteira: {e}")
+        
+        # Cenário 3: Perguntas Gerais sobre Vendas/Clientes (Ex: "Quem devo ligar?", "Melhores clientes")
+        elif any(term in user_message.lower() for term in ["venda", "ligar", "cliente", "melhor", "top", "inativo", "parado", "comprou", "ranking", "faturamento", "data", "quando", "ultimo", "ultima", "lista", "tabela", "analise", "sugestao", "estrategia", "potencial"]):
+            try:
+                # Busca Top 20 Clientes Ativos
+                active_df = self.get_sales_insights(days=30).head(20)
+                # Busca Top 20 Clientes Inativos
+                inactive_df = self.get_inactive_customers(days=30).head(20)
+                
+                context_data = f"""
+                \n\n[DADOS DO SISTEMA - TOP CLIENTES ATIVOS (30 DIAS)]:
+                {active_df.to_markdown(index=False) if not active_df.empty else "Sem dados."}
+                
+                \n[DADOS DO SISTEMA - CLIENTES INATIVOS/RISCO (30 DIAS)]:
+                {inactive_df.to_markdown(index=False) if not inactive_df.empty else "Sem dados."}
+                
+                \nUse essas listas para sugerir clientes para o vendedor ligar. Priorize inativos com alto histórico ou ativos com queda."""
+            except Exception as e:
+                print(f"Erro ao buscar insights no chat: {e}")
+
+        try:
+            # Formata o histórico para o prompt
+            history_text = ""
+            if history:
+                # Pega as últimas 6 mensagens para contexto (evita estourar tokens)
+                recent_history = history[-6:] 
+                for msg in recent_history:
+                    role = "USUÁRIO" if msg.get('sender') == 'user' else "ASSISTENTE"
+                    history_text += f"{role}: {msg.get('text')}\n"
+
+            # Configuração simples para chat com histórico
+            prompt = f"""
+            HISTÓRICO DA CONVERSA:
+            {history_text}
+            
+            CONTEXTO ATUAL:
+            {context_data}
+            
+            USUÁRIO: {user_message}
+            ASSISTENTE:"""
+            
+            response = self.model.generate_content(
+                prompt,
+                generation_config={
+                    "max_output_tokens": 8192,
+                    "temperature": 0.2,
+                }
+            )
+            return response.text
+        except Exception as e:
+            return f"Erro ao processar mensagem: {e}"
+
+# --- CLI para Teste ---
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Agente de Televendas MariIA")
+    parser.add_argument("--customer", type=str, help="Código do Cliente (CardCode)")
+    parser.add_argument("--sku", type=str, help="SKU Alvo para venda (Opcional)", default="")
+    parser.add_argument("--insights", action="store_true", help="Gerar insights gerais de vendas")
+
+    args = parser.parse_args()
+    agent = TelesalesAgent()
+
+    if args.customer:
+        print(f"\n--- Analisando Cliente: {args.customer} ---")
+        print("Gerando Pitch de Vendas...\n")
+        print(agent.generate_pitch(args.customer, args.sku))
+        
+    elif args.insights:
+        print("\n--- Insights de Vendas (Top 50 - 30 dias) ---")
+        df = agent.get_sales_insights()
+        print(df.to_markdown(index=False))
+    else:
+        parser.print_help()
+
+]]>
+    </file>
+    <file path="src\agents\__init__.py">
+<![CDATA[
+
+]]>
+    </file>
+    <file path="src\api\app.py">
+<![CDATA[
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import Optional, List
+import sys
+import os
+import pandas as pd
+import numpy as np
+from decimal import Decimal
+
+# Adiciona o diretório raiz ao path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
+from src.agents.telesales_agent import TelesalesAgent
+
+app = FastAPI(title="MariIA API", description="API para Inteligência de Vendas")
+
+# Configuração de CORS (Permite acesso do React Native Web)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Em produção, especifique os domínios
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# --- Segurança (API Key) ---
+from fastapi import Security, Depends
+from fastapi.security.api_key import APIKeyHeader
+
+API_KEY = os.getenv("API_KEY", "mariia-secret-key-123") # Em produção, use .env forte
+api_key_header = APIKeyHeader(name="x-api-key", auto_error=False)
+
+async def get_api_key(api_key_header: str = Security(api_key_header)):
+    if api_key_header == API_KEY:
+        return api_key_header
+    raise HTTPException(status_code=403, detail="Acesso Negado: API Key inválida ou ausente.")
+
+# Instância global do agente (para reuso de conexão)
+agent = TelesalesAgent()
+
+# --- Modelos de Dados (Pydantic) ---
+
+
+class ChatRequest(BaseModel):
+    message: str
+    history: list = [] # Lista de mensagens anteriores
+
+class CustomerHistoryItem(BaseModel):
+    Data_Emissao: str
+    Numero_Documento: int
+    Status_Documento: str
+    SKU: str
+    Nome_Produto: str
+    Quantidade: float
+    Valor_Liquido: float
+    Margem_Valor: float
+
+# --- Helper Functions ---
+def clean_data(df):
+    # Converte Decimal para float
+    for col in df.select_dtypes(include=['object']).columns:
+        df[col] = df[col].apply(lambda x: float(x) if isinstance(x, Decimal) else x)
+    
+    # Substitui Infinito por None
+    df = df.replace([np.inf, -np.inf], None)
+
+    # Garante que colunas com NaN virem object para aceitar None
+    for col in df.columns:
+        if df[col].isnull().any():
+            df[col] = df[col].astype(object)
+
+    # Substitui NaN por None
+    df = df.where(pd.notnull(df), None)
+    return df
+
+# --- Endpoints ---
+
+@app.get("/", dependencies=[Depends(get_api_key)])
+def health_check():
+    return {"status": "online", "agent": "TelesalesAgent"}
+
+@app.get("/insights", dependencies=[Depends(get_api_key)])
+def get_insights(min_days: int = 0, max_days: int = 30):
+    """Retorna o ranking de vendas dos últimos N dias."""
+    try:
+        df = agent.get_sales_insights(min_days=min_days, max_days=max_days)
+        df = clean_data(df)
+        data = df.to_dict(orient="records")
+        return {"data": data}
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/inactive", dependencies=[Depends(get_api_key)])
+def get_inactive(min_days: int = 30, max_days: int = 365):
+    """Retorna clientes inativos (sem compras) há X dias."""
+    try:
+        df = agent.get_inactive_customers(min_days=min_days, max_days=max_days)
+        # Converte datas para string
+        if not df.empty and 'Ultima_Compra' in df.columns:
+            df['Ultima_Compra'] = df['Ultima_Compra'].astype(str)
+            
+        df = clean_data(df)
+        return {"data": df.to_dict(orient="records")}
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/customer/{card_code}", dependencies=[Depends(get_api_key)])
+def get_customer(card_code: str):
+    """Retorna o histórico de um cliente."""
+    try:
+        df = agent.get_customer_history(card_code, limit=20)
+        # Agrupa por Documento
+        grouped_history = []
+        customer_name = "Cliente Desconhecido"
+        
+        if not df.empty:
+            df['Data_Emissao'] = df['Data_Emissao'].astype(str)
+            df = clean_data(df)
+            
+            # Pega o nome do primeiro registro
+            if 'Nome_Cliente' in df.columns:
+                customer_name = df.iloc[0]['Nome_Cliente']
+            
+            # Agrupa usando Pandas
+            for doc_num, group in df.groupby('Numero_Documento'):
+                first_row = group.iloc[0]
+                total_val = group['Valor_Liquido'].sum()
+                
+                doc_obj = {
+                    "document_number": int(doc_num),
+                    "type": first_row['Tipo_Documento'],
+                    "date": first_row['Data_Emissao'],
+                    "status": first_row['Status_Documento'],
+                    "total_value": float(total_val),
+                    "items": group.to_dict(orient="records")
+                }
+                grouped_history.append(doc_obj)
+                
+            # Ordena por data decrescente
+            grouped_history.sort(key=lambda x: x['date'], reverse=True)
+
+        return {"card_code": card_code, "customer_name": customer_name, "history": grouped_history}
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+from src.utils.logger import log_pitch_usage, log_pitch_feedback
+import uuid
+
+class PitchRequest(BaseModel):
+    card_code: str
+    target_sku: str
+    user_id: Optional[str] = None
+
+class FeedbackRequest(BaseModel):
+    pitch_id: str
+    feedback_type: str # 'useful' | 'sold'
+    user_id: Optional[str] = None
+
+@app.post("/pitch", dependencies=[Depends(get_api_key)])
+def generate_pitch(request: PitchRequest):
+    """Gera um pitch de vendas usando IA."""
+    try:
+        pitch = agent.generate_pitch(request.card_code, request.target_sku)
+        pitch_id = str(uuid.uuid4())
+        
+        # Log de Uso para Analytics
+        log_pitch_usage(
+            card_code=request.card_code,
+            target_sku=request.target_sku,
+            pitch_generated=pitch,
+            pitch_id=pitch_id,
+            user_id=request.user_id
+        )
+        
+        return {"pitch": pitch, "pitch_id": pitch_id}
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/pitch/feedback", dependencies=[Depends(get_api_key)])
+def pitch_feedback(request: FeedbackRequest):
+    """Registra feedback do usuário sobre o pitch."""
+    try:
+        log_pitch_feedback(
+            pitch_id=request.pitch_id,
+            feedback_type=request.feedback_type,
+            user_id=request.user_id
+        )
+        return {"status": "ok"}
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/chat", dependencies=[Depends(get_api_key)])
+def chat_with_agent(request: ChatRequest):
+    """Conversa com o assistente."""
+    try:
+        response = agent.chat(request.message, request.history)
+        return {"response": response}
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+]]>
+    </file>
+    <file path="src\api\debug_api.py">
+<![CDATA[
+import sys
+import os
+# Adiciona o diretório raiz ao path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
+
+from src.api.app import get_insights
+
+print("Testando get_insights()...")
+try:
+    result = get_insights(days=30)
+    print("Sucesso!")
+    print(result)
+except Exception as e:
+    print(f"ERRO CAPTURADO: {e}")
+    import traceback
+    traceback.print_exc()
+
+]]>
+    </file>
+    <file path="src\database\connector.py">
+<![CDATA[
+import os
+import pandas as pd
+from sqlalchemy import create_engine, text
+from dotenv import load_dotenv
+import urllib.parse
+
+# Carrega variáveis de ambiente
+load_dotenv()
+
+class DatabaseConnector:
+    def __init__(self):
+        self.server = os.getenv("DB_SERVER")
+        self.database = os.getenv("DB_DATABASE")
+        self.username = os.getenv("DB_USER")
+        self.password = os.getenv("DB_PASSWORD")
+        self.driver = os.getenv("DB_DRIVER", "ODBC Driver 17 for SQL Server")
+        
+        if not all([self.server, self.database, self.username, self.password]):
+            raise ValueError("Credenciais de banco de dados incompletas. Verifique o arquivo .env")
+        
+        # Ajuste para SQL Server: Se tiver porta com ':', troca por ','
+        # Isso garante compatibilidade se o usuário colocar IP:PORTA no .env
+        if ":" in self.server:
+            self.server = self.server.replace(":", ",")
+
+        # Codifica os parâmetros para URL (segurança contra caracteres especiais na senha)
+        params = urllib.parse.quote_plus(
+            f"DRIVER={{{self.driver}}};"
+            f"SERVER={self.server};"
+            f"DATABASE={self.database};"
+            f"UID={self.username};"
+            f"PWD={self.password};"
+            f"TrustServerCertificate=yes;"
+        )
+
+        # String de conexão SQLAlchemy usando o formato 'mssql+pyodbc:///?odbc_connect=...'
+        self.connection_string = f"mssql+pyodbc:///?odbc_connect={params}"
+        
+        self.engine = None
+
+    def get_engine(self):
+        """Retorna a engine SQLAlchemy (Singleton)."""
+        if self.engine is None:
+            try:
+                self.engine = create_engine(self.connection_string)
+            except Exception as e:
+                print(f"Erro ao criar engine de banco de dados: {e}")
+                raise
+        return self.engine
+
+    def get_dataframe(self, query: str, params: dict = None) -> pd.DataFrame:
+        """
+        Executa uma query SQL e retorna um DataFrame do Pandas.
+        Suporta parâmetros para evitar SQL Injection.
+        """
+        engine = self.get_engine()
+        try:
+            with engine.connect() as connection:
+                # Se houver parâmetros, usa a sintaxe segura do SQLAlchemy
+                if params:
+                    df = pd.read_sql(text(query), connection, params=params)
+                else:
+                    df = pd.read_sql(text(query), connection)
+            return df
+        except Exception as e:
+            print(f"Erro ao executar query: {e}")
+            return pd.DataFrame() 
+
+    def execute_query(self, query: str, params: dict = None):
+        """Executa uma query sem retorno (INSERT, UPDATE, DELETE)."""
+        engine = self.get_engine()
+        try:
+            with engine.connect() as connection:
+                if params:
+                    connection.execute(text(query), params)
+                else:
+                    connection.execute(text(query))
+                connection.commit()
+        except Exception as e:
+            print(f"Erro ao executar comando SQL: {e}")
+            raise
+
+]]>
+    </file>
+    <file path="src\utils\logger.py">
+<![CDATA[
+import json
+import os
+from datetime import datetime
+
+LOG_DIR = "logs"
+LOG_FILE = os.path.join(LOG_DIR, "pitch_usage.jsonl")
+
+def ensure_log_dir():
+    if not os.path.exists(LOG_DIR):
+        os.makedirs(LOG_DIR)
+
+def log_pitch_usage(card_code: str, target_sku: str, pitch_generated: str, pitch_id: str, user_id: str = None, metadata: dict = None):
+    """
+    Registra o uso do Pitch IA em um arquivo JSON Lines.
+    """
+    ensure_log_dir()
+    
+    entry = {
+        "timestamp": datetime.now().isoformat(),
+        "event": "pitch_generated",
+        "pitch_id": pitch_id,
+        "user_id": user_id,
+        "card_code": card_code,
+        "target_sku": target_sku,
+        "pitch_generated": pitch_generated,
+        "metadata": metadata or {}
+    }
+    
+    try:
+        with open(LOG_FILE, "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    except Exception as e:
+        print(f"Erro ao gravar log: {e}")
+
+def log_pitch_feedback(pitch_id: str, feedback_type: str, user_id: str = None):
+    """
+    Registra feedback do usuário sobre o pitch.
+    """
+    ensure_log_dir()
+    
+    entry = {
+        "timestamp": datetime.now().isoformat(),
+        "event": "pitch_feedback",
+        "pitch_id": pitch_id,
+        "user_id": user_id,
+        "feedback_type": feedback_type # 'useful' | 'sold'
+    }
+    
+    try:
+        with open(LOG_FILE, "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    except Exception as e:
+        print(f"Erro ao gravar log de feedback: {e}")
+
+]]>
+    </file>
+  </source_code>
+</repository_context>

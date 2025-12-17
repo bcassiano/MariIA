@@ -2,10 +2,8 @@ import axios from 'axios';
 import { Platform } from 'react-native';
 
 // Define a URL base dependendo do dispositivo
-// Web: localhost
-// Mobile (Físico/Emulador): IP da sua máquina na rede local
-// IMPORTANTE: Se o IP mudar, atualize aqui!
-const API_URL = Platform.OS === 'web' ? 'http://localhost:8000' : 'http://192.168.0.55:8000';
+// Prod: Cloud Run
+const API_URL = 'https://mariia-backend-635293407607.us-central1.run.app';
 
 const api = axios.create({
     baseURL: API_URL,

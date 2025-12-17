@@ -1,21 +1,25 @@
-# Ignore everything by default
-# *
-
-# But allow these:
-# !mobile/
-# !src/
-# !data/
-# !Dockerfile
-# !requirements.txt
-
-# Actually, let's just use the standard ignore pattern
-.git
-.gitignore
-node_modules/
+# Ignore backend and data files
+src/
+data/
+logs/
+test_deploy/
 .venv/
 __pycache__/
 *.pyc
 *.log
+*.sql
+*.jsonl
+
+# Ignore root build scripts
+deploy_*.ps1
+Dockerfile
+requirements.txt
+setup_gcp.ps1
+
+# Standard ignores
+.git
+.gitignore
+node_modules/
 
 # Ignore mobile build artifacts
 mobile/node_modules/

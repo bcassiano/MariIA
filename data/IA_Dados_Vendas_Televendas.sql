@@ -1,18 +1,32 @@
-CREATE OR ALTER VIEW [dbo].[IA_Dados_Vendas_Televendas] AS
+USE [RUSTON_PRODUCAO]
+GO
+
+/****** Object:  View [dbo].[FAL_IA_Dados_Vendas_Televendas]    Script Date: 16/12/2025 14:30:00 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER   VIEW [dbo].[FAL_IA_Dados_Vendas_Televendas] AS
 
 /*
     VIEW: IA_Dados_Vendas_Televendas
-    OBJETIVO: Fornecer dados consolidados e performÃ¡ticos para agentes de IA (Televendas).
-    CONTEÃšDO: Faturas, Pedidos em Aberto, Entregas, DevoluÃ§Ãµes e CotaÃ§Ãµes.
-    OTIMIZAÃ‡Ã•ES:
-    1. RemoÃ§Ã£o de Subqueries Correlacionadas (Fatores, Frete).
+    OBJETIVO: Fornecer dados consolidados e performáticos para agentes de IA (Televendas).
+    CONTEÚDO: Faturas, Pedidos em Aberto, Entregas, Devoluções e Cotações.
+    OTIMIZAÇÕES:
+    1. Remoção de Subqueries Correlacionadas (Fatores, Frete).
     2. Filtro de Data SARGable (Index Seek).
     3. Nomes de colunas em PT-BR padronizados.
-    4. PrÃ©-cÃ¡lculo de Margem e Lucro.
+    4. Pré-cálculo de Margem e Lucro.
+    
+    ATUALIZAÇÃO (16/12/2025):
+    - Inclusão da coluna 'Vendedor_Atual' baseada no cadastro do Cliente (OCRD), 
+      permitindo filtrar a carteira atual independente do histórico de vendas.
 */
 
 WITH Fatores AS (
-    -- CTE para carregar Fatores de Custo e Despesa uma Ãºnica vez por Ano/MÃªs
+    -- CTE para carregar Fatores de Custo e Despesa uma única vez por Ano/Mês
     SELECT 
         T101.Name AS Ano,
         T100.U_Mes AS Mes,
@@ -24,7 +38,7 @@ WITH Fatores AS (
 )
 
 SELECT 
-    -- IdentificaÃ§Ã£o do Documento
+    -- Identificação do Documento
     A.Tipo_Documento,
     A.Numero_Documento,
     A.Numero_NF,
@@ -41,7 +55,8 @@ SELECT
     A.Estado,
     A.Regiao,
     A.Macro_Regiao,
-    A.Vendedor,
+    A.Vendedor,       -- Vendedor que emitiu a nota (Histórico)
+    A.Vendedor_Atual, -- [NOVO] Vendedor dono da carteira (Atual)
     A.Supervisor,
     A.Equipe_Vendas,
     A.Area_Atuacao,
@@ -59,7 +74,7 @@ SELECT
     A.Quantidade,
     A.Peso_KG,
     
-    -- Valores MonetÃ¡rios (UnitÃ¡rios e Totais)
+    -- Valores Monetários (Unitários e Totais)
     A.Preco_Lista,
     A.Preco_Unitario_Original, -- Sem desconto
     A.Valor_Total_Linha,       -- Valor Bruto da Linha
@@ -71,7 +86,7 @@ SELECT
     A.Custo_Estoque_Unitario,
     A.Custo_Total_Estoque,
     
-    -- CÃ¡lculos de NegÃ³cio (Fatores Aplicados)
+    -- Cálculos de Negócio (Fatores Aplicados)
     A.Fator_Custo_Aplicado,
     A.Fator_Despesa_Aplicado,
     
@@ -79,7 +94,7 @@ SELECT
     
     CAST(A.Valor_Liquido + A.Valor_Imposto - (A.Custo_Total_Estoque * (1 + ISNULL(A.Fator_Custo_Aplicado, 0))) AS DECIMAL(18,2)) AS Lucro_Bruto,
     
-    -- Margem LÃ­quida Estimada
+    -- Margem Líquida Estimada
     CAST(
         (A.Valor_Liquido + A.Valor_Imposto - (A.Custo_Total_Estoque * (1 + ISNULL(A.Fator_Custo_Aplicado, 0)))) -- Lucro Bruto
         - (ISNULL(A.Valor_Comissao, 0) + (A.Valor_Liquido * ISNULL(A.Fator_Despesa_Aplicado, 0))) -- Despesas Comerciais
@@ -112,6 +127,7 @@ FROM (
         T18.GroupName AS Regiao,
         T9.Name AS Macro_Regiao,
         T8.SlpName AS Vendedor,
+        T_Carteira.SlpName AS Vendedor_Atual, -- [NOVO]
         T16.firstName AS Supervisor,
         CAST(T28.name AS VARCHAR) AS Equipe_Vendas,
         T26.Name AS Area_Atuacao,
@@ -141,9 +157,9 @@ FROM (
         F.Fator_Custo AS Fator_Custo_Aplicado,
         F.Fator_Despesa AS Fator_Despesa_Aplicado,
 
-        CASE WHEN T3.ItmsGrpNam = 'PA FEIJÃƒO' THEN ROUND(T1.LineTotal, 2) * -0.01 ELSE T14.TaxSum * -1 END AS Valor_Imposto,
+        CASE WHEN T3.ItmsGrpNam = 'PA FEIJÃO' THEN ROUND(T1.LineTotal, 2) * -0.01 ELSE T14.TaxSum * -1 END AS Valor_Imposto,
         
-        -- LÃ³gica Simplificada de Frete (Idealmente deveria ser uma tabela de fretes prÃ©-calculada, mantendo a lÃ³gica original por enquanto mas via JOIN se possÃ­vel, aqui simplificado para performance)
+        -- Lógica Simplificada de Frete
         CASE 
             WHEN T30.Incoterms IN (1, 9) THEN 0 
             ELSE ( (ISNULL(T23.U_Valor_Total_Frete, 0) / NULLIF(T23.U_Peso_Estimado - T23.U_Peso_Estimado_Pallets, 0)) * (CASE WHEN (T1.Quantity * T11.Weight1) = 0 THEN (T1.Quantity * T2.SWeight1) ELSE (T1.Quantity * T11.Weight1) END) )
@@ -159,6 +175,7 @@ FROM (
     LEFT JOIN OITM T2 ON T1.ItemCode = T2.ItemCode
     INNER JOIN OUOM T11 ON T11.UomCode = T1.UomCode
     LEFT JOIN OCRD T5 ON T0.CardCode = T5.CardCode
+    LEFT JOIN OSLP T_Carteira ON T_Carteira.SlpCode = T5.SlpCode -- [NOVO] Join com a carteira atual (Cadastro)
     LEFT JOIN OUSG T4 ON T1.Usage = T4.ID
     LEFT JOIN OSLP T8 ON T8.SlpCode = T0.SlpCode
     LEFT JOIN CRD1 T6 ON T6.CardCode = T5.CardCode AND T6.Address = 'FATURAMENTO'
@@ -170,14 +187,13 @@ FROM (
     LEFT JOIN OHEM T15 ON T15.salesPrson = T8.SlpCode
     LEFT JOIN OHEM T16 ON T16.empID = T15.manager
     LEFT JOIN [@CATPROD] T17 ON T17.Code = T2.U_CATPROD
-    LEFT JOIN OCQG T18 ON T18.GroupCode = CASE WHEN T5.QryGroup1 = 'Y' THEN 1 ELSE 0 END -- Simplificado, idealmente expandir
+    LEFT JOIN OCQG T18 ON T18.GroupCode = CASE WHEN T5.QryGroup1 = 'Y' THEN 1 ELSE 0 END
     INNER JOIN OCNT T19 ON T6.County = T19.AbsId
     LEFT JOIN [@BIM_ORDEMCARGA] T23 ON T1.U_OC_num = T23.DocEntry
     LEFT JOIN OOND T24 ON T24.INDCODE = T5.INDUSTRYC
     LEFT JOIN [@RAL_AREAATUCAO] T26 ON T26.Code = T5.U_AreaAtuacao
     LEFT JOIN HTM1 T27 ON T27.empID = T15.empID
     LEFT JOIN OHTM T28 ON T28.teamID = T27.teamID
-    -- Join Otimizado para Fatores
     LEFT JOIN Fatores F ON F.Ano = DATEPART(YEAR, T0.DocDate) AND F.Mes = DATEPART(MONTH, T0.DocDate)
 
     WHERE T14.staType IN (25, 31) 
@@ -185,7 +201,7 @@ FROM (
       AND T14.TaxStatus = 'Y' 
       AND T0.DocStatus IN ('O', 'C')
       AND T1.CFOPCODE IN ('5101','5102','5123','5122','5118','5201','5551','5910','6101','6102','6108','6120','6910','6122','6551','7101','7102','7501','6501','5949')
-      AND T0.DocDate >= DATEADD(YEAR, -4, GETDATE()) -- Filtro SARGable
+      AND T0.DocDate >= DATEADD(YEAR, -4, GETDATE())
 
     UNION ALL
 
@@ -198,7 +214,9 @@ FROM (
         T0.DocDueDate AS Data_Entrega_Prometida,
         'Aberto' AS Status_Documento,
         
-        T5.CardCode, T5.CardName, T7.GroupName, T24.INDname, T19.Name, T6.State, T18.GroupName, T9.Name, T8.SlpName, T16.firstName, T28.name, T26.Name,
+        T5.CardCode, T5.CardName, T7.GroupName, T24.INDname, T19.Name, T6.State, T18.GroupName, T9.Name, T8.SlpName, 
+        T_Carteira.SlpName AS Vendedor_Atual, -- [NOVO]
+        T16.firstName, T28.name, T26.Name,
         T2.ItemCode, T2.ItemName, T3.ItmsGrpNam, T17.Name, T2.U_Marca, T4.Usage, T1.UnitMsr,
         
         T1.OpenQty AS Quantidade,
@@ -214,9 +232,8 @@ FROM (
         
         F.Fator_Custo, F.Fator_Despesa,
         
-        CASE WHEN T3.ItmsGrpNam = 'PA FEIJÃƒO' THEN ROUND(T1.LineTotal, 2) * -0.01 ELSE T14.TaxSum * -1 END,
+        CASE WHEN T3.ItmsGrpNam = 'PA FEIJÃO' THEN ROUND(T1.LineTotal, 2) * -0.01 ELSE T14.TaxSum * -1 END,
         
-        -- Frete (Simplificado para NULL em pedidos abertos se nÃ£o houver cÃ¡lculo complexo, ou manter lÃ³gica original via subquery se estritamente necessÃ¡rio, aqui deixo 0 para performance, ajustar se crÃ­tico)
         0 AS Valor_Frete, 
         
         T13.U_MW_PRCT,
@@ -229,6 +246,7 @@ FROM (
     INNER JOIN OITM T2 ON T1.ItemCode = T2.ItemCode
     INNER JOIN OUOM T11 ON T11.UomCode = T1.UomCode
     INNER JOIN OCRD T5 ON T5.CardCode = T0.CardCode
+    LEFT JOIN OSLP T_Carteira ON T_Carteira.SlpCode = T5.SlpCode -- [NOVO]
     LEFT JOIN CRD1 T6 ON T6.CardCode = T5.CardCode AND T6.Address = 'FATURAMENTO'
     LEFT JOIN OSLP T8 ON T0.SlpCode = T8.SlpCode
     LEFT JOIN OCRG T7 ON T7.GroupCode = T5.GroupCode
@@ -256,7 +274,7 @@ FROM (
 
     UNION ALL
 
-    -- 3. COTAÃ‡Ã•ES
+    -- 3. COTAÇÕES
     SELECT 
         'Cotacao' AS Tipo_Documento,
         T0.DocNum AS Numero_Documento,
@@ -265,7 +283,9 @@ FROM (
         T0.DocDueDate AS Data_Entrega_Prometida,
         'Aberto' AS Status_Documento,
         
-        T5.CardCode, T5.CardName, T7.GroupName, T24.INDname, T19.Name, T6.State, T18.GroupName, T9.Name, T8.SlpName, T16.firstName, T28.name, T26.Name,
+        T5.CardCode, T5.CardName, T7.GroupName, T24.INDname, T19.Name, T6.State, T18.GroupName, T9.Name, T8.SlpName, 
+        T_Carteira.SlpName AS Vendedor_Atual, -- [NOVO]
+        T16.firstName, T28.name, T26.Name,
         T2.ItemCode, T2.ItemName, T3.ItmsGrpNam, T17.Name, T2.U_Marca, T4.Usage, T1.UnitMsr,
         
         T1.OpenQty AS Quantidade,
@@ -281,7 +301,7 @@ FROM (
         
         F.Fator_Custo, F.Fator_Despesa,
         
-        CASE WHEN T3.ItmsGrpNam = 'PA FEIJÃƒO' THEN ROUND(T1.LineTotal, 2) * -0.01 ELSE T14.TaxSum * -1 END,
+        CASE WHEN T3.ItmsGrpNam = 'PA FEIJÃO' THEN ROUND(T1.LineTotal, 2) * -0.01 ELSE T14.TaxSum * -1 END,
         0 AS Valor_Frete,
         T13.U_MW_PRCT,
         CASE WHEN T1.Usage IN ('13', '52') THEN 0 ELSE (ROUND(T1.LineTotal, 2) * T13.U_MW_PRCT / 100) END
@@ -293,6 +313,7 @@ FROM (
     INNER JOIN OITM T2 ON T1.ItemCode = T2.ItemCode
     INNER JOIN OUOM T11 ON T11.UomCode = T1.UomCode
     INNER JOIN OCRD T5 ON T5.CardCode = T0.CardCode
+    LEFT JOIN OSLP T_Carteira ON T_Carteira.SlpCode = T5.SlpCode -- [NOVO]
     LEFT JOIN CRD1 T6 ON T6.CardCode = T5.CardCode AND T6.Address = 'FATURAMENTO'
     LEFT JOIN OSLP T8 ON T0.SlpCode = T8.SlpCode
     LEFT JOIN OCRG T7 ON T7.GroupCode = T5.GroupCode
@@ -329,7 +350,9 @@ FROM (
         T0.DocDueDate AS Data_Entrega_Prometida,
         'Aberto' AS Status_Documento,
         
-        T5.CardCode, T5.CardName, T7.GroupName, T24.INDname, T19.Name, T6.State, T18.GroupName, T9.Name, T8.SlpName, T16.firstName, T28.name, T26.Name,
+        T5.CardCode, T5.CardName, T7.GroupName, T24.INDname, T19.Name, T6.State, T18.GroupName, T9.Name, T8.SlpName, 
+        T_Carteira.SlpName AS Vendedor_Atual, -- [NOVO]
+        T16.firstName, T28.name, T26.Name,
         T2.ItemCode, T2.ItemName, T3.ItmsGrpNam, T17.Name, T2.U_Marca, T4.Usage, T1.UnitMsr,
         
         T1.Quantity AS Quantidade,
@@ -345,7 +368,7 @@ FROM (
         
         F.Fator_Custo, F.Fator_Despesa,
         
-        CASE WHEN T3.ItmsGrpNam = 'PA FEIJÃƒO' THEN ROUND(T1.LineTotal, 2) * -0.01 ELSE T14.TaxSum * -1 END,
+        CASE WHEN T3.ItmsGrpNam = 'PA FEIJÃO' THEN ROUND(T1.LineTotal, 2) * -0.01 ELSE T14.TaxSum * -1 END,
         
         CASE 
             WHEN T30.Incoterms IN (1, 9) THEN 0 
@@ -362,6 +385,7 @@ FROM (
     LEFT JOIN OITM T2 ON T1.ItemCode = T2.ItemCode
     INNER JOIN OUOM T11 ON T11.UomCode = T1.UomCode
     LEFT JOIN OCRD T5 ON T0.CardCode = T5.CardCode
+    LEFT JOIN OSLP T_Carteira ON T_Carteira.SlpCode = T5.SlpCode -- [NOVO]
     LEFT JOIN OUSG T4 ON T1.Usage = T4.ID
     LEFT JOIN OSLP T8 ON T8.SlpCode = T0.SlpCode
     LEFT JOIN CRD1 T6 ON T6.CardCode = T5.CardCode AND T6.Address = 'FATURAMENTO'
@@ -390,7 +414,7 @@ FROM (
 
     UNION ALL
 
-    -- 5. DEVOLUÃ‡Ã•ES
+    -- 5. DEVOLUÇÕES
     SELECT 
         'Devolucao' AS Tipo_Documento,
         NULL AS Numero_Documento,
@@ -399,7 +423,9 @@ FROM (
         NULL AS Data_Entrega_Prometida,
         'Devolvido' AS Status_Documento,
         
-        T5.CardCode, T5.CardName, T7.GroupName, T24.INDname, T19.Name, T6.State, T18.GroupName, T9.Name, T8.SlpName, T16.firstName, T31.name, T29.Name,
+        T5.CardCode, T5.CardName, T7.GroupName, T24.INDname, T19.Name, T6.State, T18.GroupName, T9.Name, T8.SlpName, 
+        T_Carteira.SlpName AS Vendedor_Atual, -- [NOVO]
+        T16.firstName, T31.name, T29.Name,
         T2.ItemCode, T2.ItemName, T3.ItmsGrpNam, T17.Name, T2.U_Marca, CONCAT(T4.Usage, ' - DEV'), T1.UnitMsr,
         
         (T1.Quantity * -1) AS Quantidade,
@@ -415,7 +441,7 @@ FROM (
         
         F.Fator_Custo, F.Fator_Despesa,
         
-        CASE WHEN T3.ItmsGrpNam = 'PA FEIJÃƒO' THEN ROUND(T1.LineTotal, 2) * 0.01 ELSE T14.TaxSum END,
+        CASE WHEN T3.ItmsGrpNam = 'PA FEIJÃO' THEN ROUND(T1.LineTotal, 2) * 0.01 ELSE T14.TaxSum END,
         0 AS Valor_Frete,
         T13.U_MW_PRCT,
         CASE WHEN T1.Usage IN ('13', '52') THEN 0 ELSE (ROUND(T1.LineTotal, 2) * T13.U_MW_PRCT / 100) * -1 END
@@ -426,6 +452,7 @@ FROM (
     INNER JOIN OUOM T11 ON T11.UomCode = T1.UomCode
     LEFT JOIN OITM T2 ON T1.ItemCode = T2.ItemCode
     LEFT JOIN OCRD T5 ON T0.CardCode = T5.CardCode
+    LEFT JOIN OSLP T_Carteira ON T_Carteira.SlpCode = T5.SlpCode -- [NOVO]
     LEFT JOIN OUSG T4 ON T1.Usage = T4.ID
     LEFT JOIN OSLP T8 ON T8.SlpCode = T0.SlpCode
     LEFT JOIN CRD1 T6 ON T6.CardCode = T5.CardCode AND T6.Address = 'FATURAMENTO'
@@ -452,3 +479,4 @@ FROM (
       AND T0.DocDate >= DATEADD(YEAR, -4, GETDATE())
 
 ) A;
+GO

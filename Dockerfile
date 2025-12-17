@@ -1,5 +1,5 @@
-# Usa uma imagem base oficial do Python leve
-FROM python:3.10-slim
+# Usa uma imagem base oficial do Python (Debian 11 Bullseye para compatibilidade com ODBC 17/18)
+FROM python:3.10-slim-bullseye
 
 # Define variáveis de ambiente para evitar arquivos .pyc e logs em buffer
 ENV PYTHONDONTWRITEBYTECODE=1
