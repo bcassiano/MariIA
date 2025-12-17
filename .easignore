@@ -1,0 +1,24 @@
+# Ignore everything by default
+# *
+
+# But allow these:
+# !mobile/
+# !src/
+# !data/
+# !Dockerfile
+# !requirements.txt
+
+# Actually, let's just use the standard ignore pattern
+.git
+.gitignore
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+*.log
+
+# Ignore mobile build artifacts
+mobile/node_modules/
+mobile/.expo/
+mobile/dist/
+mobile/web-build/
