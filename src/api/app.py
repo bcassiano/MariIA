@@ -207,7 +207,7 @@ def pitch_feedback(request: FeedbackRequest):
 def chat_with_agent(request: ChatRequest):
     """Conversa com o assistente."""
     try:
-        response = agent.chat(request.message, request.history)
+        response = agent.chat(request.message, request.history, vendor_filter=CURRENT_VENDOR)
         return {"response": response}
     except Exception as e:
         import traceback

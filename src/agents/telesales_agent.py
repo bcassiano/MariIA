@@ -32,7 +32,7 @@ class TelesalesAgent:
                 
                 Diretrizes:
                 1. Adote uma postura PROFISSIONAL e EXECUTIVA. Evite gírias ou informalidade excessiva.
-                2. Seja conciso e direto. Vendedores têm pouco tempo.
+                2. SEJA EXTREMAMENTE CONCISO. Responda em no máximo 3 parágrafos curtos. Vendedores têm pressa.
                 3. Foque no LUCRO, na MARGEM e no FECHAMENTO DA VENDA.
                 4. Identifique oportunidades de Cross-Selling (venda cruzada) usando APENAS produtos do catálogo.
                 5. Se o cliente parou de comprar, sugira uma abordagem de reativação estratégica.
@@ -243,7 +243,7 @@ class TelesalesAgent:
         except Exception as e:
             return f"Erro ao gerar insight de IA: {e}"
 
-    def chat(self, user_message: str, history: list = []) -> str:
+    def chat(self, user_message: str, history: list = [], vendor_filter: str = None) -> str:
         """Conversa livre com o assistente, com capacidade de buscar dados de clientes."""
         if not self.model:
             return "O modelo de IA não está disponível no momento."
@@ -278,38 +278,40 @@ class TelesalesAgent:
 
         # Cenário 2: Carteira de Vendedor (Atualizado para usar Vendedor_Atual)
         elif "carteira" in user_message.lower():
-            vendor_match = re.search(r'carteira (?:de|da|do)?\s*([A-Za-zÀ-ÿ]+)', user_message, re.IGNORECASE)
-            if vendor_match:
-                vendor_name = vendor_match.group(1)
+            # Se o usuário pedir "minha carteira", usa o filtro do vendedor atual
+            target_vendor = vendor_filter if "minha" in user_message.lower() and vendor_filter else None
+            
+            # Se não, tenta extrair o nome da mensagem
+            if not target_vendor:
+                vendor_match = re.search(r'carteira (?:de|da|do)?\s*([A-Za-zÀ-ÿ]+)', user_message, re.IGNORECASE)
+                if vendor_match:
+                    target_vendor = vendor_match.group(1)
+            
+            if target_vendor:
                 try:
-                    customers_df = self.get_customers_by_vendor(vendor_name)
+                    customers_df = self.get_customers_by_vendor(target_vendor)
                     if not customers_df.empty:
                         # Limita a 50 para não estourar tokens
-                        context_data = f"\n\n[DADOS DO SISTEMA - CARTEIRA ATUAL DE {vendor_name.upper()}]:\n{customers_df.head(50).to_markdown(index=False)}"
+                        context_data = f"\n\n[DADOS DO SISTEMA - CARTEIRA ATUAL DE {target_vendor.upper()}]:\n{customers_df.head(50).to_markdown(index=False)}"
                     else:
-                        context_data = f"\n\n[SISTEMA]: Não encontrei clientes na carteira atual de {vendor_name}."
+                        context_data = f"\n\n[SISTEMA]: Não encontrei clientes na carteira atual de {target_vendor}."
                 except Exception as e:
                     print(f"Erro ao buscar carteira: {e}")
         
         # Cenário 3: Perguntas Gerais sobre Vendas/Clientes
         elif any(term in user_message.lower() for term in ["venda", "ligar", "cliente", "melhor", "top", "inativo", "parado", "comprou", "ranking", "faturamento", "data", "quando", "ultimo", "ultima", "lista", "tabela", "analise", "sugestao", "estrategia", "potencial"]):
             try:
-                # Busca Top 20 Clientes Ativos
-                active_df = self.get_sales_insights(max_days=30).head(20)
+                # Busca Top 20 Clientes Ativos (COM FILTRO SE HOUVER)
+                active_df = self.get_sales_insights(max_days=30, vendor_filter=vendor_filter).head(20)
                 
-                # Tenta identificar se o usuário quer inativos de UM vendedor específico
-                # Exemplo: "clientes inativos da Renata"
-                vendor_in_message = re.search(r'(?:da|de|do)\s+([A-Za-zÀ-ÿ]+)', user_message, re.IGNORECASE)
-                vendor_filter = vendor_in_message.group(1) if vendor_in_message and "inativo" in user_message.lower() else None
-
-                # Busca Top 20 Clientes Inativos (Com ou sem filtro de carteira)
+                # Busca Top 20 Clientes Inativos (COM FILTRO SE HOUVER)
                 inactive_df = self.get_inactive_customers(max_days=30, vendor_filter=vendor_filter).head(20)
                 
                 context_data = f"""
-                \n\n[DADOS DO SISTEMA - TOP CLIENTES ATIVOS (30 DIAS)]:
+                \n\n[DADOS DO SISTEMA - TOP CLIENTES ATIVOS (30 DIAS) - CARTEIRA: {vendor_filter or 'TODOS'}]:
                 {active_df.to_markdown(index=False) if not active_df.empty else "Sem dados."}
                 
-                \n[DADOS DO SISTEMA - CLIENTES INATIVOS/RISCO (30 DIAS) {f'- CARTEIRA {vendor_filter.upper()}' if vendor_filter else ''}]:
+                \n[DADOS DO SISTEMA - CLIENTES INATIVOS/RISCO (30 DIAS) - CARTEIRA: {vendor_filter or 'TODOS'}]:
                 {inactive_df.to_markdown(index=False) if not inactive_df.empty else "Sem dados."}
                 
                 \nUse essas listas para sugerir clientes para o vendedor ligar. Priorize inativos com alto histórico ou ativos com queda."""
@@ -331,7 +333,7 @@ class TelesalesAgent:
             HISTÓRICO DA CONVERSA:
             {history_text}
             
-            CONTEXTO ATUAL:
+            CONTEXTO ATUAL (DADOS REAIS):
             {context_data}
             
             USUÁRIO: {user_message}
