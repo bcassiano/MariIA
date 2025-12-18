@@ -58,7 +58,7 @@ export default function App() {
                         title: 'Detalhes do Cliente',
                         headerLeft: () => (
                             <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginLeft: 15 }}>
-                                <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>← Voltar</Text>
+                                <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>Voltar</Text>
                             </TouchableOpacity>
                         )
                     })}
@@ -70,7 +70,7 @@ export default function App() {
                         title: 'Assistente Mari IA',
                         headerLeft: () => (
                             <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginLeft: 15 }}>
-                                <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>← Voltar</Text>
+                                <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>Voltar</Text>
                             </TouchableOpacity>
                         )
                     })}

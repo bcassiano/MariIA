@@ -29,9 +29,11 @@ export default function ChatScreen({ navigation }) {
     useEffect(() => {
         navigation.setOptions({
             headerRight: () => (
-                <TouchableOpacity onPress={confirmNewChat} style={styles.newChatButton}>
-                    <Text style={styles.newChatButtonText}>✎ Nova Conversa</Text>
-                </TouchableOpacity>
+                <View style={{ justifyContent: 'center', height: '100%', marginRight: 15 }}>
+                    <TouchableOpacity onPress={confirmNewChat} style={styles.newChatButton}>
+                        <Text style={styles.newChatButtonText}>Nova Conversa</Text>
+                    </TouchableOpacity>
+                </View>
             ),
         });
     }, [navigation]);
@@ -180,7 +182,6 @@ const styles = StyleSheet.create({
         })
     },
     newChatButton: {
-        marginRight: 15,
         backgroundColor: 'white',
         paddingVertical: 6,
         paddingHorizontal: 12,
