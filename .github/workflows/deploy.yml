@@ -1,0 +1,51 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  PROJECT_ID: amazing-firefly-475113-p3
+  REGION: us-central1
+  REPO_NAME: mariia-repo-2
+  IMAGE_NAME: mariia-backend
+  SERVICE_NAME: mariia-backend
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Google Auth
+      id: auth
+      uses: 'google-github-actions/auth@v2'
+      with:
+        credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+
+    - name: Set up Cloud SDK
+      uses: 'google-github-actions/setup-gcloud@v2'
+
+    - name: Configure Docker
+      run: |
+        gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+    - name: Build and Push Docker Image
+      run: |
+        IMAGE_URI="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+        docker build -t $IMAGE_URI .
+        docker push $IMAGE_URI
+        echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+
+    - name: Deploy to Cloud Run
+      run: |
+        gcloud run deploy ${{ env.SERVICE_NAME }} \
+          --image ${{ env.IMAGE_URI }} \
+          --region ${{ env.REGION }} \
+          --platform managed \
+          --allow-unauthenticated \
+          --vpc-connector mariia-vpc-conn \
+          --set-env-vars "DB_SERVER=192.168.1.85,DB_DATABASE=RUSTON_PRODUCAO,DB_USER=powerbi,DB_PASSWORD=P0w3rB1@25,DB_DRIVER=ODBC Driver 18 for SQL Server,API_KEY=mariia-secret-key-123,MODEL_ID=gemini-1.5-pro-preview-0409"
