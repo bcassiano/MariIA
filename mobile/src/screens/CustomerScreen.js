@@ -100,7 +100,7 @@ export default function CustomerScreen({ route }) {
     };
 
     return (
-        <ScrollView style={styles.container}>
+        <ScrollView style={styles.container} contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}>
             <View style={styles.headerContainer}>
                 <Text style={styles.title}>{cardCode} - {customerName || 'Carregando...'}</Text>
                 <TouchableOpacity

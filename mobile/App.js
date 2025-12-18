@@ -17,8 +17,7 @@ export default function App() {
             @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap');
             html, body, #root {
                 height: 100%;
-                overflow-y: auto;
-                -webkit-overflow-scrolling: touch;
+                overflow: hidden;
             }
         `;
         document.head.appendChild(style);

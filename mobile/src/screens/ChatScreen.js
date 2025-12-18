@@ -29,9 +29,9 @@ export default function ChatScreen({ navigation }) {
     useEffect(() => {
         navigation.setOptions({
             headerRight: () => (
-                <View style={{ justifyContent: 'center', height: '100%', marginRight: 15 }}>
+                <View style={{ justifyContent: 'center', alignItems: 'center', marginRight: 10 }}>
                     <TouchableOpacity onPress={confirmNewChat} style={styles.newChatButton}>
-                        <Text style={styles.newChatButtonText}>Nova Conversa</Text>
+                        <Text style={styles.newChatButtonText} numberOfLines={1}>Nova Conversa</Text>
                     </TouchableOpacity>
                 </View>
             ),
