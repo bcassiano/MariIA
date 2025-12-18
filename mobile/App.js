@@ -1,6 +1,6 @@
 import 'react-native-gesture-handler';
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, TouchableOpacity, Text } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import HomeScreen from './src/screens/HomeScreen';
@@ -28,7 +28,15 @@ export default function App() {
         <NavigationContainer>
             <Stack.Navigator
                 screenOptions={{
-                    cardStyle: { flex: 1 } // Garante que as telas ocupem todo o espaço
+                    cardStyle: { flex: 1 },
+                    headerStyle: {
+                        backgroundColor: '#6200ee',
+                    },
+                    headerTintColor: '#fff',
+                    headerTitleStyle: {
+                        fontWeight: 'bold',
+                        fontFamily: Platform.OS === 'web' ? 'Montserrat' : undefined,
+                    },
                 }}
             >
                 <Stack.Screen
@@ -36,19 +44,37 @@ export default function App() {
                     component={HomeScreen}
                     options={{
                         title: 'Mari IA',
-                        headerStyle: {
-                            backgroundColor: '#6200ee',
-                        },
-                        headerTintColor: '#fff',
                         headerTitleStyle: {
                             fontWeight: 'bold',
                             fontSize: 24,
-                            fontFamily: 'Montserrat',
+                            fontFamily: Platform.OS === 'web' ? 'Montserrat' : undefined,
                         },
                     }}
                 />
-                <Stack.Screen name="Customer" component={CustomerScreen} options={{ title: 'Detalhes do Cliente' }} />
-                <Stack.Screen name="Chat" component={ChatScreen} options={{ title: 'Assistente Mari IA' }} />
+                <Stack.Screen
+                    name="Customer"
+                    component={CustomerScreen}
+                    options={({ navigation }) => ({
+                        title: 'Detalhes do Cliente',
+                        headerLeft: () => (
+                            <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginLeft: 15 }}>
+                                <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>← Voltar</Text>
+                            </TouchableOpacity>
+                        )
+                    })}
+                />
+                <Stack.Screen
+                    name="Chat"
+                    component={ChatScreen}
+                    options={({ navigation }) => ({
+                        title: 'Assistente Mari IA',
+                        headerLeft: () => (
+                            <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginLeft: 15 }}>
+                                <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>← Voltar</Text>
+                            </TouchableOpacity>
+                        )
+                    })}
+                />
             </Stack.Navigator>
         </NavigationContainer>
     );
