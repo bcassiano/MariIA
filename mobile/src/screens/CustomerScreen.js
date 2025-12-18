@@ -99,8 +99,8 @@ export default function CustomerScreen({ route }) {
         );
     };
 
-    return (
-        <ScrollView style={styles.container} contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}>
+    const renderHeader = () => (
+        <View>
             <View style={styles.headerContainer}>
                 <Text style={styles.title}>{cardCode} - {customerName || 'Carregando...'}</Text>
                 <TouchableOpacity
@@ -121,7 +121,6 @@ export default function CustomerScreen({ route }) {
                     <Text style={styles.pitchTitle}>Sugestão da Mari IA:</Text>
                     <Text style={styles.pitchText}>{pitch}</Text>
 
-                    {/* Botões de Feedback */}
                     {!feedbackGiven ? (
                         <View style={styles.feedbackContainer}>
                             <Text style={styles.feedbackLabel}>Isso ajudou?</Text>
@@ -147,18 +146,20 @@ export default function CustomerScreen({ route }) {
             )}
 
             <Text style={styles.sectionTitle}>Histórico Recente</Text>
-            {loading ? (
-                <ActivityIndicator size="large" color="#0000ff" />
-            ) : (
-                <FlatList
-                    data={history}
-                    keyExtractor={(item) => item.document_number.toString()}
-                    renderItem={({ item }) => <DocumentCard item={item} />}
-                    scrollEnabled={false}
-                    ListEmptyComponent={<Text>Nenhum histórico encontrado.</Text>}
-                />
-            )}
-        </ScrollView>
+            {loading && <ActivityIndicator size="large" color="#0000ff" />}
+        </View>
+    );
+
+    return (
+        <FlatList
+            style={styles.container}
+            contentContainerStyle={{ flexGrow: 1, padding: 15, paddingBottom: 20 }}
+            data={history}
+            keyExtractor={(item) => item.document_number.toString()}
+            renderItem={({ item }) => <DocumentCard item={item} />}
+            ListHeaderComponent={renderHeader}
+            ListEmptyComponent={!loading && <Text>Nenhum histórico encontrado.</Text>}
+        />
     );
 }
 
@@ -166,7 +167,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#f5f5f5',
-        padding: 15,
     },
     headerContainer: {
         marginBottom: 20,
