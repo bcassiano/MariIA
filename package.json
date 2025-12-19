@@ -1,0 +1,11 @@
+{
+    "name": "mariia-monorepo",
+    "version": "1.0.0",
+    "private": true,
+    "workspaces": [
+        "mobile"
+    ],
+    "scripts": {
+        "mobile": "cd mobile && expo start"
+    }
+}
