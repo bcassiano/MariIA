@@ -1,3 +1,4 @@
+// Force update
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, Platform, ScrollView } from 'react-native';
 import { getInsights, getInactiveCustomers } from '../services/api';
