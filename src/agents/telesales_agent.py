@@ -337,6 +337,17 @@ class TelesalesAgent:
             {context_data}
             
             USUÁRIO: {user_message}
+            
+            REGRAS DE OURO (ANTI-ALUCINAÇÃO):
+            - Baseie-se ESTRITAMENTE nos dados de contexto fornecidos acima.
+            - NÃO invente produtos, datas ou valores que não estejam na tabela.
+            - Se não houver dados suficientes para uma conclusão, diga "Não há dados suficientes".
+
+            TRANSPARÊNCIA (OBRIGATÓRIO):
+            Ao final da resposta, adicione uma seção "🔍 Por que sugeri isso?":
+            - Cite a fonte dos dados (ex: "Baseado no histórico de compras").
+            - Explique o cálculo ou lógica usada.
+
             ASSISTENTE:"""
             
             response = self.model.generate_content(
@@ -344,7 +355,25 @@ class TelesalesAgent:
                 generation_config={
                     "max_output_tokens": 8192,
                     "temperature": 0.2,
-                }
+                },
+                safety_settings=[
+                    SafetySetting(
+                        category=SafetySetting.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+                        threshold=SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH
+                    ),
+                    SafetySetting(
+                        category=SafetySetting.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                        threshold=SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH
+                    ),
+                    SafetySetting(
+                        category=SafetySetting.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+                        threshold=SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH
+                    ),
+                    SafetySetting(
+                        category=SafetySetting.HarmCategory.HARM_CATEGORY_HARASSMENT,
+                        threshold=SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH
+                    ),
+                ]
             )
             return response.text
         except Exception as e:

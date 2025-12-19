@@ -1,28 +1,25 @@
-# Ignore backend and data files
+# Backend Directories
 src/
 data/
 logs/
 test_deploy/
 .venv/
-__pycache__/
-*.pyc
-*.log
-*.sql
-*.jsonl
+.git/
+.github/
 
-# Ignore root build scripts
-deploy_*.ps1
+# Backend Files
 Dockerfile
 requirements.txt
 setup_gcp.ps1
+deploy_*.ps1
+build_mobile.ps1
+*.py
+*.sql
+*.txt
+*.md
 
-# Standard ignores
-.git
-.gitignore
-node_modules/
-
-# Ignore mobile build artifacts
+# Mobile Ignores (redundant but safe)
 mobile/node_modules/
 mobile/.expo/
-mobile/dist/
 mobile/web-build/
+mobile/dist/
