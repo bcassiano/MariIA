@@ -30,7 +30,9 @@ export default function App() {
                 screenOptions={{
                     cardStyle: { flex: 1 },
                     headerStyle: {
-                        backgroundColor: '#6200ee',
+                        backgroundColor: '#1A2F5A',
+                        elevation: 0, // Remove shadow for cleaner look
+                        shadowOpacity: 0,
                     },
                     headerTintColor: '#fff',
                     headerTitleStyle: {
@@ -44,9 +46,10 @@ export default function App() {
                     component={HomeScreen}
                     options={{
                         title: 'Mari IA',
+                        headerTitleAlign: 'center',
                         headerTitleStyle: {
                             fontWeight: 'bold',
-                            fontSize: 24,
+                            fontSize: Platform.OS === 'web' ? 24 : 20,
                             fontFamily: Platform.OS === 'web' ? 'Montserrat' : undefined,
                         },
                     }}
@@ -56,6 +59,7 @@ export default function App() {
                     component={CustomerScreen}
                     options={({ navigation }) => ({
                         title: 'Detalhes do Cliente',
+                        headerTitleAlign: 'center',
                         headerLeft: () => (
                             <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginLeft: 15 }}>
                                 <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>Voltar</Text>
@@ -67,7 +71,8 @@ export default function App() {
                     name="Chat"
                     component={ChatScreen}
                     options={({ navigation }) => ({
-                        title: 'Assistente Mari IA',
+                        title: 'Chat com Mari IA',
+                        headerTitleAlign: 'center',
                         headerLeft: () => (
                             <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginLeft: 15 }}>
                                 <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>Voltar</Text>

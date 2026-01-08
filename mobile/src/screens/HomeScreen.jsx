@@ -1,7 +1,11 @@
 // Force update
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, Platform, ScrollView } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Platform, ScrollView } from 'react-native';
 import { getInsights, getInactiveCustomers } from '../services/api';
+import { create } from 'twrnc';
+
+// Load Tailwind config
+const tw = create(require('../../tailwind.config.js'));
 
 export default function HomeScreen({ navigation }) {
     const [data, setData] = useState([]);
@@ -77,257 +81,166 @@ export default function HomeScreen({ navigation }) {
 
     const renderItem = ({ item }) => (
         <TouchableOpacity
-            style={[styles.card, viewMode === 'inactive' && styles.cardInactive]}
+            style={tw.style(
+                `bg-white dark:bg-card-dark rounded-3xl mb-4 shadow-sm border border-gray-100 dark:border-gray-800 flex-row overflow-hidden`,
+                // viewMode === 'inactive' && 'border-l-[8px] border-l-accent' // Removed problematic border
+            )}
             onPress={() => navigation.navigate('Customer', { cardCode: item.Codigo_Cliente })}
         >
-            <Text style={styles.customerName}>{item.Codigo_Cliente} - {item.Nome_Cliente}</Text>
-            <View style={styles.row}>
-                <Text style={styles.city}>{item.Cidade} - {item.Estado}</Text>
-                {viewMode === 'active' ? (
-                    <Text style={styles.value}>{formatCurrency(item.Total_Venda)}</Text>
-                ) : (
-                    <Text style={styles.inactiveDate}>Sem compra desde: {formatDate(item.Ultima_Compra)}</Text>
-                )}
+            {/* Left color strip - now a dedicated View column */}
+            {/* Left color strip - self-stretch by default in flex-row */}
+            {viewMode === 'inactive' && (
+                <View style={tw`w-2 bg-accent rounded-tl-3xl rounded-bl-3xl`}></View>
+            )}
+
+            <View style={tw`flex-1 p-5 pl-4`}>
+                <View style={tw`flex-row justify-between items-start mb-2`}>
+                    <Text style={tw`text-[11px] font-bold text-primary bg-blue-50 px-3 py-1 rounded-full uppercase tracking-wider`}>
+                        {item.Codigo_Cliente}
+                    </Text>
+                </View>
+
+                <Text style={tw`text-[15px] font-bold text-primary mb-1.5 leading-snug`} numberOfLines={1}>
+                    {item.Nome_Cliente}
+                </Text>
+
+                <View style={tw`flex-row items-center mb-4`}>
+                    <Text style={tw`text-xs text-text-sub-light font-medium`}>
+                        {item.Cidade} - {item.Estado}
+                    </Text>
+                </View>
+
+                <View style={tw`border-t border-gray-100 pt-3 flex-row items-end justify-between`}>
+                    <View>
+                        <Text style={tw`text-[10px] uppercase tracking-wider text-text-sub-light mb-0.5 font-medium`}>
+                            {viewMode === 'active' ? 'Total Vendas' : 'Sem compra desde'}
+                        </Text>
+                        <Text style={tw.style(
+                            `text-sm font-bold`,
+                            viewMode === 'active' ? 'text-green-600' : 'text-accent'
+                        )}>
+                            {viewMode === 'active' ? formatCurrency(item.Total_Venda) : formatDate(item.Ultima_Compra)}
+                        </Text>
+                    </View>
+
+                    <View style={tw.style(
+                        `w-8 h-8 rounded-full flex items-center justify-center`,
+                        viewMode === 'active' ? 'bg-primary/10' : 'bg-red-50'
+                    )}>
+                        <Text style={tw.style(
+                            `font-bold`,
+                            viewMode === 'active' ? 'text-primary' : 'text-accent'
+                        )}>
+                            {'>'}
+                        </Text>
+                    </View>
+                </View>
             </View>
         </TouchableOpacity>
     );
 
     return (
-        <View style={styles.container}>
-            <View style={styles.headerContainer}>
-                <Text style={styles.header}>
-                    {viewMode === 'active' ? 'Clientes top vendas' : 'Clientes em recuperação'}
-                </Text>
+        <View style={tw`flex-1 bg-background-light p-4`}>
+            {/* Header Section */}
+            <View style={tw`mt-10 mb-6`}>
+                <View style={tw`flex-row items-center gap-4 mb-5`}>
+                    <View style={tw`w-12 h-12 rounded-full bg-red-100 items-center justify-center`}>
+                        <Text style={tw`text-2xl text-accent`}>📊</Text>
+                    </View>
+                    <View>
+                        <Text style={tw`text-xl font-bold text-primary leading-tight`}>Performance de Clientes</Text>
+                        <Text style={tw`text-xs text-text-sub-light`}>Análise de vendas e recuperação</Text>
+                    </View>
+                </View>
 
-                {/* Toggle View Mode */}
-                <View style={styles.toggleContainer}>
+                {/* Toggle Buttons */}
+                <View style={tw`flex-row bg-white p-1.5 rounded-2xl shadow-sm border border-gray-100 mb-6`}>
                     <TouchableOpacity
-                        style={[styles.toggleButton, viewMode === 'active' && styles.toggleButtonActive]}
+                        style={tw.style(
+                            `flex-1 py-3 rounded-xl items-center justify-center flex-row gap-2`,
+                            viewMode === 'active' ? 'bg-primary' : 'bg-transparent'
+                        )}
                         onPress={() => setViewMode('active')}
                     >
-                        <Text style={[styles.toggleText, viewMode === 'active' && styles.toggleTextActive]}>Ativos</Text>
+                        <Text style={tw.style(
+                            `text-sm font-bold`,
+                            viewMode === 'active' ? 'text-white' : 'text-text-sub-light'
+                        )}>
+                            {viewMode === 'active' ? '✓ ' : ''}Ativos
+                        </Text>
                     </TouchableOpacity>
+
                     <TouchableOpacity
-                        style={[styles.toggleButton, viewMode === 'inactive' && styles.toggleButtonInactive]}
+                        style={tw.style(
+                            `flex-1 py-3 rounded-xl items-center justify-center flex-row gap-2`,
+                            viewMode === 'inactive' ? 'bg-primary' : 'bg-transparent'
+                        )}
                         onPress={() => setViewMode('inactive')}
                     >
-                        <Text style={[styles.toggleText, viewMode === 'inactive' && styles.toggleTextActive]}>Em recuperação</Text>
+                        <Text style={tw.style(
+                            `text-sm font-bold`,
+                            viewMode === 'inactive' ? 'text-white' : 'text-text-sub-light'
+                        )}>
+                            ↺ Em Recuperação
+                        </Text>
                     </TouchableOpacity>
                 </View>
 
-                <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.filterContainer}
-                    style={styles.filterScroll}
-                >
-                    {filters.map((f) => (
-                        <TouchableOpacity
-                            key={f.label}
-                            style={[styles.filterButton, selectedFilter.label === f.label && styles.filterButtonActive]}
-                            onPress={() => setSelectedFilter(f)}
-                        >
-                            <Text style={[styles.filterText, selectedFilter.label === f.label && styles.filterTextActive]}>
-                                {f.label} dias
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
-                </ScrollView>
+                {/* Filters ScrollView */}
+                <View>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingBottom: 5 }}>
+                        {filters.map((f) => (
+                            <TouchableOpacity
+                                key={f.label}
+                                style={tw.style(
+                                    `px-5 py-2 rounded-2xl border shadow-sm`,
+                                    selectedFilter.label === f.label ? 'bg-accent-btn border-accent-btn' : 'bg-white border-gray-200'
+                                )}
+                                onPress={() => setSelectedFilter(f)}
+                            >
+                                <Text style={tw.style(
+                                    `text-xs font-semibold`,
+                                    selectedFilter.label === f.label ? 'text-white' : 'text-text-sub-light'
+                                )}>
+                                    {f.label} dias
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </ScrollView>
+                </View>
             </View>
 
             {errorMsg && (
-                <View style={styles.errorContainer}>
-                    <Text style={styles.errorText}>Erro: {errorMsg}</Text>
-                    <TouchableOpacity onPress={() => loadData(days, viewMode)} style={styles.retryButton}>
-                        <Text style={styles.retryText}>Tentar Novamente</Text>
+                <View style={tw`p-4 bg-red-50 mb-4 rounded-lg border border-red-200`}>
+                    <Text style={tw`text-red-700 mb-2`}>Erro: {errorMsg}</Text>
+                    <TouchableOpacity onPress={() => loadData(selectedFilter, viewMode)} style={tw`bg-red-700 p-2 rounded items-center`}>
+                        <Text style={tw`text-white font-bold`}>Tentar Novamente</Text>
                     </TouchableOpacity>
                 </View>
             )}
 
             {loading ? (
-                <ActivityIndicator size="large" color="#0000ff" />
+                <ActivityIndicator size="large" color="#1A2F5A" />
             ) : (
                 <FlatList
                     data={data}
                     keyExtractor={(item, index) => index.toString()}
                     renderItem={renderItem}
                     refreshing={loading}
-                    onRefresh={() => loadData(days, viewMode)}
-                    ListEmptyComponent={!loading && !errorMsg && <Text>Nenhum dado encontrado.</Text>}
+                    onRefresh={() => loadData(selectedFilter, viewMode)}
+                    ListEmptyComponent={!loading && !errorMsg && <Text style={tw`text-center text-gray-500 mt-10`}>Nenhum dado encontrado.</Text>}
                     style={{ flex: 1 }}
                     contentContainerStyle={{ paddingBottom: 100 }}
+                    showsVerticalScrollIndicator={false}
                 />
             )}
 
             <TouchableOpacity
-                style={styles.chatFab}
+                style={tw`absolute bottom-6 right-6 bg-chat-orange w-16 h-16 rounded-full items-center justify-center shadow-lg elevation-5 z-50 border-2 border-white`}
                 onPress={() => navigation.navigate('Chat')}
             >
-                <Text style={styles.chatFabText}>💬</Text>
+                <Text style={tw`text-3xl text-white`}>💬</Text>
             </TouchableOpacity>
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#f5f5f5',
-        padding: 10,
-        ...Platform.select({
-            web: {
-                height: '100vh',
-                display: 'flex',
-                flexDirection: 'column',
-            }
-        })
-    },
-    headerContainer: {
-        marginTop: 40,
-        marginBottom: 20,
-    },
-    header: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 10,
-    },
-    toggleContainer: {
-        flexDirection: 'row',
-        backgroundColor: '#e0e0e0',
-        borderRadius: 25,
-        marginBottom: 15,
-        padding: 4,
-    },
-    toggleButton: {
-        flex: 1,
-        paddingVertical: 8,
-        alignItems: 'center',
-        borderRadius: 20,
-    },
-    toggleButtonActive: {
-        backgroundColor: 'white',
-        elevation: 2,
-    },
-    toggleButtonInactive: {
-        backgroundColor: '#ffebee', // Vermelho claro para inativos
-    },
-    toggleText: {
-        fontWeight: 'bold',
-        color: '#666',
-    },
-    toggleTextActive: {
-        color: '#333',
-    },
-    filterScroll: {
-        flexGrow: 0, // Impede que o ScrollView ocupe altura desnecessária
-    },
-    filterContainer: {
-        flexDirection: 'row',
-        gap: 10,
-        paddingHorizontal: 5, // Espaço nas pontas
-        paddingBottom: 5, // Espaço para sombra não cortar
-    },
-    filterButton: {
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        borderRadius: 20,
-        backgroundColor: '#e0e0e0',
-    },
-    filterButtonActive: {
-        backgroundColor: '#6200ee',
-    },
-    filterText: {
-        color: '#333',
-        fontWeight: '600',
-    },
-    filterTextActive: {
-        color: 'white',
-    },
-    card: {
-        backgroundColor: 'white',
-        padding: 15,
-        borderRadius: 10,
-        marginBottom: 10,
-        elevation: 2,
-        ...Platform.select({
-            web: {
-                boxShadow: '0px 2px 3.84px rgba(0, 0, 0, 0.25)',
-            }
-        })
-    },
-    cardInactive: {
-        borderLeftWidth: 4,
-        borderLeftColor: '#c62828', // Tarja vermelha para inativos
-    },
-    customerName: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginBottom: 5,
-    },
-    row: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    city: {
-        color: '#666',
-    },
-    value: {
-        color: '#008000',
-        fontWeight: 'bold',
-    },
-    inactiveDate: {
-        color: '#c62828',
-        fontWeight: 'bold',
-        fontSize: 12,
-    },
-    errorContainer: {
-        padding: 15,
-        backgroundColor: '#ffebee',
-        marginBottom: 15,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#ffcdd2'
-    },
-    errorText: {
-        color: '#c62828',
-        marginBottom: 10,
-    },
-    retryButton: {
-        backgroundColor: '#c62828',
-        padding: 10,
-        borderRadius: 5,
-        alignItems: 'center'
-    },
-    retryText: {
-        color: 'white',
-        fontWeight: 'bold'
-    },
-    chatFab: {
-        position: 'absolute',
-        bottom: 20,
-        right: 20,
-        backgroundColor: '#6200ee',
-        width: 60,
-        height: 60,
-        borderRadius: 30,
-        justifyContent: 'center',
-        alignItems: 'center',
-        elevation: 5,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        zIndex: 100,
-        ...Platform.select({
-            web: {
-                position: 'fixed',
-                cursor: 'pointer',
-            }
-        })
-    },
-    chatFabText: {
-        fontSize: 30,
-        color: 'white',
-    }
-});

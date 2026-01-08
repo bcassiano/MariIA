@@ -170,7 +170,7 @@ class FeedbackRequest(BaseModel):
 def generate_pitch(request: PitchRequest):
     """Gera um pitch de vendas usando IA."""
     try:
-        pitch = agent.generate_pitch(request.card_code, request.target_sku)
+        pitch = agent.generate_pitch(request.card_code, request.target_sku, vendor_filter=CURRENT_VENDOR)
         pitch_id = str(uuid.uuid4())
         
         # Log de Uso para Analytics

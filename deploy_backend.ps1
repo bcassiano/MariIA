@@ -33,7 +33,7 @@ gcloud run deploy $IMAGE_NAME `
     --set-env-vars "DB_DRIVER=$DB_DRIVER" `
     --set-env-vars "PROJECT_ID=$PROJECT_ID" `
     --set-env-vars "LOCATION=$REGION" `
-    --set-env-vars "MODEL_ID=gemini-1.5-pro-preview-0409" `
+    --set-env-vars "MODEL_ID=gemini-3-pro-preview" `
     --set-env-vars "API_KEY=$API_KEY"
 
 Write-Host "Deploy concluído!"

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Clientes Top Vendas - Fantástico Alimentos</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#E63946", // Red/Orange from brand description
+                        secondary: "#1D3557", // Blue from brand description
+                        "brand-orange": "#FCA311",
+                        "brand-blue-light": "#457B9D",
+                        "background-light": "#F1F5F9",
+                        "background-dark": "#0F172A",
+                        "surface-light": "#FFFFFF",
+                        "surface-dark": "#1E293B",
+                        "text-light": "#1E293B",
+                        "text-dark": "#E2E8F0",
+                        "subtext-light": "#64748B",
+                        "subtext-dark": "#94A3B8",
+                    },
+                    fontFamily: {
+                        display: ["Inter", "sans-serif"],
+                        body: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.75rem",
+                    },
+                },
+            },
+        };
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark min-h-screen flex flex-col font-body transition-colors duration-200">
+<div class="h-12 bg-secondary w-full flex items-end justify-between px-6 pb-2 text-white text-xs font-medium sticky top-0 z-50">
+<div class="flex items-center gap-1">
+<span>03:01</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-icons-round text-base">signal_cellular_4_bar</span>
+<span class="material-icons-round text-base">wifi</span>
+<span class="material-icons-round text-base rotate-180">battery_full</span>
+</div>
+</div>
+<header class="bg-secondary text-white px-4 py-3 shadow-md sticky top-12 z-40">
+<div class="flex items-center justify-between">
+<button class="flex items-center text-white/90 hover:text-white transition-colors">
+<span class="material-icons-round text-2xl -ml-1">chevron_left</span>
+<span class="text-base font-medium ml-1">Voltar</span>
+</button>
+<h1 class="text-lg font-semibold flex-1 text-center pr-12">Clientes Top Vendas</h1>
+</div>
+</header>
+<main class="flex-1 p-4 pb-24 max-w-lg mx-auto w-full">
+<div class="flex items-center gap-3 mb-6 mt-2">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+<span class="material-icons-round text-primary text-xl">insights</span>
+</div>
+<div>
+<h2 class="text-2xl font-bold text-secondary dark:text-white">Performance de Clientes</h2>
+<p class="text-xs text-subtext-light dark:text-subtext-dark">Análise de vendas e recuperação</p>
+</div>
+</div>
+<div class="bg-surface-light dark:bg-surface-dark p-1.5 rounded-2xl shadow-sm flex mb-6 border border-gray-100 dark:border-gray-700">
+<button class="flex-1 py-2.5 px-4 rounded-xl text-sm font-semibold bg-secondary text-white shadow-sm transition-all duration-200 flex items-center justify-center gap-2">
+<span class="material-icons-round text-base">check_circle</span>
+                Ativos
+            </button>
+<button class="flex-1 py-2.5 px-4 rounded-xl text-sm font-medium text-subtext-light dark:text-subtext-dark hover:text-primary dark:hover:text-primary transition-all duration-200 flex items-center justify-center gap-2">
+<span class="material-icons-round text-base">restore</span>
+                Em Recuperação
+            </button>
+</div>
+<div class="flex gap-3 overflow-x-auto scrollbar-hide mb-6 pb-2">
+<button class="whitespace-nowrap px-4 py-2 rounded-full text-xs font-semibold bg-surface-light dark:bg-surface-dark border border-gray-200 dark:border-gray-700 text-subtext-light dark:text-subtext-dark hover:border-brand-blue-light transition-colors">
+                15-25 dias
+            </button>
+<button class="whitespace-nowrap px-4 py-2 rounded-full text-xs font-semibold bg-surface-light dark:bg-surface-dark border border-gray-200 dark:border-gray-700 text-subtext-light dark:text-subtext-dark hover:border-brand-blue-light transition-colors">
+                26-30 dias
+            </button>
+<button class="whitespace-nowrap px-4 py-2 rounded-full text-xs font-semibold bg-primary text-white shadow-md shadow-primary/30">
+                30 dias
+            </button>
+<button class="whitespace-nowrap px-4 py-2 rounded-full text-xs font-semibold bg-surface-light dark:bg-surface-dark border border-gray-200 dark:border-gray-700 text-subtext-light dark:text-subtext-dark hover:border-brand-blue-light transition-colors">
+                60 dias
+            </button>
+<button class="whitespace-nowrap px-4 py-2 rounded-full text-xs font-semibold bg-surface-light dark:bg-surface-dark border border-gray-200 dark:border-gray-700 text-subtext-light dark:text-subtext-dark hover:border-brand-blue-light transition-colors">
+                +90 dias
+            </button>
+</div>
+<div class="space-y-4">
+<div class="bg-surface-light dark:bg-surface-dark rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-green-500/10 to-transparent rounded-bl-3xl -mr-4 -mt-4"></div>
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-2">
+<span class="bg-brand-blue-light/10 text-brand-blue-light dark:text-blue-300 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">C004512</span>
+</div>
+<span class="material-icons-round text-subtext-light dark:text-subtext-dark text-lg cursor-pointer hover:text-primary">more_horiz</span>
+</div>
+<h3 class="font-bold text-secondary dark:text-white text-base mb-1 leading-snug pr-4">FANTÁSTICO ALIMENTOS LTDA</h3>
+<div class="flex items-center text-subtext-light dark:text-subtext-dark text-xs mb-4">
+<span class="material-icons-round text-sm mr-1">location_on</span>
+                    São Paulo - SP
+                </div>
+<div class="flex items-end justify-between mt-2 pt-3 border-t border-gray-100 dark:border-gray-700">
+<div class="flex flex-col">
+<span class="text-[10px] uppercase text-subtext-light dark:text-subtext-dark font-medium tracking-wide">Total Vendas</span>
+<span class="text-green-600 dark:text-green-400 font-bold text-lg">R$ 85.420,00</span>
+</div>
+<button class="w-8 h-8 rounded-full bg-primary/10 hover:bg-primary hover:text-white text-primary flex items-center justify-center transition-all duration-200">
+<span class="material-icons-round text-sm">arrow_forward_ios</span>
+</button>
+</div>
+</div>
+<div class="bg-surface-light dark:bg-surface-dark rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-green-500/10 to-transparent rounded-bl-3xl -mr-4 -mt-4"></div>
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-2">
+<span class="bg-brand-blue-light/10 text-brand-blue-light dark:text-blue-300 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">C008920</span>
+</div>
+<span class="material-icons-round text-subtext-light dark:text-subtext-dark text-lg cursor-pointer hover:text-primary">more_horiz</span>
+</div>
+<h3 class="font-bold text-secondary dark:text-white text-base mb-1 leading-snug pr-4">SUPERMERCADO BOM GOSTO EIRELI</h3>
+<div class="flex items-center text-subtext-light dark:text-subtext-dark text-xs mb-4">
+<span class="material-icons-round text-sm mr-1">location_on</span>
+                    Rio de Janeiro - RJ
+                </div>
+<div class="flex items-end justify-between mt-2 pt-3 border-t border-gray-100 dark:border-gray-700">
+<div class="flex flex-col">
+<span class="text-[10px] uppercase text-subtext-light dark:text-subtext-dark font-medium tracking-wide">Total Vendas</span>
+<span class="text-green-600 dark:text-green-400 font-bold text-lg">R$ 62.150,75</span>
+</div>
+<button class="w-8 h-8 rounded-full bg-primary/10 hover:bg-primary hover:text-white text-primary flex items-center justify-center transition-all duration-200">
+<span class="material-icons-round text-sm">arrow_forward_ios</span>
+</button>
+</div>
+</div>
+<div class="bg-surface-light dark:bg-surface-dark rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-green-500/10 to-transparent rounded-bl-3xl -mr-4 -mt-4"></div>
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-2">
+<span class="bg-brand-blue-light/10 text-brand-blue-light dark:text-blue-300 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">C012304</span>
+</div>
+<span class="material-icons-round text-subtext-light dark:text-subtext-dark text-lg cursor-pointer hover:text-primary">more_horiz</span>
+</div>
+<h3 class="font-bold text-secondary dark:text-white text-base mb-1 leading-snug pr-4">ATACADÃO DOS GRÃOS S.A.</h3>
+<div class="flex items-center text-subtext-light dark:text-subtext-dark text-xs mb-4">
+<span class="material-icons-round text-sm mr-1">location_on</span>
+                    Belo Horizonte - MG
+                </div>
+<div class="flex items-end justify-between mt-2 pt-3 border-t border-gray-100 dark:border-gray-700">
+<div class="flex flex-col">
+<span class="text-[10px] uppercase text-subtext-light dark:text-subtext-dark font-medium tracking-wide">Total Vendas</span>
+<span class="text-green-600 dark:text-green-400 font-bold text-lg">R$ 45.980,10</span>
+</div>
+<button class="w-8 h-8 rounded-full bg-primary/10 hover:bg-primary hover:text-white text-primary flex items-center justify-center transition-all duration-200">
+<span class="material-icons-round text-sm">arrow_forward_ios</span>
+</button>
+</div>
+</div>
+<div class="bg-surface-light dark:bg-surface-dark rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-green-500/10 to-transparent rounded-bl-3xl -mr-4 -mt-4"></div>
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-2">
+<span class="bg-brand-blue-light/10 text-brand-blue-light dark:text-blue-300 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">C012703</span>
+</div>
+<span class="material-icons-round text-subtext-light dark:text-subtext-dark text-lg cursor-pointer hover:text-primary">more_horiz</span>
+</div>
+<h3 class="font-bold text-secondary dark:text-white text-base mb-1 leading-snug pr-4">SUPERMERCADO BOM GOSTO S.A.</h3>
+<div class="flex items-center text-subtext-light dark:text-subtext-dark text-xs mb-4">
+<span class="material-icons-round text-sm mr-1">location_on</span>
+                    São Paulo - SP
+                </div>
+<div class="flex items-end justify-between mt-2 pt-3 border-t border-gray-100 dark:border-gray-700">
+<div class="flex flex-col">
+<span class="text-[10px] uppercase text-subtext-light dark:text-subtext-dark font-medium tracking-wide">Total Vendas</span>
+<span class="text-green-600 dark:text-green-400 font-bold text-lg">R$ 36.000,00</span>
+</div>
+<button class="w-8 h-8 rounded-full bg-primary/10 hover:bg-primary hover:text-white text-primary flex items-center justify-center transition-all duration-200">
+<span class="material-icons-round text-sm">arrow_forward_ios</span>
+</button>
+</div>
+</div>
+<div class="bg-surface-light dark:bg-surface-dark rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-green-500/10 to-transparent rounded-bl-3xl -mr-4 -mt-4"></div>
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-2">
+<span class="bg-brand-blue-light/10 text-brand-blue-light dark:text-blue-300 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">C012319</span>
+</div>
+<span class="material-icons-round text-subtext-light dark:text-subtext-dark text-lg cursor-pointer hover:text-primary">more_horiz</span>
+</div>
+<h3 class="font-bold text-secondary dark:text-white text-base mb-1 leading-snug pr-4">FANTÁSTICO ALIMENTOS LTDA</h3>
+<div class="flex items-center text-subtext-light dark:text-subtext-dark text-xs mb-4">
+<span class="material-icons-round text-sm mr-1">location_on</span>
+                    São Paulo - SP
+                </div>
+<div class="flex items-end justify-between mt-2 pt-3 border-t border-gray-100 dark:border-gray-700">
+<div class="flex flex-col">
+<span class="text-[10px] uppercase text-subtext-light dark:text-subtext-dark font-medium tracking-wide">Total Vendas</span>
+<span class="text-green-600 dark:text-green-400 font-bold text-lg">R$ 33.000,00</span>
+</div>
+<button class="w-8 h-8 rounded-full bg-primary/10 hover:bg-primary hover:text-white text-primary flex items-center justify-center transition-all duration-200">
+<span class="material-icons-round text-sm">arrow_forward_ios</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<div class="fixed bottom-6 right-6 z-50">
+<button class="w-14 h-14 bg-gradient-to-br from-primary to-brand-orange text-white rounded-full shadow-lg shadow-orange-500/30 flex items-center justify-center hover:scale-105 transition-transform duration-200">
+<span class="material-icons-round text-2xl">chat</span>
+</button>
+</div>
+
+</body></html>

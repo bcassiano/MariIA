@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Clientes em Recuperação - Mari IA</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#1A2F5A", // Darker blue matching reference header
+                        "primary-dark": "#0F1E3B",
+                        accent: "#FF4500", // Adjusted to match the orange/red bar reference
+                        "accent-light": "#FFF5F5",
+                        "accent-btn": "#EF4444", // Bright red for active filter
+                        "background-light": "#F8FAFC", // Slightly blueish gray bg
+                        "background-dark": "#111827",
+                        "card-light": "#FFFFFF",
+                        "card-dark": "#1F2937",
+                        "text-main-light": "#1E293B",
+                        "text-main-dark": "#F3F4F6",
+                        "text-sub-light": "#64748B",
+                        "text-sub-dark": "#9CA3AF",
+                        "status-green": "#22C55E",
+                        "chat-orange": "#FF6B2C", // Vibrant orange for chat button
+                    },
+                    fontFamily: {
+                        sans: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.5rem",
+                        'xl': '1rem',
+                        '2xl': '1.5rem',
+                        '3xl': '2rem',
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+                        'card': '0 2px 8px rgba(0, 0, 0, 0.05)',
+                    }
+                },
+            },
+        };
+    </script>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+            -webkit-font-smoothing: antialiased;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-sans transition-colors duration-200 antialiased pb-24">
+<header class="bg-primary text-white sticky top-0 z-50 shadow-md">
+<div class="px-4 h-16 flex items-center justify-between">
+<div class="flex items-center gap-1 shrink-0">
+<button class="flex items-center text-white/90 hover:text-white transition-colors p-1">
+<span class="material-symbols-outlined text-xl">arrow_back_ios_new</span>
+<span class="text-sm font-medium ml-1">Voltar</span>
+</button>
+</div>
+<h1 class="text-base sm:text-lg font-bold tracking-tight text-center flex-grow whitespace-nowrap overflow-hidden text-ellipsis px-2 absolute left-1/2 transform -translate-x-1/2 w-3/5">Clientes em Recuperação</h1>
+<div class="w-16 shrink-0"></div>
+</div>
+</header>
+<section class="pt-6 px-5 pb-2 bg-background-light dark:bg-background-dark">
+<div class="flex items-center gap-4 mb-5">
+<div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-accent text-2xl">ssid_chart</span>
+</div>
+<div>
+<h2 class="text-xl font-bold text-primary dark:text-white leading-tight">Performance de Clientes</h2>
+<p class="text-xs text-text-sub-light dark:text-gray-400">Análise de vendas e recuperação</p>
+</div>
+</div>
+<div class="bg-white dark:bg-card-dark p-1.5 rounded-2xl shadow-sm flex items-center mb-6 border border-gray-100 dark:border-gray-700">
+<button class="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all">
+<span class="material-symbols-outlined text-lg filled">check_circle</span>
+                Ativos
+            </button>
+<button class="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold bg-primary text-white shadow-md transition-all">
+<span class="material-symbols-outlined text-lg">history</span>
+                Em Recuperação
+            </button>
+</div>
+</section>
+<div class="sticky top-16 z-40 bg-background-light dark:bg-background-dark py-2 pl-5 pr-4 border-b border-transparent">
+<div class="flex gap-3 overflow-x-auto no-scrollbar pb-2">
+<button class="whitespace-nowrap px-5 py-2 rounded-2xl text-xs font-semibold bg-white dark:bg-card-dark text-text-sub-light dark:text-gray-300 border border-gray-200 dark:border-gray-700 shadow-sm hover:border-gray-300 transition-all">
+                15-25 dias
+            </button>
+<button class="whitespace-nowrap px-5 py-2 rounded-2xl text-xs font-semibold bg-white dark:bg-card-dark text-text-sub-light dark:text-gray-300 border border-gray-200 dark:border-gray-700 shadow-sm hover:border-gray-300 transition-all">
+                26-30 dias
+            </button>
+<button class="whitespace-nowrap px-5 py-2 rounded-2xl text-xs font-bold bg-accent-btn text-white shadow-lg shadow-red-200 dark:shadow-none transition-transform scale-100 active:scale-95">
+                30 dias
+            </button>
+<button class="whitespace-nowrap px-5 py-2 rounded-2xl text-xs font-semibold bg-white dark:bg-card-dark text-text-sub-light dark:text-gray-300 border border-gray-200 dark:border-gray-700 shadow-sm hover:border-gray-300 transition-all">
+                60 dias
+            </button>
+</div>
+</div>
+<main class="px-5 space-y-4 pb-8">
+<div class="bg-card-light dark:bg-card-dark rounded-3xl p-5 shadow-card border border-gray-100 dark:border-gray-800 relative group overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-2 bg-accent h-full"></div>
+<div class="pl-2">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[11px] font-bold text-primary dark:text-blue-300 bg-blue-50 dark:bg-blue-900/40 px-3 py-1 rounded-full">C002555</span>
+<button class="text-gray-300 hover:text-gray-500 dark:hover:text-gray-200">
+<span class="material-symbols-outlined text-xl">more_horiz</span>
+</button>
+</div>
+<h3 class="text-[15px] font-bold text-primary dark:text-white mb-1.5 pr-4 leading-snug truncate">ROBINSON JOSE RABELO</h3>
+<div class="flex items-center text-xs text-text-sub-light dark:text-gray-400 mb-4 font-medium">
+<span class="material-symbols-outlined text-sm mr-1.5 text-gray-400">location_on</span>
+                Ubatuba - SP
+            </div>
+<div class="border-t border-gray-100 dark:border-gray-700 pt-3 flex items-end justify-between">
+<div>
+<span class="block text-[10px] uppercase tracking-wider text-text-sub-light dark:text-gray-500 mb-0.5">Sem compra desde</span>
+<span class="text-sm font-bold text-accent">27/11/2025</span>
+</div>
+<button class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-accent hover:bg-red-100 transition-colors">
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<div class="bg-card-light dark:bg-card-dark rounded-3xl p-5 shadow-card border border-gray-100 dark:border-gray-800 relative group overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-2 bg-accent h-full"></div>
+<div class="pl-2">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[11px] font-bold text-primary dark:text-blue-300 bg-blue-50 dark:bg-blue-900/40 px-3 py-1 rounded-full">C003799</span>
+<button class="text-gray-300 hover:text-gray-500 dark:hover:text-gray-200">
+<span class="material-symbols-outlined text-xl">more_horiz</span>
+</button>
+</div>
+<h3 class="text-[15px] font-bold text-primary dark:text-white mb-1.5 pr-4 leading-snug truncate">MERCADINHO CASTANHEIRAS II LTDA</h3>
+<div class="flex items-center text-xs text-text-sub-light dark:text-gray-400 mb-4 font-medium">
+<span class="material-symbols-outlined text-sm mr-1.5 text-gray-400">location_on</span>
+                São José dos Campos - SP
+            </div>
+<div class="border-t border-gray-100 dark:border-gray-700 pt-3 flex items-end justify-between">
+<div>
+<span class="block text-[10px] uppercase tracking-wider text-text-sub-light dark:text-gray-500 mb-0.5">Sem compra desde</span>
+<span class="text-sm font-bold text-accent">26/11/2025</span>
+</div>
+<button class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-accent hover:bg-red-100 transition-colors">
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<div class="bg-card-light dark:bg-card-dark rounded-3xl p-5 shadow-card border border-gray-100 dark:border-gray-800 relative group overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-2 bg-accent h-full"></div>
+<div class="pl-2">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[11px] font-bold text-primary dark:text-blue-300 bg-blue-50 dark:bg-blue-900/40 px-3 py-1 rounded-full">C013859</span>
+<button class="text-gray-300 hover:text-gray-500 dark:hover:text-gray-200">
+<span class="material-symbols-outlined text-xl">more_horiz</span>
+</button>
+</div>
+<h3 class="text-[15px] font-bold text-primary dark:text-white mb-1.5 pr-4 leading-snug truncate">DARLENE APARECIDA CARDOSO ME</h3>
+<div class="flex items-center text-xs text-text-sub-light dark:text-gray-400 mb-4 font-medium">
+<span class="material-symbols-outlined text-sm mr-1.5 text-gray-400">location_on</span>
+                Santo Antônio do Pinhal - SP
+            </div>
+<div class="border-t border-gray-100 dark:border-gray-700 pt-3 flex items-end justify-between">
+<div>
+<span class="block text-[10px] uppercase tracking-wider text-text-sub-light dark:text-gray-500 mb-0.5">Sem compra desde</span>
+<span class="text-sm font-bold text-accent">26/11/2025</span>
+</div>
+<button class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-accent hover:bg-red-100 transition-colors">
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<div class="bg-card-light dark:bg-card-dark rounded-3xl p-5 shadow-card border border-gray-100 dark:border-gray-800 relative group overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-2 bg-accent h-full"></div>
+<div class="pl-2">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[11px] font-bold text-primary dark:text-blue-300 bg-blue-50 dark:bg-blue-900/40 px-3 py-1 rounded-full">C005306</span>
+<button class="text-gray-300 hover:text-gray-500 dark:hover:text-gray-200">
+<span class="material-symbols-outlined text-xl">more_horiz</span>
+</button>
+</div>
+<h3 class="text-[15px] font-bold text-primary dark:text-white mb-1.5 pr-4 leading-snug truncate">SUPERMERCADO TRADICAO LTDA</h3>
+<div class="flex items-center text-xs text-text-sub-light dark:text-gray-400 mb-4 font-medium">
+<span class="material-symbols-outlined text-sm mr-1.5 text-gray-400">location_on</span>
+                São José dos Campos - SP
+            </div>
+<div class="border-t border-gray-100 dark:border-gray-700 pt-3 flex items-end justify-between">
+<div>
+<span class="block text-[10px] uppercase tracking-wider text-text-sub-light dark:text-gray-500 mb-0.5">Sem compra desde</span>
+<span class="text-sm font-bold text-accent">25/11/2025</span>
+</div>
+<button class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-accent hover:bg-red-100 transition-colors">
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<div class="bg-card-light dark:bg-card-dark rounded-3xl p-5 shadow-card border border-gray-100 dark:border-gray-800 relative group overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-2 bg-accent h-full"></div>
+<div class="pl-2">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[11px] font-bold text-primary dark:text-blue-300 bg-blue-50 dark:bg-blue-900/40 px-3 py-1 rounded-full">C008184</span>
+<button class="text-gray-300 hover:text-gray-500 dark:hover:text-gray-200">
+<span class="material-symbols-outlined text-xl">more_horiz</span>
+</button>
+</div>
+<h3 class="text-[15px] font-bold text-primary dark:text-white mb-1.5 pr-4 leading-snug truncate">SR. MIGNON RESTAURANTE &amp; GRILL LTDA</h3>
+<div class="flex items-center text-xs text-text-sub-light dark:text-gray-400 mb-4 font-medium">
+<span class="material-symbols-outlined text-sm mr-1.5 text-gray-400">location_on</span>
+                São José dos Campos - SP
+            </div>
+<div class="border-t border-gray-100 dark:border-gray-700 pt-3 flex items-end justify-between">
+<div>
+<span class="block text-[10px] uppercase tracking-wider text-text-sub-light dark:text-gray-500 mb-0.5">Sem compra desde</span>
+<span class="text-sm font-bold text-accent">25/11/2025</span>
+</div>
+<button class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-accent hover:bg-red-100 transition-colors">
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<div class="fixed bottom-6 right-6 z-50">
+<button class="bg-chat-orange hover:bg-orange-600 text-white p-4 rounded-full shadow-lg shadow-orange-900/20 flex items-center justify-center transition-all transform hover:scale-105 active:scale-95 border-2 border-white">
+<span class="material-symbols-outlined text-2xl">chat</span>
+</button>
+</div>
+</body></html>

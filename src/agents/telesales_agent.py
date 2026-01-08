@@ -173,40 +173,87 @@ class TelesalesAgent:
         """
         return self.db.get_dataframe(query, params={"days": days})
 
-    def generate_pitch(self, card_code: str, target_sku: str = "") -> str:
-        """Gera um pitch de vendas personalizado para o cliente."""
+    def generate_pitch(self, card_code: str, target_sku: str = "", vendor_filter: str = None) -> str:
+        """Gera um pitch de vendas personalizado com persona de Consultor de Sucesso."""
         
+        # 0. Validação de Carteira (Se filtro estiver ativo)
+        if vendor_filter:
+            # Verifica se o cliente pertence ao vendedor
+            check_query = "SELECT 1 FROM FAL_IA_Dados_Vendas_Televendas WHERE Codigo_Cliente = :card_code AND Vendedor_Atual LIKE :vendor"
+            check_df = self.db.get_dataframe(check_query, params={"card_code": card_code, "vendor": f"%{vendor_filter}%"})
+            if check_df.empty:
+                return f"⛔ ERRO: O cliente {card_code} não pertence à carteira de {vendor_filter}."
+
         # 1. Coleta dados do cliente
         history_df = self.get_customer_history(card_code, limit=20)
         
         if history_df.empty:
             return f"Não encontrei dados para o cliente {card_code}."
 
-        # Resume os dados para o prompt (evita estourar tokens)
+        # Extrai dados básicos para o template
+        try:
+            # Pega o nome do cliente da primeira linha
+            customer_name = history_df.iloc[0]['Nome_Cliente']
+            # Pega a data da última compra
+            last_purchase = history_df.iloc[0]['Data_Emissao']
+        except:
+            customer_name = "Cliente"
+            last_purchase = "Desconhecida"
+
+        # Resume os dados para o prompt
         history_summary = history_df.to_markdown(index=False)
         
-        # 2. Monta o prompt
-        prompt = f"""
-        ANALISE ESTE CLIENTE ({card_code}):
-        
-        Histórico Recente de Compras:
-        {history_summary}
-        
-        TAREFA:
-        1. Identifique o perfil de compra (o que ele mais compra?).
-        2. Calcule a frequência média (ele comprou recentemente?).
-        3. Crie um PITCH DE VENDA para ligar para ele hoje.
-           {f'Foco especial em vender o produto: {target_sku}' if target_sku else 'Sugira um produto para reposição ou novidade.'}
-        
-        REGRAS DE OURO (ANTI-ALUCINAÇÃO):
-        - Baseie-se ESTRITAMENTE nos dados de histórico fornecidos acima.
-        - NÃO invente produtos, datas ou valores que não estejam na tabela.
-        - Se não houver dados suficientes para uma conclusão, diga "Não há dados suficientes".
+        # 2. Monta o prompt com DATA CONTEXTUALIZADA
+        from datetime import datetime
+        current_date = datetime.now().strftime("%Y-%m-%d")
 
-        TRANSPARÊNCIA (OBRIGATÓRIO):
-        Ao final do pitch, adicione uma seção "🔍 Por que sugeri isso?":
-        - Cite a fonte dos dados (ex: "Baseado no histórico de 20 compras do ERP").
-        - Explique o cálculo ou lógica (ex: "Cliente compra a cada 15 dias e está há 20 sem comprar", "Margem deste produto é 10% superior à média").
+        prompt = f"""
+        <contexto_dados>
+            <cliente>
+                <nome>{customer_name}</nome>
+                <data_atual>{current_date}</data_atual>
+                <data_ultima_compra>{last_purchase}</data_ultima_compra>
+            </cliente>
+            <historico_compras>
+                {history_summary}
+            </historico_compras>
+            <produtos_foco>
+                <item>Arroz Branco 1kg</item>
+                <item>Arroz Branco 2kg</item>
+                {f'<item>{target_sku}</item>' if target_sku else ''}
+            </produtos_foco>
+        </contexto_dados>
+
+        <system_instructions>
+        Você é um Consultor de Sucesso do Cliente Sênior, não um vendedor agressivo. Seu objetivo primário é a retenção e reativação de clientes inativos (Churn).
+
+        **DIRETRIZES DE PERSONA:**
+        1.  **Tom de Voz:** Empático, investigativo e "suave". Nunca culpe o cliente pela ausência. Use uma abordagem de "sentimos sua falta e queremos entender".
+        2.  **Análise Temporal:** Antes de responder, analise a tag <data_ultima_compra> e compare com a <data_atual>. Classifique o cliente como:
+            * *Risco Baixo:* 15-30 dias sem compra.
+            * *Risco Médio:* 31-60 dias sem compra.
+            * *Churn:* >60 dias.
+            Adapte a urgência do discurso baseada nessa classificação.
+        3.  **Imperativo de Venda (Non-negotiable):** Independente do histórico, você DEVE oferecer Arroz 1kg e 2kg. Enquadre isso como uma "oportunidade exclusiva" ou "reposição estratégica", nunca como algo aleatório.
+        4.  **O Pedido Ideal:** Ao final, sugira um pedido concreto. A lógica deve ser: (Itens mais comprados do histórico) + (Arroz 1kg/2kg).
+
+        **ESTRUTURA DE RESPOSTA (Chain of Thought):**
+        Não responda imediatamente. Pense passo a passo (mas não mostre o pensamento ao usuário final, apenas a resposta estruturada):
+        1.  Calcule os dias inativos.
+        2.  Identifique os produtos favoritos no <historico_compras>.
+        3.  Formule a pergunta de sondagem sobre o motivo da ausência (preço? concorrência? estoque cheio?).
+        4.  Crie o gancho para o Arroz.
+        5.  Monte o Pedido Ideal.
+        
+        **SAÍDA FINAL (O SCRIPT):**
+        Gere apenas o script de abordagem para este cliente via WhatsApp/Telefone.
+
+        O script deve conter:
+        1.  **Abertura:** Saudação quente reconhecendo o tempo específico (semanas/meses) que não nos falamos.
+        2.  **Investigação:** Uma pergunta aberta e não ameaçadora para entender o motivo da não compra recorrente (Ex: "Houve alguma mudança na sua operação?").
+        3.  **Pitch do Arroz:** Uma transição natural oferecendo o Arroz 1kg e 2kg, citando condições especiais.
+        4.  **Fechamento (Pedido Ideal):** Apresente uma lista pronta sugerida contendo os itens que ele costuma comprar + o Arroz, perguntando se podemos faturar essa grade.
+        </system_instructions>
         """
 
         if not self.model:
@@ -218,7 +265,7 @@ class TelesalesAgent:
                 prompt,
                 generation_config={
                     "max_output_tokens": 8192,
-                    "temperature": 0.2, # Baixa temperatura para reduzir criatividade/alucinação
+                    "temperature": 0.4, # Um pouco mais alto para permitir a empatia/criatividade da persona
                 },
                 safety_settings=[
                     SafetySetting(
@@ -384,6 +431,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Agente de Televendas MariIA")
     parser.add_argument("--customer", type=str, help="Código do Cliente (CardCode)")
     parser.add_argument("--sku", type=str, help="SKU Alvo para venda (Opcional)", default="")
+    parser.add_argument("--vendor", type=str, help="Simular Vendedor Específico (Filtro de Carteira)", default=None)
     parser.add_argument("--insights", action="store_true", help="Gerar insights gerais de vendas")
 
     args = parser.parse_args()
@@ -391,12 +439,15 @@ if __name__ == "__main__":
 
     if args.customer:
         print(f"\n--- Analisando Cliente: {args.customer} ---")
+        if args.vendor:
+            print(f"--- Simulando Vendedor: {args.vendor} ---")
+            
         print("Gerando Pitch de Vendas...\n")
-        print(agent.generate_pitch(args.customer, args.sku))
+        print(agent.generate_pitch(args.customer, args.sku, vendor_filter=args.vendor))
         
     elif args.insights:
         print("\n--- Insights de Vendas (Top 50 - 30 dias) ---")
-        df = agent.get_sales_insights()
+        df = agent.get_sales_insights(vendor_filter=args.vendor)
         print(df.to_markdown(index=False))
     else:
         parser.print_help()

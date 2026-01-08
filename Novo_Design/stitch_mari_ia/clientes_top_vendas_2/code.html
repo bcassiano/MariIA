@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Chat com Mari IA - Fantástico Alimentos</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#E63946", // Red/Orange from brand description
+                        secondary: "#1D3557", // Blue from brand description
+                        "brand-orange": "#FCA311",
+                        "brand-blue-light": "#457B9D",
+                        "background-light": "#F1F5F9",
+                        "background-dark": "#0F172A",
+                        "surface-light": "#FFFFFF",
+                        "surface-dark": "#1E293B",
+                        "text-light": "#1E293B",
+                        "text-dark": "#E2E8F0",
+                        "subtext-light": "#64748B",
+                        "subtext-dark": "#94A3B8",
+                    },
+                    fontFamily: {
+                        display: ["Inter", "sans-serif"],
+                        body: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.75rem",
+                    },
+                },
+            },
+        };
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }input, select, textarea {
+            font-size: 16px !important;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark h-[100dvh] w-full overflow-hidden flex flex-col font-body transition-colors duration-200">
+<div class="shrink-0 z-50 bg-secondary">
+<div class="h-12 w-full flex items-end justify-between px-6 pb-2 text-white text-xs font-medium">
+<div class="flex items-center gap-1">
+<span>09:41</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-icons-round text-base">signal_cellular_4_bar</span>
+<span class="material-icons-round text-base">wifi</span>
+<span class="material-icons-round text-base rotate-180">battery_full</span>
+</div>
+</div>
+<header class="text-white px-4 py-3 shadow-md">
+<div class="flex items-center justify-between">
+<button class="flex items-center text-white/90 hover:text-white transition-colors">
+<span class="material-icons-round text-2xl -ml-1">chevron_left</span>
+<span class="text-base font-medium ml-1">Voltar</span>
+</button>
+<div class="flex flex-col items-center flex-1 pr-16">
+<h1 class="text-lg font-semibold">Chat com Mari IA</h1>
+<div class="flex items-center gap-1.5 opacity-90">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+</span>
+<span class="text-[10px] font-medium tracking-wide">Online</span>
+</div>
+</div>
+<button class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-white/10 transition-colors">
+<span class="material-icons-round text-xl">more_vert</span>
+</button>
+</div>
+</header>
+</div>
+<main class="flex-1 overflow-y-auto w-full max-w-lg mx-auto p-4 pb-28 scrollbar-hide flex flex-col gap-6 overscroll-contain">
+<div class="flex justify-center mt-2 shrink-0">
+<span class="text-[10px] font-medium text-subtext-light bg-gray-200 dark:bg-gray-800 px-3 py-1 rounded-full uppercase tracking-wider">Hoje</span>
+</div>
+<div class="flex gap-3 items-end">
+<div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-brand-orange flex items-center justify-center shadow-sm shrink-0 mb-1">
+<span class="material-icons-round text-white text-sm">smart_toy</span>
+</div>
+<div class="flex flex-col gap-1 max-w-[85%]">
+<span class="text-[10px] text-subtext-light ml-1">Mari IA • 09:42</span>
+<div class="bg-white dark:bg-surface-dark p-3.5 rounded-2xl rounded-bl-none shadow-sm border border-gray-100 dark:border-gray-700 text-sm leading-relaxed">
+<p>Olá! Sou a <strong class="text-primary">Mari</strong>, sua assistente de vendas da Fantástico Alimentos. 🌾</p>
+<p class="mt-2">Posso ajudar você a analisar vendas de arroz, feijão e macarrão, ou encontrar oportunidades de recuperação de clientes. O que vamos fazer hoje?</p>
+</div>
+</div>
+</div>
+<div class="flex gap-3 items-end flex-row-reverse">
+<div class="flex flex-col gap-1 items-end max-w-[85%]">
+<span class="text-[10px] text-subtext-light mr-1">Você • 09:43</span>
+<div class="bg-secondary text-white p-3.5 rounded-2xl rounded-br-none shadow-md text-sm leading-relaxed">
+<p>Bom dia, Mari! Gostaria de ver quais clientes de São Paulo reduziram as compras de macarrão no último mês.</p>
+</div>
+</div>
+</div>
+<div class="flex gap-3 items-end">
+<div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-brand-orange flex items-center justify-center shadow-sm shrink-0 mb-1">
+<span class="material-icons-round text-white text-sm">smart_toy</span>
+</div>
+<div class="flex flex-col gap-1 max-w-[85%]">
+<span class="text-[10px] text-subtext-light ml-1">Mari IA • 09:43</span>
+<div class="bg-white dark:bg-surface-dark p-3.5 rounded-2xl rounded-bl-none shadow-sm border border-gray-100 dark:border-gray-700 text-sm leading-relaxed">
+<p>Analisei os dados de SP. Encontrei <strong>3 clientes</strong> com queda significativa (&gt;20%) em macarrão:</p>
+<ul class="mt-2 space-y-2">
+<li class="bg-background-light dark:bg-gray-800 p-2 rounded-lg border-l-4 border-primary text-xs">
+<div class="font-bold text-secondary dark:text-white">Supermercado Bom Gosto</div>
+<div class="text-subtext-light">-35% vs mês anterior</div>
+</li>
+<li class="bg-background-light dark:bg-gray-800 p-2 rounded-lg border-l-4 border-brand-orange text-xs">
+<div class="font-bold text-secondary dark:text-white">Empório Central</div>
+<div class="text-subtext-light">-22% vs mês anterior</div>
+</li>
+</ul>
+<p class="mt-3">Quer que eu gere uma mensagem de oferta para eles?</p>
+</div>
+</div>
+</div>
+<div class="flex gap-3 items-end flex-row-reverse">
+<div class="flex flex-col gap-1 items-end max-w-[85%]">
+<span class="text-[10px] text-subtext-light mr-1">Você • 09:44</span>
+<div class="bg-secondary text-white p-3.5 rounded-2xl rounded-br-none shadow-md text-sm leading-relaxed">
+<p>Sim, por favor. Algo focado na nova linha premium.</p>
+</div>
+</div>
+</div>
+<div class="flex gap-3 items-end">
+<div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-brand-orange flex items-center justify-center shadow-sm shrink-0 mb-1">
+<span class="material-icons-round text-white text-sm">smart_toy</span>
+</div>
+<div class="bg-white dark:bg-surface-dark px-4 py-3 rounded-2xl rounded-bl-none shadow-sm border border-gray-100 dark:border-gray-700">
+<div class="flex gap-1.5 items-center h-4">
+<div class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></div>
+<div class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+<div class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+</div>
+</div>
+</div>
+</main>
+<div class="fixed bottom-0 left-0 right-0 bg-surface-light dark:bg-surface-dark border-t border-gray-200 dark:border-gray-700 p-3 pb-8 z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] w-full">
+<div class="max-w-lg mx-auto w-full flex items-end gap-2">
+<button class="p-2.5 text-subtext-light dark:text-subtext-dark hover:text-primary transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 shrink-0">
+<span class="material-icons-round text-2xl">add_circle_outline</span>
+</button>
+<div class="flex-1 bg-background-light dark:bg-background-dark rounded-2xl border border-transparent focus-within:border-brand-blue-light focus-within:ring-1 focus-within:ring-brand-blue-light transition-all">
+<input class="w-full bg-transparent border-none focus:ring-0 text-sm px-4 py-3 text-text-light dark:text-text-dark placeholder-subtext-light dark:placeholder-subtext-dark" placeholder="Digite sua mensagem..." type="text"/>
+</div>
+<button class="p-3 bg-gradient-to-r from-primary to-brand-orange text-white rounded-xl shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center shrink-0">
+<span class="material-icons-round text-xl ml-0.5">send</span>
+</button>
+</div>
+</div>
+
+</body></html>

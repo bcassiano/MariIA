@@ -1,24 +1,31 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { sendChatMessage } from '../services/api';
+import { create } from 'twrnc';
+import { MaterialIcons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+// Tailwind Config
+const tw = create(require('../../tailwind.config.js'));
 
 const STORAGE_KEY = '@mariia_chat_history';
 
 export default function ChatScreen({ navigation }) {
     const [messages, setMessages] = useState([
-        { id: 1, text: "Olá! Sou a Mari IA. Como posso ajudar nas suas vendas hoje?", sender: 'bot' }
+        { id: 1, text: "Olá! Sou a Mari, sua assistente de vendas da Fantástico Alimentos. 🌾\n\nPosso ajudar você a analisar vendas de arroz, feijão e macarrão, ou encontrar oportunidades de recuperação de clientes. O que vamos fazer hoje?", sender: 'bot', time: '09:42' }
     ]);
     const [inputText, setInputText] = useState('');
     const [loading, setLoading] = useState(false);
     const flatListRef = useRef(null);
+    const insets = useSafeAreaInsets();
 
     // Carrega histórico ao iniciar
     useEffect(() => {
         loadHistory();
     }, []);
 
-    // Salva histórico sempre que mudar (exceto se estiver vazio/inicial)
+    // Salva histórico sempre que mudar
     useEffect(() => {
         if (messages.length > 1) {
             saveHistory();
@@ -29,11 +36,9 @@ export default function ChatScreen({ navigation }) {
     useEffect(() => {
         navigation.setOptions({
             headerRight: () => (
-                <View style={{ justifyContent: 'center', alignItems: 'center', marginRight: 10 }}>
-                    <TouchableOpacity onPress={confirmNewChat} style={styles.newChatButton}>
-                        <Text style={styles.newChatButtonText} numberOfLines={1}>Nova Conversa</Text>
-                    </TouchableOpacity>
-                </View>
+                <TouchableOpacity onPress={confirmNewChat} style={tw`mr-4`}>
+                    <MaterialIcons name="delete-outline" size={24} color="white" />
+                </TouchableOpacity>
             ),
         });
     }, [navigation]);
@@ -76,7 +81,12 @@ export default function ChatScreen({ navigation }) {
     };
 
     const startNewChat = async () => {
-        const initialMsg = [{ id: Date.now(), text: "Olá! Sou a Mari IA. Como posso ajudar nas suas vendas hoje?", sender: 'bot' }];
+        const initialMsg = [{
+            id: Date.now(),
+            text: "Olá! Sou a Mari, sua assistente de vendas da Fantástico Alimentos. 🌾\n\nPosso ajudar você a analisar vendas de arroz, feijão e macarrão, ou encontrar oportunidades de recuperação de clientes. O que vamos fazer hoje?",
+            sender: 'bot',
+            time: getCurrentTime()
+        }];
         setMessages(initialMsg);
         try {
             await AsyncStorage.removeItem(STORAGE_KEY);
@@ -85,10 +95,15 @@ export default function ChatScreen({ navigation }) {
         }
     };
 
+    const getCurrentTime = () => {
+        const now = new Date();
+        return now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    };
+
     const handleSend = async () => {
         if (!inputText.trim()) return;
 
-        const userMsg = { id: Date.now(), text: inputText, sender: 'user' };
+        const userMsg = { id: Date.now(), text: inputText, sender: 'user', time: getCurrentTime() };
         setMessages(prev => [...prev, userMsg]);
         setInputText('');
         setLoading(true);
@@ -98,27 +113,16 @@ export default function ChatScreen({ navigation }) {
             const botMsg = {
                 id: Date.now() + 1,
                 text: result.response || "Desculpe, não entendi.",
-                sender: 'bot'
+                sender: 'bot',
+                time: getCurrentTime()
             };
             setMessages(prev => [...prev, botMsg]);
         } catch (error) {
-            const errorMsg = { id: Date.now() + 1, text: "Erro de conexão.", sender: 'bot' };
+            const errorMsg = { id: Date.now() + 1, text: "Erro de conexão.", sender: 'bot', time: getCurrentTime() };
             setMessages(prev => [...prev, errorMsg]);
         }
         setLoading(false);
     };
-
-    const renderItem = ({ item }) => (
-        <View style={[
-            styles.messageBubble,
-            item.sender === 'user' ? styles.userBubble : styles.botBubble
-        ]}>
-            <Text style={[
-                styles.messageText,
-                item.sender === 'user' ? styles.userText : styles.botText
-            ]}>{item.text}</Text>
-        </View>
-    );
 
     const handleKeyPress = (e) => {
         if (Platform.OS === 'web' && e.nativeEvent.key === 'Enter' && !e.nativeEvent.shiftKey) {
@@ -127,133 +131,100 @@ export default function ChatScreen({ navigation }) {
         }
     };
 
+    const renderItem = ({ item }) => {
+        const isUser = item.sender === 'user';
+        return (
+            <View style={tw`flex-row ${isUser ? 'flex-row-reverse' : ''} items-end gap-2 mb-6 px-4`}>
+
+                {/* Avatar */}
+                {!isUser ? (
+                    <View style={tw`w-8 h-8 rounded-full bg-orange-500 justify-center items-center shadow-sm mb-1`}>
+                        {/* Fallback to simple color since linear gradient requires another lib, trying simple brand color */}
+                        <MaterialIcons name="smart-toy" size={16} color="white" />
+                    </View>
+                ) : (
+                    <View style={tw`w-8` /* Spacer for alignment if needed, or remove */} />
+                )}
+
+                <View style={tw`flex-col ${isUser ? 'items-end' : 'items-start'} max-w-[85%]`}>
+                    <Text style={tw`text-[10px] text-gray-400 mb-1 mx-1`}>
+                        {isUser ? `Você • ${item.time || ''}` : `Mari IA • ${item.time || ''}`}
+                    </Text>
+
+                    <View style={tw`
+                        p-3.5 rounded-2xl shadow-sm
+                        ${isUser
+                            ? 'bg-brand-navy rounded-br-none'
+                            : 'bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-700 rounded-bl-none'
+                        }
+                    `}>
+                        <Text style={tw`text-[15px] leading-relaxed ${isUser ? 'text-white' : 'text-gray-800 dark:text-gray-200'}`}>
+                            {item.text}
+                        </Text>
+                    </View>
+                </View>
+            </View>
+        );
+    };
+
     return (
         <KeyboardAvoidingView
-            style={styles.container}
+            style={tw`flex-1 bg-gray-50 dark:bg-black`}
             behavior={Platform.OS === "ios" ? "padding" : "height"}
-            keyboardVerticalOffset={80}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 80}
         >
+            {/* Date Pill Placeholder - Static for now */}
+            <View style={tw`items-center py-4`}>
+                <View style={tw`bg-gray-200 dark:bg-gray-800 px-3 py-1 rounded-full`}>
+                    <Text style={tw`text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider`}>Hoje</Text>
+                </View>
+            </View>
+
             <FlatList
                 ref={flatListRef}
                 data={messages}
                 keyExtractor={item => item.id.toString()}
                 renderItem={renderItem}
-                contentContainerStyle={styles.listContent}
-                style={{ flex: 1 }}
+                contentContainerStyle={tw`pb-4`}
                 onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+                showsVerticalScrollIndicator={false}
             />
 
-            <View style={styles.inputContainer}>
-                <TextInput
-                    style={styles.input}
-                    value={inputText}
-                    onChangeText={setInputText}
-                    placeholder="Digite sua mensagem..."
-                    placeholderTextColor="#999"
-                    multiline={true}
-                    onKeyPress={handleKeyPress}
-                />
-                <TouchableOpacity
-                    style={styles.sendButton}
-                    onPress={handleSend}
-                    disabled={loading}
-                >
-                    {loading ? (
-                        <ActivityIndicator color="#fff" />
-                    ) : (
-                        <Text style={styles.sendButtonText}>Enviar</Text>
-                    )}
-                </TouchableOpacity>
+            {/* Input Area */}
+            <View style={[
+                tw`bg-white dark:bg-surface-dark border-t border-gray-200 dark:border-gray-800 p-3 pb-8 shadow-lg`,
+                { paddingBottom: Platform.OS === 'ios' ? insets.bottom : 20 }
+            ]}>
+                <View style={tw`flex-row items-end gap-2 max-w-lg mx-auto w-full`}>
+                    <TouchableOpacity style={tw`p-2.5 rounded-full bg-gray-50 hover:bg-gray-100 items-center justify-center`}>
+                        <MaterialIcons name="add-circle-outline" size={24} color="#64748B" />
+                    </TouchableOpacity>
+
+                    <View style={tw`flex-1 bg-gray-100 dark:bg-gray-800 rounded-2xl border border-transparent focus:border-brand-navy`}>
+                        <TextInput
+                            style={tw`w-full text-base px-4 py-3 text-gray-800 dark:text-white max-h-24`}
+                            value={inputText}
+                            onChangeText={setInputText}
+                            placeholder="Digite sua mensagem..."
+                            placeholderTextColor="#94A3B8"
+                            multiline={true}
+                            onKeyPress={handleKeyPress}
+                        />
+                    </View>
+
+                    <TouchableOpacity
+                        style={tw`p-3 bg-brand-orange rounded-xl shadow-sm items-center justify-center`}
+                        onPress={handleSend}
+                        disabled={loading}
+                    >
+                        {loading ? (
+                            <ActivityIndicator size="small" color="white" />
+                        ) : (
+                            <MaterialIcons name="send" size={20} color="white" />
+                        )}
+                    </TouchableOpacity>
+                </View>
             </View>
         </KeyboardAvoidingView>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#f5f5f5',
-        ...Platform.select({
-            web: {
-                height: '100vh',
-                display: 'flex',
-                flexDirection: 'column',
-            }
-        })
-    },
-    newChatButton: {
-        backgroundColor: 'white',
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        borderRadius: 20,
-        elevation: 2,
-    },
-    newChatButtonText: {
-        color: '#6200ee',
-        fontWeight: 'bold',
-        fontSize: 12,
-    },
-    listContent: {
-        padding: 15,
-        paddingBottom: 20,
-    },
-    messageBubble: {
-        maxWidth: '80%',
-        padding: 12,
-        borderRadius: 15,
-        marginBottom: 10,
-    },
-    userBubble: {
-        alignSelf: 'flex-end',
-        backgroundColor: '#6200ee',
-        borderBottomRightRadius: 2,
-    },
-    botBubble: {
-        alignSelf: 'flex-start',
-        backgroundColor: 'white',
-        borderBottomLeftRadius: 2,
-        elevation: 1,
-        ...Platform.select({
-            web: {
-                boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.2)',
-            }
-        })
-    },
-    messageText: {
-        fontSize: 16,
-    },
-    userText: {
-        color: 'white',
-    },
-    botText: {
-        color: '#333',
-    },
-    inputContainer: {
-        flexDirection: 'row',
-        padding: 10,
-        backgroundColor: 'white',
-        elevation: 5,
-        borderTopWidth: 1,
-        borderTopColor: '#eee',
-    },
-    input: {
-        flex: 1,
-        backgroundColor: '#f0f0f0',
-        borderRadius: 20,
-        paddingHorizontal: 15,
-        paddingVertical: 10,
-        marginRight: 10,
-        fontSize: 16,
-    },
-    sendButton: {
-        backgroundColor: '#6200ee',
-        borderRadius: 20,
-        paddingHorizontal: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    sendButtonText: {
-        color: 'white',
-        fontWeight: 'bold',
-    },
-});
