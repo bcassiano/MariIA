@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Image, SafeAreaView, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Image, SafeAreaView, Platform, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { getCustomer, generatePitch, sendPitchFeedback } from '../services/api';
 import { create } from 'twrnc';
@@ -104,23 +104,48 @@ export default function CustomerScreen({ route }) {
                         </View>
 
                         <View style={tw`flex-row justify-between border-t border-gray-100 pt-4 px-4`}>
-                            <TouchableOpacity style={tw`items-center gap-1`}>
+                            <TouchableOpacity
+                                style={tw`items-center gap-1 opacity-${details?.Telefone ? '100' : '50'}`}
+                                onPress={() => details?.Telefone && Linking.openURL(`tel:${details.Telefone.replace(/\D/g, '')}`)}
+                                disabled={!details?.Telefone}
+                            >
                                 <View style={tw`w-10 h-10 rounded-full bg-blue-50 items-center justify-center`}>
                                     <Icon name="call" size={20} color="#2563eb" />
                                 </View>
                                 <Text style={tw`text-xs text-primary font-medium`}>Ligar</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={tw`items-center gap-1`}>
+                            <TouchableOpacity
+                                style={tw`items-center gap-1 opacity-${details?.Email ? '100' : '50'}`}
+                                onPress={() => details?.Email && Linking.openURL(`mailto:${details.Email}`)}
+                                disabled={!details?.Email}
+                            >
                                 <View style={tw`w-10 h-10 rounded-full bg-blue-50 items-center justify-center`}>
                                     <Icon name="email" size={20} color="#2563eb" />
                                 </View>
                                 <Text style={tw`text-xs text-primary font-medium`}>E-mail</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={tw`items-center gap-1`}>
-                                <View style={tw`w-10 h-10 rounded-full bg-blue-50 items-center justify-center`}>
-                                    <Icon name="chat" size={20} color="#2563eb" />
+                            <TouchableOpacity
+                                style={tw`items-center gap-1 opacity-${details?.Telefone ? '100' : '50'}`}
+                                onPress={() => {
+                                    if (details?.Telefone) {
+                                        const cleanPhone = details.Telefone.replace(/\D/g, '');
+                                        // Supports both Web (wa.me) and Mobile (automatically handled by browser/OS intents)
+                                        // Using wa.me is more universal for cross-platform (Web + Mobile App)
+                                        // Prefix 55 is assumed for Brazil if not present, but safer to just use what we have or append if specific logic needed.
+                                        // Assuming local numbers might need country code. Let's append 55 if length is 10 or 11 (standard BR).
+                                        let finalPhone = cleanPhone;
+                                        if (cleanPhone.length >= 10 && cleanPhone.length <= 11) {
+                                            finalPhone = '55' + cleanPhone;
+                                        }
+                                        Linking.openURL(`https://wa.me/${finalPhone}`);
+                                    }
+                                }}
+                                disabled={!details?.Telefone}
+                            >
+                                <View style={tw`w-10 h-10 rounded-full bg-green-50 items-center justify-center`}>
+                                    <Icon name="whatsapp" size={24} color="#25D366" />
                                 </View>
-                                <Text style={tw`text-xs text-primary font-medium`}>Chat</Text>
+                                <Text style={tw`text-xs text-primary font-medium`}>WhatsApp</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
