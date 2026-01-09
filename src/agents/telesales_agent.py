@@ -79,6 +79,31 @@ class TelesalesAgent:
         # Passa o parâmetro de forma segura
         return self.db.get_dataframe(query, params={"card_code": card_code})
 
+    def get_customer_details(self, card_code: str) -> dict:
+        """Busca detalhes básicos do cliente (View Otimizada)."""
+        query = """
+        SELECT TOP 1
+            CardCode,
+            CardName,
+            AtivoDesde,
+            Telefone,
+            Email,
+            Endereco
+        FROM VW_MariIA_ClientDetails
+        WHERE CardCode = :card_code
+        """
+        # Retorna dict vazio se não achar
+        try:
+            df = self.db.get_dataframe(query, params={"card_code": card_code})
+            if not df.empty:
+                # Converte para dict e trata valores nulos
+                record = df.iloc[0].to_dict()
+                return {k: (v if pd.notnull(v) else None) for k, v in record.items()}
+            return {}
+        except Exception as e:
+            print(f"Erro ao buscar detalhes do cliente: {e}")
+            return {}
+
     @cached(cache=TTLCache(maxsize=100, ttl=600))
     def get_sales_insights(self, min_days: int = 0, max_days: int = 30, vendor_filter: str = None) -> pd.DataFrame:
         """Busca insights gerais de vendas recentes (Query Parametrizada)."""

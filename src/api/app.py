@@ -145,9 +145,24 @@ def get_customer(card_code: str):
                 grouped_history.append(doc_obj)
                 
             # Ordena por data decrescente
+                grouped_history.append(doc_obj)
+                
+            # Ordena por data decrescente
             grouped_history.sort(key=lambda x: x['date'], reverse=True)
 
-        return {"card_code": card_code, "customer_name": customer_name, "history": grouped_history}
+        # 2. Busca Detalhes Básicos (Novo)
+        details = agent.get_customer_details(card_code)
+        
+        # Se achou detalhes e o nome no history estava generico, usa o do cadastro
+        if details and 'CardName' in details and details['CardName']:
+            customer_name = details['CardName']
+
+        return {
+            "card_code": card_code, 
+            "customer_name": customer_name, 
+            "details": details, # Novo campo
+            "history": grouped_history
+        }
     except Exception as e:
         import traceback
         traceback.print_exc()

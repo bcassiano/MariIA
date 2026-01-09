@@ -15,6 +15,7 @@ export default function CustomerScreen({ route }) {
     // State
     const [history, setHistory] = useState([]);
     const [customerName, setCustomerName] = useState('');
+    const [details, setDetails] = useState(null);
     const [loading, setLoading] = useState(true);
 
     // Pitch State
@@ -38,6 +39,7 @@ export default function CustomerScreen({ route }) {
             if (result) {
                 if (result.history) setHistory(result.history);
                 if (result.customer_name) setCustomerName(result.customer_name);
+                if (result.details) setDetails(result.details);
             }
         } catch (e) {
             console.error(e);
@@ -95,7 +97,9 @@ export default function CustomerScreen({ route }) {
                                 <Text style={tw`text-xl font-bold text-gray-900 dark:text-white leading-tight`}>
                                     {customerName || 'Carregando...'}
                                 </Text>
-                                <Text style={tw`text-sm text-gray-500 mt-1`}>Cliente Ativo desde 2021</Text>
+                                <Text style={tw`text-sm text-gray-500 mt-1`}>
+                                    {details?.AtivoDesde ? `Cliente Ativo desde ${details.AtivoDesde}` : 'Carregando...'}
+                                </Text>
                             </View>
                         </View>
 
@@ -127,13 +131,13 @@ export default function CustomerScreen({ route }) {
                     <Text style={tw`text-lg font-bold mb-2 text-gray-900 dark:text-white`}>Informações de Contato</Text>
                     <View style={tw`gap-1`}>
                         <Text style={tw`text-[15px] text-gray-700 dark:text-gray-300`}>
-                            <Text style={tw`font-semibold text-gray-900 dark:text-white`}>Telefone: </Text>(11) 98765-4321
+                            <Text style={tw`font-semibold text-gray-900 dark:text-white`}>Telefone: </Text>{details?.Telefone || 'Não informado'}
                         </Text>
                         <Text style={tw`text-[15px] text-gray-700 dark:text-gray-300`}>
-                            <Text style={tw`font-semibold text-gray-900 dark:text-white`}>E-mail: </Text>contato@{cardCode.toLowerCase()}.com.br
+                            <Text style={tw`font-semibold text-gray-900 dark:text-white`}>E-mail: </Text>{details?.Email ? details.Email.toLowerCase() : 'Não informado'}
                         </Text>
                         <Text style={tw`text-[15px] text-gray-700 dark:text-gray-300`}>
-                            <Text style={tw`font-semibold text-gray-900 dark:text-white`}>Endereço: </Text>Av. Paulista, 1000, SP
+                            <Text style={tw`font-semibold text-gray-900 dark:text-white`}>Endereço: </Text>{details?.Endereco || 'Não informado'}
                         </Text>
                     </View>
                 </View>
