@@ -51,3 +51,13 @@ dist/
 mobile/dist/
 web-build/
 mobile/web-build/
+
+# Android SDK Tools (installed separately)
+android-tools/
+
+# Firebase
+.firebase/
+mobile/.firebase/
+
+# EAS Build
+.easignore

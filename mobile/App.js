@@ -10,8 +10,9 @@ import ChatScreen from './src/screens/ChatScreen';
 const Stack = createStackNavigator();
 
 export default function App() {
-    // Fix para Web: Garante que o corpo da página permita scroll e carrega fonte
+    // Fix para Web: Garante que o corpo da página permita scroll e carrega fontes
     if (Platform.OS === 'web') {
+        // Carrega fonte Montserrat
         const style = document.createElement('style');
         style.textContent = `
             @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap');
@@ -22,6 +23,12 @@ export default function App() {
             }
         `;
         document.head.appendChild(style);
+
+        // Carrega fonte Material Icons (necessário para @expo/vector-icons funcionar na web)
+        const iconLink = document.createElement('link');
+        iconLink.href = 'https://fonts.googleapis.com/icon?family=Material+Icons';
+        iconLink.rel = 'stylesheet';
+        document.head.appendChild(iconLink);
     }
 
     return (

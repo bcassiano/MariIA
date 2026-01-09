@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Image, Saf
 import { useNavigation } from '@react-navigation/native';
 import { getCustomer, generatePitch, sendPitchFeedback } from '../services/api';
 import { create } from 'twrnc';
-import { MaterialIcons } from '@expo/vector-icons';
+import Icon from '../components/Icon';
 
 // Tailwind Config
 const tw = create(require('../../tailwind.config.js'));
@@ -89,7 +89,7 @@ export default function CustomerScreen({ route }) {
                     <View style={tw`bg-white dark:bg-surface-dark rounded-2xl p-5 shadow-sm`}>
                         <View style={tw`flex-row items-center gap-4 mb-6`}>
                             <View style={tw`w-16 h-16 rounded-full bg-gray-200 justify-center items-center border border-gray-100`}>
-                                <MaterialIcons name="person" size={40} color="#9CA3AF" />
+                                <Icon name="person" size={40} color="#9CA3AF" />
                             </View>
                             <View style={tw`flex-1`}>
                                 <Text style={tw`text-xl font-bold text-gray-900 dark:text-white leading-tight`}>
@@ -102,19 +102,19 @@ export default function CustomerScreen({ route }) {
                         <View style={tw`flex-row justify-between border-t border-gray-100 pt-4 px-4`}>
                             <TouchableOpacity style={tw`items-center gap-1`}>
                                 <View style={tw`w-10 h-10 rounded-full bg-blue-50 items-center justify-center`}>
-                                    <MaterialIcons name="call" size={20} color="#2563eb" />
+                                    <Icon name="call" size={20} color="#2563eb" />
                                 </View>
                                 <Text style={tw`text-xs text-primary font-medium`}>Ligar</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={tw`items-center gap-1`}>
                                 <View style={tw`w-10 h-10 rounded-full bg-blue-50 items-center justify-center`}>
-                                    <MaterialIcons name="email" size={20} color="#2563eb" />
+                                    <Icon name="email" size={20} color="#2563eb" />
                                 </View>
                                 <Text style={tw`text-xs text-primary font-medium`}>E-mail</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={tw`items-center gap-1`}>
                                 <View style={tw`w-10 h-10 rounded-full bg-blue-50 items-center justify-center`}>
-                                    <MaterialIcons name="chat" size={20} color="#2563eb" />
+                                    <Icon name="chat" size={20} color="#2563eb" />
                                 </View>
                                 <Text style={tw`text-xs text-primary font-medium`}>Chat</Text>
                             </TouchableOpacity>
@@ -151,7 +151,7 @@ export default function CustomerScreen({ route }) {
                                 <ActivityIndicator size="small" color="white" />
                             ) : (
                                 <>
-                                    <MaterialIcons name="auto-awesome" size={14} color="white" />
+                                    <Icon name="auto_awesome" size={14} color="white" />
                                     <Text style={tw`text-white text-[12px] font-bold`}>Gerar Pitch IA</Text>
                                 </>
                             )}
@@ -227,8 +227,8 @@ export default function CustomerScreen({ route }) {
                                             <Text style={tw`font-bold text-gray-900 dark:text-white text-[15px]`}>
                                                 {formatCurrency(item.total_value)}
                                             </Text>
-                                            <MaterialIcons
-                                                name={expandedOrder === index ? "expand-less" : "expand-more"}
+                                            <Icon
+                                                name={expandedOrder === index ? "expand_less" : "expand_more"}
                                                 size={20}
                                                 color="#9CA3AF"
                                             />
@@ -254,7 +254,7 @@ export default function CustomerScreen({ route }) {
                                             </View>
                                             <View style={tw`mt-3 pt-2 border-t border-gray-200 items-end`}>
                                                 <TouchableOpacity style={tw`flex-row items-center gap-1`}>
-                                                    <MaterialIcons name="replay" size={14} color="#1A2F5A" />
+                                                    <Icon name="replay" size={14} color="#1A2F5A" />
                                                     <Text style={tw`text-[11px] font-medium text-primary`}>Repetir Pedido</Text>
                                                 </TouchableOpacity>
                                             </View>
