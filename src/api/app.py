@@ -168,6 +168,23 @@ def get_customer(card_code: str):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/trends/{card_code}", dependencies=[Depends(get_api_key)])
+def get_customer_trends_alias(card_code: str):
+    """Alias para retornar tendência de vendas (evita conflito de rota)."""
+    return get_customer_trends(card_code)
+
+@app.get("/customer/{card_code}/trends", dependencies=[Depends(get_api_key)])
+def get_customer_trends(card_code: str):
+    """Retorna tendência de vendas para o gráfico."""
+    try:
+        # Busca tendência de 6 meses
+        trends = agent.get_sales_trend(card_code, months=6)
+        return trends
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
 from src.utils.logger import log_pitch_usage, log_pitch_feedback
 import uuid
 

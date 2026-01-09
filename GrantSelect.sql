@@ -1,0 +1,2 @@
+GRANT SELECT ON OCRD TO powerbi;
+GO

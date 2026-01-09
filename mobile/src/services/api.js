@@ -47,6 +47,19 @@ export const getCustomer = async (cardCode) => {
     }
 };
 
+export const getCustomerTrends = async (cardCode) => {
+    // Usando endpoint alias para evitar conflito de rota
+    const url = `/trends/${cardCode}`;
+    try {
+        const response = await api.get(url);
+        return response.data;
+    } catch (error) {
+        const fullUrl = `${api.defaults.baseURL}${url}`;
+        console.error(`Erro ao buscar tendências (${fullUrl}):`, error);
+        return { error: `${error.message} (${error.response ? error.response.status : 'No Status'}) - ${fullUrl}` };
+    }
+};
+
 export const generatePitch = async (cardCode, targetSku, userId = "vendedor_mobile") => {
     try {
         const response = await api.post('/pitch', {

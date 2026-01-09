@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Image, SafeAreaView, Platform, Linking } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Image, SafeAreaView, Platform, Linking, Modal, Dimensions } from 'react-native';
+import { LineChart } from 'react-native-chart-kit';
 import { useNavigation } from '@react-navigation/native';
-import { getCustomer, generatePitch, sendPitchFeedback } from '../services/api';
+import { getCustomer, generatePitch, sendPitchFeedback, getCustomerTrends } from '../services/api';
 import { create } from 'twrnc';
 import Icon from '../components/Icon';
 
@@ -26,6 +27,11 @@ export default function CustomerScreen({ route }) {
 
     // Accordion State
     const [expandedOrder, setExpandedOrder] = useState(null);
+
+    // Chart State
+    const [chartVisible, setChartVisible] = useState(false);
+    const [chartData, setChartData] = useState(null);
+    const [chartLoading, setChartLoading] = useState(false);
 
     // Initial Load
     useEffect(() => {
@@ -71,6 +77,20 @@ export default function CustomerScreen({ route }) {
 
     const formatCurrency = (value) => {
         return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+    };
+
+    const loadSalesTrend = async () => {
+        setChartLoading(true);
+        setChartVisible(true);
+
+        // Trim cardCode to avoid url issues
+        const cleanCardCode = cardCode ? cardCode.trim() : "";
+        const data = await getCustomerTrends(cleanCardCode);
+
+        if (data) {
+            setChartData(data); // Sets data OR error
+        }
+        setChartLoading(false);
     };
 
     // Mock Data for UI (Extra information not yet in API)
@@ -191,14 +211,17 @@ export default function CustomerScreen({ route }) {
                         <Text style={tw`text-[14px] text-gray-600 dark:text-gray-300 flex-1 leading-snug`}>
                             Tendência de vendas nos últimos 6 meses: arroz, feijão e massas.
                         </Text>
-                        {/* Simple Chart Placeholder using Layout */}
-                        <View style={tw`w-24 h-12 justify-end gap-1 flex-row items-end pb-1`}>
+                        <TouchableOpacity
+                            style={tw`w-24 h-12 justify-end gap-1 flex-row items-end pb-1`}
+                            onPress={loadSalesTrend}
+                        >
+                            {/* Mini Bar Chart Placeholder (Clickable) */}
                             <View style={tw`w-2 h-4 bg-blue-200 rounded-sm`} />
                             <View style={tw`w-2 h-6 bg-blue-300 rounded-sm`} />
                             <View style={tw`w-2 h-5 bg-blue-200 rounded-sm`} />
                             <View style={tw`w-2 h-8 bg-blue-500 rounded-sm`} />
                             <View style={tw`w-2 h-10 bg-[#10B981] rounded-sm`} />
-                        </View>
+                        </TouchableOpacity>
                     </View>
 
                     {/* AI Pitch Result */}
@@ -346,6 +369,81 @@ export default function CustomerScreen({ route }) {
                     </TouchableOpacity>
                 </View>
             </ScrollView>
+
+            {/* Sales Trend Modal */}
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={chartVisible}
+                onRequestClose={() => setChartVisible(false)}
+            >
+                <View style={tw`flex-1 justify-end bg-black/50`}>
+                    <View style={tw`bg-white dark:bg-surface-dark rounded-t-3xl h-[60%] p-5`}>
+                        <View style={tw`flex-row justify-between items-center mb-6`}>
+                            <Text style={tw`text-xl font-bold text-gray-900 dark:text-white`}>Tendência de Vendas (6 Meses)</Text>
+                            <TouchableOpacity onPress={() => setChartVisible(false)} style={tw`p-2 bg-gray-100 rounded-full`}>
+                                <Icon name="close" size={20} color="#374151" />
+                            </TouchableOpacity>
+                        </View>
+
+                        {chartLoading ? (
+                            <View style={tw`flex-1 justify-center items-center`}>
+                                <ActivityIndicator size="large" color="#1A2F5A" />
+                                <Text style={tw`mt-4 text-gray-500`}>Carregando dados...</Text>
+                            </View>
+                        ) : chartData && chartData.labels ? (
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                                <View>
+                                    <LineChart
+                                        data={{
+                                            labels: chartData.labels,
+                                            datasets: chartData.datasets.map(ds => ({
+                                                data: ds.data,
+                                                color: (opacity = 1) => ds.color || `rgba(26, 47, 90, ${opacity})`,
+                                                strokeWidth: 2
+                                            })),
+                                            legend: chartData.datasets.map(ds => ds.name)
+                                        }}
+                                        width={Dimensions.get("window").width + 100} // Horizontal scroll
+                                        height={300}
+                                        yAxisLabel="R$ "
+                                        yAxisInterval={1}
+                                        chartConfig={{
+                                            backgroundColor: "#ffffff",
+                                            backgroundGradientFrom: "#ffffff",
+                                            backgroundGradientTo: "#ffffff",
+                                            decimalPlaces: 0,
+                                            color: (opacity = 1) => `rgba(26, 47, 90, ${opacity})`,
+                                            labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                                            style: {
+                                                borderRadius: 16
+                                            },
+                                            propsForDots: {
+                                                r: "4",
+                                                strokeWidth: "2",
+                                                stroke: "#ffa726"
+                                            }
+                                        }}
+                                        bezier
+                                        style={{
+                                            marginVertical: 8,
+                                            borderRadius: 16
+                                        }}
+                                    />
+                                    <Text style={tw`text-xs text-center text-gray-400 mt-2`}>Valores em Reais (R$)</Text>
+                                </View>
+                            </ScrollView>
+                        ) : (
+                            <View style={tw`flex-1 justify-center items-center px-4`}>
+                                <Text style={tw`text-gray-500 text-center mb-2`}>Dados insuficientes para gerar o gráfico.</Text>
+                                {chartData && chartData.error && (
+                                    <Text style={tw`text-red-500 text-xs text-center mt-2`}>Erro Técnico: {chartData.error}</Text>
+                                )}
+                            </View>
+                        )}
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 }

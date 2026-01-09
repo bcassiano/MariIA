@@ -5,8 +5,8 @@ param (
     [string]$SQLQuery = ""
 )
 
-$pass = '$@pRus70n#'
-$connString = "Server=192.168.1.177,1433;Database=RUST0N_PRODUCAO;User Id=sa;Password=$pass;Encrypt=False;TrustServerCertificate=True;"
+$pass = 'T3CN0L0G14@24'
+$connString = "Server=192.168.1.85,1433;Database=RUSTON_PRODUCAO;User Id=Tecnologia;Password=$pass;Encrypt=False;TrustServerCertificate=True;"
 
 $queries = @{
     "Tables"     = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' ORDER BY TABLE_NAME"

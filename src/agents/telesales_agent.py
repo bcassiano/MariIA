@@ -81,6 +81,7 @@ class TelesalesAgent:
 
     def get_customer_details(self, card_code: str) -> dict:
         """Busca detalhes básicos do cliente (View Otimizada)."""
+        # Usando a View Segura conforme solicitado pelo usuário
         query = """
         SELECT TOP 1
             CardCode,
@@ -99,10 +100,10 @@ class TelesalesAgent:
                 # Converte para dict e trata valores nulos
                 record = df.iloc[0].to_dict()
                 return {k: (v if pd.notnull(v) else None) for k, v in record.items()}
-            return {}
+            return {"debug_message": f"Cliente {card_code} não encontrado na View."}
         except Exception as e:
             print(f"Erro ao buscar detalhes do cliente: {e}")
-            return {}
+            return {"debug_error": str(e)}
 
     @cached(cache=TTLCache(maxsize=100, ttl=600))
     def get_sales_insights(self, min_days: int = 0, max_days: int = 30, vendor_filter: str = None) -> pd.DataFrame:
@@ -182,6 +183,84 @@ class TelesalesAgent:
         ORDER BY Nome_Cliente
         """
         return self.db.get_dataframe(query, params={"vendor": f"%{vendor_name}%"})
+
+    def get_sales_trend(self, card_code: str, months: int = 6) -> Dict[str, List[float]]:
+        """
+        Retorna tendência de vendas (Valor Líquido) dos últimos X meses,
+        agrupado por categorias chave: Arroz, Feijão e Massas.
+        """
+        query = f"""
+        SELECT
+            FORMAT(Data_Emissao, 'yyyy-MM') as Mes,
+            CASE 
+                WHEN Nome_Produto LIKE '%ARROZ%' THEN 'Arroz'
+                WHEN Nome_Produto LIKE '%FEIJAO%' THEN 'Feijão'
+                WHEN Nome_Produto LIKE '%MACARRAO%' OR Nome_Produto LIKE '%ESPAGUETE%' OR Nome_Produto LIKE '%LASANHA%' THEN 'Massas'
+                ELSE 'Outros'
+            END as Categoria,
+            SUM(COALESCE(Valor_Liquido, Valor_Total_Linha)) as Total
+        FROM FAL_IA_Dados_Vendas_Televendas WITH (NOLOCK)
+        WHERE Codigo_Cliente = :card_code
+          AND Data_Emissao >= DATEADD(month, -:months, GETDATE())
+          AND (
+              Nome_Produto LIKE '%ARROZ%' OR 
+              Nome_Produto LIKE '%FEIJAO%' OR 
+              Nome_Produto LIKE '%MACARRAO%' OR 
+              Nome_Produto LIKE '%ESPAGUETE%' OR 
+              Nome_Produto LIKE '%LASANHA%'
+          )
+        GROUP BY 
+            FORMAT(Data_Emissao, 'yyyy-MM'),
+            CASE 
+                WHEN Nome_Produto LIKE '%ARROZ%' THEN 'Arroz'
+                WHEN Nome_Produto LIKE '%FEIJAO%' THEN 'Feijão'
+                WHEN Nome_Produto LIKE '%MACARRAO%' OR Nome_Produto LIKE '%ESPAGUETE%' OR Nome_Produto LIKE '%LASANHA%' THEN 'Massas'
+                ELSE 'Outros'
+            END
+        ORDER BY Mes
+        """
+        
+        try:
+            df = self.db.get_dataframe(query, params={"card_code": card_code, "months": months})
+            
+            if df.empty:
+                return {"labels": [], "datasets": []}
+
+            # Pivotar os dados para o formato do gráfico
+            # Meses únicos ordenados
+            months_list = sorted(df['Mes'].unique().tolist())
+            
+            # Inicializa estrutura
+            result = {
+                "labels": [m.split('-')[1] for m in months_list], # Apenas o número do mês
+                "datasets": []
+            }
+            
+            categories = ['Arroz', 'Feijão', 'Massas']
+            colors = {
+                'Arroz': 'rgba(255, 255, 255, 1)',      # Branco (será ajustado no front) ou Azul
+                'Feijão': 'rgba(139, 69, 19, 1)',      # Marrom
+                'Massas': 'rgba(255, 215, 0, 1)'       # Amarelo
+            }
+            
+            for cat in categories:
+                data = []
+                for m in months_list:
+                    # Filtra valor para aquele mês e categoria
+                    val = df[(df['Mes'] == m) & (df['Categoria'] == cat)]['Total'].sum()
+                    data.append(float(val))
+                
+                result["datasets"].append({
+                    "name": cat,
+                    "data": data,
+                    "color": colors.get(cat, 'rgba(0,0,0,1)')
+                })
+                
+            return result
+
+        except Exception as e:
+            print(f"Erro ao gerar tendência: {e}")
+            return {"error": str(e)}
 
     @cached(cache=TTLCache(maxsize=1, ttl=3600)) # Cache de 1 hora
     def get_top_products(self, days: int = 90) -> pd.DataFrame:
