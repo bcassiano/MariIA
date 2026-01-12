@@ -1,0 +1,40 @@
+name: Deploy Web to Firebase
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'mobile/**'
+  workflow_dispatch:
+
+jobs:
+  deploy_web:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install Dependencies
+        working-directory: ./mobile
+        run: npm ci
+
+      - name: Build Web
+        working-directory: ./mobile
+        run: npm run build:web
+
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.GCP_CREDENTIALS }}'
+          channelId: live
+          projectId: amazing-firefly-475113-p3
+          entryPoint: ./mobile
