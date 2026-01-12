@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Image, SafeAreaView, Platform, Linking, Modal, Dimensions } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import { useNavigation } from '@react-navigation/native';
@@ -32,6 +32,44 @@ export default function CustomerScreen({ route }) {
     const [chartVisible, setChartVisible] = useState(false);
     const [chartData, setChartData] = useState(null);
     const [chartLoading, setChartLoading] = useState(false);
+
+    // Carousel Ref
+    const scrollRef = useRef(null);
+
+    const scrollLeft = () => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollTo({ x: 0, animated: true }); // Simple scroll to start for now, or partial
+            // Better implementation: scroll by a fixed amount relative to current position is hard without state tracking or getScrollResponder
+            // simple approach: just scroll by -300
+            // But Custom ScrollView ref doesn't always expose current offset easily in RN without onScroll listener.
+            // For web simple buttons, often "Page Left/Right" is enough.
+            // Let's try attempting to scroll by offset if we can interact with the DOM element on web, but strictly in RN:
+        }
+    };
+
+    // Simplification: We need to track scroll position or just scroll to approximate locations. 
+    // Since we cannot easily "scrollBy" in standard RN without tracking contentOffset, 
+    // let's use a simpler approach for the user request: 
+    // "clicar com o mouse para o carrosel seguir para direita ou voltar"
+    // We will implement a `scrollBy` helper using `scrollTo`.
+
+    const [scrollX, setScrollX] = useState(0);
+
+    const handleScroll = (event) => {
+        setScrollX(event.nativeEvent.contentOffset.x);
+    };
+
+    const scrollCarousel = (direction) => {
+        if (scrollRef.current) {
+            const currentScroll = scrollX;
+            const scrollAmount = 300; // Approx 2 items width
+            const newScroll = direction === 'left'
+                ? Math.max(0, currentScroll - scrollAmount)
+                : currentScroll + scrollAmount;
+
+            scrollRef.current.scrollTo({ x: newScroll, animated: true });
+        }
+    };
 
     // Initial Load
     useEffect(() => {
@@ -93,11 +131,66 @@ export default function CustomerScreen({ route }) {
         setChartLoading(false);
     };
 
-    // Mock Data for UI (Extra information not yet in API)
+
+    // Mock Data for UI (Exposed temporarily until API is ready)
     const recommendedProducts = [
-        { id: 1, name: 'Arroz Fantástico 5kg', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDaBGyYZ797w5mpVaM48JiojcnPjWPm3A3iKMUQrL-jY6g5dxLj0O6m6L0bXKTGJjqC0aDQFlM-jV1sdr6QnUlki55bu9M4YREE4q-B3TCdHktwGFKV2DIeAJVpushM6l6gv2gc5Oe_-SnXjb9PbA6cT-jcBgxlKo9v2UYWPhD4PnNkLZUU_UxnTidW5RC2ltS9AAtBi_q_q3Y2v5hFIaeyRgdtCCyJDj86WgQT1RPxoK7JH15fDZtqttC53WcQXl8iIhcBm1kmBeA', tag: 'Alta Demanda', tagColor: 'green' },
-        { id: 2, name: 'Feijão Carioca 1kg', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC-Ct6an2BPwElGmXICXaw-SzdzVUGi3G9xOte-gKQ4LdZh6b0t4g09kgZGEb-mU9yoBRxD1VmGi5UrF-b6KtmPldiQbh80E3uiS_pfZV-ZCEvbK3QkV0mwQPg6AkLAsMUrHR_fbHs6ekIi7CVKgOgqQhvv2KC_3Uo1RkUfmHjs5kwSFqxqcgDJk-umdSXUcf1_Kib-1fTeKPUEZ7osMa7o-n_SwqJE0CX5WuA14Ta5dex4mO7bXMIQ9QCdwIJXQvX0xrKnrAHCf2I', tag: 'Em Oferta', tagColor: 'orange' },
-        { id: 3, name: 'Macarrão Espaguete', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC827GDJxzdol0EaLgRlIVVTpgTPLCnwnn-h1qVXU2AK9QFkAifbZwI1ni9YMgAByY4tajhYCap0-3iNmjXBuwrMQMipc9YTM47X_5t-bq5mzORoBNub3Ar9nDnTF03GVv1Yc7sNdW85j-icvgc_owmmzaJ4xugGNe99ZJJqI6NaD2Xs1-U8DwzUuDXLGLRUn6gpQUEFydm6Jmt_WS3bnIC7AN2asZQssF9epqIOso28yaOOmSX2fUbh2GMhLO86hlLn_ZkiOFw2aI', tag: 'Reposição', tagColor: 'blue' },
+        // Fantástico (Green)
+        { id: 1, name: 'Arroz Integral', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723644473.png', tag: 'Fantástico', tagColor: 'green' },
+        { id: 2, name: 'Arroz Fantástico Premium T2', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723644454.png', tag: 'Fantástico', tagColor: 'green' },
+        { id: 3, name: 'Arroz Fantástico Premium T1', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723644435.png', tag: 'Fantástico', tagColor: 'green' },
+        { id: 4, name: 'Arroz Fantástico Premium Parboilizado Integral', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723644399.png', tag: 'Fantástico', tagColor: 'green' },
+        { id: 5, name: 'Arroz Fantástico Premium Parboilizado', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723644380.png', tag: 'Fantástico', tagColor: 'green' },
+        { id: 6, name: 'Arroz Fantástico Integral Orgânico', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723644352.png', tag: 'Fantástico', tagColor: 'green' },
+        { id: 7, name: 'Arroz Fantástico Grãos Nobres', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723644332.png', tag: 'Fantástico', tagColor: 'green' },
+        { id: 8, name: 'Arroz Fantástico Arbório', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723644310.png', tag: 'Fantástico', tagColor: 'green' },
+        { id: 9, name: 'Arroz Fantástico Preto', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723644243.png', tag: 'Fantástico', tagColor: 'green' },
+        { id: 10, name: 'Feijão Fantástico Preto Grãos Nobres', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723644268.png', tag: 'Fantástico', tagColor: 'green' },
+        { id: 11, name: 'Feijão Fantástico Premium Vermelho', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723644176.png', tag: 'Fantástico', tagColor: 'green' },
+        { id: 12, name: 'Feijão Fantástico Premium Preto', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723644136.png', tag: 'Fantástico', tagColor: 'green' },
+        { id: 13, name: 'Feijão Fantástico Fradinho', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723644109.png', tag: 'Fantástico', tagColor: 'green' },
+        { id: 14, name: 'Feijão Fantástico Carioca Grãos Nobres', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723644076.png', tag: 'Fantástico', tagColor: 'green' },
+        { id: 15, name: 'Feijão Branco Fantástico', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723643912.png', tag: 'Fantástico', tagColor: 'green' },
+        { id: 16, name: 'Espaguete Fantástico Sêmola', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723745977.png', tag: 'Fantástico', tagColor: 'green' },
+        { id: 17, name: 'Penne Fantástico Sêmola', img: 'https://fantasticoalimentos.com.br/explorer/produtos/logo_1724269060.png', tag: 'Fantástico', tagColor: 'green' },
+        { id: 18, name: 'Parafuso Fantástico Sêmola', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723745937.png', tag: 'Fantástico', tagColor: 'green' },
+        { id: 19, name: 'Lasanha Fantástico Massa com Ovos', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723643790.png', tag: 'Fantástico', tagColor: 'green' },
+        { id: 20, name: 'Espaguete Fantástico Massa com Ovos', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723643747.png', tag: 'Fantástico', tagColor: 'green' },
+        { id: 21, name: 'Penne Fantástico Massa com Ovos', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723643215.png', tag: 'Fantástico', tagColor: 'green' },
+        { id: 22, name: 'Parafuso Fantástico Massa com Ovos', img: 'https://fantasticoalimentos.com.br/explorer/produtos/logo_1723643158.png', tag: 'Fantástico', tagColor: 'green' },
+
+        // Saboroso (Orange)
+        { id: 23, name: 'Arroz Saboroso T2', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723650246.png', tag: 'Saboroso', tagColor: 'orange' },
+        { id: 24, name: 'Arroz Saboroso T1', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723650224.png', tag: 'Saboroso', tagColor: 'orange' },
+        { id: 25, name: 'Arroz Saboroso Parboilizado Integral', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723650202.png', tag: 'Saboroso', tagColor: 'orange' },
+        { id: 26, name: 'Arroz Saboroso Parboilizado', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723650182.png', tag: 'Saboroso', tagColor: 'orange' },
+        { id: 27, name: 'Feijão Preto Saboroso', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723650399.png', tag: 'Saboroso', tagColor: 'orange' },
+        { id: 28, name: 'Feijão Saboroso Carioca', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723650302.png', tag: 'Saboroso', tagColor: 'orange' },
+
+        // Santo Gourmet (Yellow)
+        { id: 29, name: 'Arroz Santo Gourmet T1', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723657832.png', tag: 'Santo Gourmet', tagColor: 'yellow' },
+
+        // Kizoku Mai (Red)
+        { id: 30, name: 'Kizoku Mai', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723657785.png', tag: 'Kizoku Mai', tagColor: 'red' },
+
+        // Peg Já (Blue)
+        { id: 31, name: 'Arroz Peg Já FT', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723657698.png', tag: 'Peg Já', tagColor: 'blue' },
+        { id: 32, name: 'Arroz Peg Já T1', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723657742.png', tag: 'Peg Já', tagColor: 'blue' },
+        { id: 33, name: 'Feijão Peg Já Carioca T1', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723745809.png', tag: 'Peg Já', tagColor: 'blue' },
+
+        // Sabor Carioca (Teal)
+        { id: 34, name: 'Arroz Sabor Carioca FT', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723657604.png', tag: 'Sabor Carioca', tagColor: 'teal' },
+        { id: 35, name: 'Arroz Sabor Carioca T1', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723657638.png', tag: 'Sabor Carioca', tagColor: 'teal' },
+
+        // Surreal (Purple)
+        { id: 36, name: 'Arroz Surreal', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723657522.png', tag: 'Surreal', tagColor: 'purple' },
+        { id: 37, name: 'Feijão Preto Surreal', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723657543.png', tag: 'Surreal', tagColor: 'purple' },
+
+        // Bahia (Brown)
+        { id: 38, name: 'Feijão Bahia', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723657453.png', tag: 'Bahia', tagColor: 'brown' },
+
+        // Chaminé (Gray)
+        { id: 39, name: 'Arroz Chaminé', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723657390.png', tag: 'Chaminé', tagColor: 'gray' },
+        { id: 40, name: 'Feijão Chaminé', img: 'https://fantasticoalimentos.com.br/explorer/produtos/produto_1723657412.png', tag: 'Chaminé', tagColor: 'gray' },
     ];
 
     return (
@@ -327,25 +420,88 @@ export default function CustomerScreen({ route }) {
                         </View>
                     </View>
 
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tw`px-5 gap-4`}>
-                        {recommendedProducts.map((prod) => (
-                            <View key={prod.id} style={tw`w-[140px] bg-white rounded-xl p-3 shadow-sm border border-gray-100 justify-between`}>
-                                <View style={tw`w-full h-24 bg-gray-50 rounded-lg mb-2 overflow-hidden items-center justify-center`}>
-                                    <Image
-                                        source={{ uri: prod.img }}
-                                        style={tw`w-full h-full`}
-                                        resizeMode="contain"
-                                    />
-                                </View>
-                                <View>
-                                    <Text style={tw`text-[13px] font-semibold text-gray-900 leading-tight mb-1`} numberOfLines={2}>{prod.name}</Text>
-                                    <View style={tw`bg-${prod.tagColor}-100 self-start px-1.5 py-0.5 rounded`}>
-                                        <Text style={tw`text-[10px] font-bold text-${prod.tagColor}-700`}>{prod.tag}</Text>
+                    <View style={tw`relative`}>
+                        {Platform.OS === 'web' && (
+                            <>
+                                <TouchableOpacity
+                                    onPress={() => scrollCarousel('left')}
+                                    style={{
+                                        position: 'absolute',
+                                        left: 10,
+                                        top: '50%',
+                                        marginTop: -20,
+                                        width: 40,
+                                        height: 40,
+                                        borderRadius: 20,
+                                        backgroundColor: 'white',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        zIndex: 10,
+                                        shadowColor: '#000',
+                                        shadowOffset: { width: 0, height: 4 },
+                                        shadowOpacity: 0.3,
+                                        shadowRadius: 4.65,
+                                        elevation: 8,
+                                        borderWidth: 1,
+                                        borderColor: '#f3f4f6'
+                                    }}
+                                >
+                                    <Icon name="chevron_left" size={30} color="#111827" />
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    onPress={() => scrollCarousel('right')}
+                                    style={{
+                                        position: 'absolute',
+                                        right: 10,
+                                        top: '50%',
+                                        marginTop: -20,
+                                        width: 40,
+                                        height: 40,
+                                        borderRadius: 20,
+                                        backgroundColor: 'white',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        zIndex: 10,
+                                        shadowColor: '#000',
+                                        shadowOffset: { width: 0, height: 4 },
+                                        shadowOpacity: 0.3,
+                                        shadowRadius: 4.65,
+                                        elevation: 8,
+                                        borderWidth: 1,
+                                        borderColor: '#f3f4f6'
+                                    }}
+                                >
+                                    <Icon name="chevron_right" size={30} color="#111827" />
+                                </TouchableOpacity>
+                            </>
+                        )}
+                        <ScrollView
+                            ref={scrollRef}
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={tw`px-5 gap-4`}
+                            onScroll={handleScroll}
+                            scrollEventThrottle={16}
+                        >
+                            {(Platform.OS === 'web' ? recommendedProducts.slice(0, 5) : recommendedProducts).map((prod) => (
+                                <View key={prod.id} style={tw`w-[140px] bg-white rounded-xl p-3 shadow-sm border border-gray-100 justify-between`}>
+                                    <View style={tw`w-full h-24 bg-gray-50 rounded-lg mb-2 overflow-hidden items-center justify-center`}>
+                                        <Image
+                                            source={{ uri: prod.img }}
+                                            style={tw`w-full h-full`}
+                                            resizeMode="contain"
+                                        />
+                                    </View>
+                                    <View>
+                                        <Text style={tw`text-[13px] font-semibold text-gray-900 leading-tight mb-1`} numberOfLines={2}>{prod.name}</Text>
+                                        <View style={tw`bg-${prod.tagColor}-100 self-start px-1.5 py-0.5 rounded`}>
+                                            <Text style={tw`text-[10px] font-bold text-${prod.tagColor}-700`}>{prod.tag}</Text>
+                                        </View>
                                     </View>
                                 </View>
-                            </View>
-                        ))}
-                    </ScrollView>
+                            ))}
+                        </ScrollView>
+                    </View>
                 </View>
 
                 {/* Footer Brand */}
@@ -433,6 +589,7 @@ export default function CustomerScreen({ route }) {
                                     <Text style={tw`text-xs text-center text-gray-400 mt-2`}>Valores em Reais (R$)</Text>
                                 </View>
                             </ScrollView>
+
                         ) : (
                             <View style={tw`flex-1 justify-center items-center px-4`}>
                                 <Text style={tw`text-gray-500 text-center mb-2`}>Dados insuficientes para gerar o gráfico.</Text>
@@ -444,6 +601,6 @@ export default function CustomerScreen({ route }) {
                     </View>
                 </View>
             </Modal>
-        </SafeAreaView>
+        </SafeAreaView >
     );
 }
