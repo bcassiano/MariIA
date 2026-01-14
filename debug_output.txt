@@ -1,8 +1,0 @@
-Columns: ['Vendedor']
-
-First Row Data:
-Vendedor: V.vp - Renata Rodrigues
-
-All Rows for this Doc:
-                  Vendedor
-0  V.vp - Renata Rodrigues

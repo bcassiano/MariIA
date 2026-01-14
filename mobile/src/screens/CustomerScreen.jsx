@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { getCustomer, generatePitch, sendPitchFeedback, getCustomerTrends } from '../services/api';
 import { create } from 'twrnc';
 import Icon from '../components/Icon';
+import PitchCard from '../components/PitchCard';
 
 // Tailwind Config
 const tw = create(require('../../tailwind.config.js'));
@@ -319,22 +320,11 @@ export default function CustomerScreen({ route }) {
 
                     {/* AI Pitch Result */}
                     {pitch && (
-                        <View style={tw`mt-4 bg-indigo-50 p-4 rounded-xl border border-indigo-100`}>
-                            <Text style={tw`font-bold text-indigo-700 mb-2`}>🤖 Sugestão da Mari IA:</Text>
-                            <Text style={tw`text-gray-800 text-sm leading-relaxed mb-3`}>{pitch}</Text>
-
-                            {!feedbackGiven ? (
-                                <View style={tw`flex-row gap-3 mt-2`}>
-                                    <TouchableOpacity style={tw`bg-white px-3 py-1.5 rounded-full border border-gray-200 flex-row items-center gap-1`} onPress={() => { setFeedbackGiven(true); sendPitchFeedback(pitchId, 'useful'); }}>
-                                        <Text>👍 Útil</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity style={tw`bg-green-100 px-3 py-1.5 rounded-full border border-green-200 flex-row items-center gap-1`} onPress={() => { setFeedbackGiven(true); sendPitchFeedback(pitchId, 'sold'); }}>
-                                        <Text style={tw`font-bold text-green-800`}>💰 Vendi!</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            ) : (
-                                <Text style={tw`text-xs text-indigo-500 font-bold text-center`}>Feedback enviado!</Text>
-                            )}
+                        <View style={tw`mt-4`}>
+                            <PitchCard
+                                pitch={pitch}
+                                onFeedback={(type) => sendPitchFeedback(pitchId, type)}
+                            />
                         </View>
                     )}
                 </View>
