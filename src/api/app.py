@@ -87,9 +87,18 @@ def health_check():
 def get_insights(min_days: int = 0, max_days: int = 30):
     """Retorna o ranking de vendas dos últimos N dias."""
     try:
+        sys.stderr.write(f"DEBUG: get_insights REQUEST - min={min_days} max={max_days} vendor={CURRENT_VENDOR}\n")
         df = agent.get_sales_insights(min_days=min_days, max_days=max_days, vendor_filter=CURRENT_VENDOR)
+        sys.stderr.write(f"DEBUG: get_insights RESULT from Agent - Lines={len(df)}\n")
+        
+        if not df.empty:
+            sys.stderr.write(f"DEBUG: Sample Data:\n{df.head(2).to_markdown()}\n")
+        
         df = clean_data(df)
+        sys.stderr.write(f"DEBUG: get_insights AFTER CLEAN - Lines={len(df)}\n")
+        
         data = df.to_dict(orient="records")
+        sys.stderr.write(f"DEBUG: Final JSON Items: {len(data)}\n")
         return {"data": data}
     except Exception as e:
         import traceback
@@ -129,10 +138,22 @@ def get_customer(card_code: str):
             if 'Nome_Cliente' in df.columns:
                 customer_name = df.iloc[0]['Nome_Cliente']
             
-            # Agrupa usando Pandas
+            # Limpeza CRÍTICA: Garante que doc number seja int para agrupar corretamente
+            # Remove possíveis duplicatas por espaços ou tipos diferentes
+            df['Numero_Documento'] = pd.to_numeric(df['Numero_Documento'], errors='coerce').fillna(0).astype(int)
+
+            # Agrupa usando um dicionário para GARANTIR unicidade por Numero_Documento
+            grouped_docs_map = {}
+
             for doc_num, group in df.groupby('Numero_Documento'):
+
                 first_row = group.iloc[0]
-                total_val = group['Valor_Liquido'].sum()
+                # Calcula total do pedido
+                def get_row_val(row):
+                    val = row['Valor_Liquido'] if row['Valor_Liquido'] > 0 else (row.get('Valor_Total_Linha', 0) if row.get('Valor_Total_Linha', 0) > 0 else (row.get('Valor_Unitario', 0) * row.get('Quantidade', 0)))
+                    return float(val)
+
+                total_val = sum(get_row_val(row) for _, row in group.iterrows())
                 
                 doc_obj = {
                     "document_number": int(doc_num),
@@ -142,12 +163,14 @@ def get_customer(card_code: str):
                     "total_value": float(total_val),
                     "items": group.to_dict(orient="records")
                 }
-                grouped_history.append(doc_obj)
                 
-            # Ordena por data decrescente
-                grouped_history.append(doc_obj)
-                
-            # Ordena por data decrescente
+                # Sobrescreve se já existir (embora groupby não deva repetir chaves)
+                grouped_docs_map[int(doc_num)] = doc_obj
+            
+            # Converte mapa para lista
+            grouped_history = list(grouped_docs_map.values())
+            
+            grouped_history.sort(key=lambda x: x['date'], reverse=True)
             grouped_history.sort(key=lambda x: x['date'], reverse=True)
 
         # 2. Busca Detalhes Básicos (Novo)
@@ -205,15 +228,39 @@ def generate_pitch(request: PitchRequest):
         pitch = agent.generate_pitch(request.card_code, request.target_sku, vendor_filter=CURRENT_VENDOR)
         pitch_id = str(uuid.uuid4())
         
-        # Log de Uso para Analytics
-        log_pitch_usage(
-            card_code=request.card_code,
-            target_sku=request.target_sku,
-            pitch_generated=pitch,
-            pitch_id=pitch_id,
-            user_id=request.user_id
-        )
+        if not isinstance(pitch, dict):
+            pitch = {
+                "pitch_text": str(pitch),
+                "profile_summary": "Análise não disponível (Texto bruto).",
+                "frequency_assessment": "Verificar histórico.",
+                "reasons": []
+            }
         
+        # Ensure all keys exist
+        default_keys = {
+            "pitch_text": "Texto indisponível.",
+            "profile_summary": "Análise não disponível.",
+            "frequency_assessment": "Verificar histórico.",
+            "reasons": []
+        }
+        for k, v in default_keys.items():
+            if k not in pitch:
+                pitch[k] = v
+
+        # Log de Uso para Analytics
+        try:
+            log_pitch_usage(
+                card_code=request.card_code,
+                target_sku=request.target_sku,
+                pitch_generated=pitch.get("pitch_text", ""),
+                pitch_id=pitch_id,
+                user_id=request.user_id
+            )
+        except Exception as log_err:
+            print(f"Erro ao logar uso do pitch: {log_err}")
+        
+        # Retorna dicionário aninhado conforme esperado pelo PitchCard.jsx (result.pitch)
+        # Retorna dicionário aninhado conforme esperado pelo PitchCard.jsx (result.pitch)
         return {"pitch": pitch, "pitch_id": pitch_id}
     except Exception as e:
         import traceback

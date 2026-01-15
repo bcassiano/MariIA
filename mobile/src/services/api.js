@@ -3,9 +3,9 @@ import { Platform } from 'react-native';
 
 // Define a URL base dependendo do dispositivo
 // Prod: Cloud Run
-const API_URL = 'https://mariia-backend-635293407607.us-central1.run.app';
-// Dev Local (IP da sua máquina)
-// const API_URL = 'http://192.168.0.21:8000';
+// const API_URL = 'https://mariia-backend-635293407607.us-central1.run.app';
+// Dev Local (IP da sua máquina ou localhost para Web)
+const API_URL = 'http://192.168.0.72:8001'; // Changed to Local LAN IP for Mobile Access
 
 const api = axios.create({
     baseURL: API_URL,
@@ -67,6 +67,7 @@ export const generatePitch = async (cardCode, targetSku, userId = "vendedor_mobi
             target_sku: targetSku,
             user_id: userId
         });
+        console.log("DEBUG PITCH RESPONSE:", JSON.stringify(response.data, null, 2));
         return response.data;
     } catch (error) {
         console.error("Erro ao gerar pitch:", error);

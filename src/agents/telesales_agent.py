@@ -109,29 +109,44 @@ class TelesalesAgent:
     def get_sales_insights(self, min_days: int = 0, max_days: int = 30, vendor_filter: str = None) -> pd.DataFrame:
         """Busca insights gerais de vendas recentes (Query Parametrizada)."""
         # Filtro de vendedor opcional
-        vendor_condition = "AND Vendedor_Atual LIKE :vendor" if vendor_filter else ""
+        vendor_condition = ""
+        if vendor_filter:
+            clean_vendor = vendor_filter.replace("'", "''")
+            vendor_condition = f"AND Vendedor_Atual LIKE '%{clean_vendor}%'"
 
-        # Nota: DATEADD aceita parâmetros numéricos, mas para garantir, passamos via params
+        # Calcula datas no Python (apenas data, sem hora, para evitar colons)
+        from datetime import datetime, timedelta
+        
+        # Datas formatadas como YYYY-MM-DD (seguro para SQL Server e sem colons)
+        end_date_dt = datetime.now() - timedelta(days=min_days)
+        start_date_dt = datetime.now() - timedelta(days=max_days)
+        
+        end_date = end_date_dt.strftime('%Y-%m-%d')
+        start_date = start_date_dt.strftime('%Y-%m-%d')
+
+        # Otimização: Agrupa apenas pelo Código (mais rápido) e pega o MAX dos textos
+        # Lógica: >= DataInicio AND < DataFim + 1 dia (para pegar o dia todo até 23:59:59.999 sem usar colons)
         query = f"""
         SELECT TOP 50
             Codigo_Cliente,
-            Nome_Cliente,
-            Cidade,
-            Estado,
-            SUM(COALESCE(Valor_Liquido, Valor_Total_Linha)) as Total_Venda,
-            SUM(Margem_Valor) as Total_Margem
-        FROM FAL_IA_Dados_Vendas_Televendas
-        WHERE Data_Emissao BETWEEN DATEADD(day, -:max_days, GETDATE()) AND DATEADD(day, -:min_days, GETDATE())
-          AND Nome_Cliente NOT LIKE '%FANTASTICO ALIMENTOS LTDA%'
-          {vendor_condition}
-        GROUP BY Codigo_Cliente, Nome_Cliente, Cidade, Estado
-        ORDER BY Total_Venda DESC
+            MAX(Nome_Cliente) as Nome_Cliente,
+            MAX(Cidade) as Cidade,
+            MAX(Estado) as Estado,
+            MAX(Data_Emissao) as Ultima_Compra,
+            SUM(COALESCE(Valor_Liquido, Valor_Total_Linha)) as Total_Venda
+        FROM FAL_IA_Dados_Vendas_Televendas WITH (NOLOCK)
+        WHERE Nome_Cliente NOT LIKE '%FANTASTICO ALIMENTOS LTDA%'
+        {vendor_condition}
+        GROUP BY Codigo_Cliente
+        HAVING MAX(Data_Emissao) >= '{start_date}' 
+           AND MAX(Data_Emissao) < DATEADD(day, 1, '{end_date}')
+        ORDER BY Ultima_Compra DESC
         """
-        params = {"min_days": min_days, "max_days": max_days}
-        if vendor_filter:
-            params["vendor"] = f"%{vendor_filter}%"
+        
+        # DEBUG QUERY
+        sys.stderr.write(f"DEBUG SQL QUERY:\n{query}\n")
             
-        return self.db.get_dataframe(query, params=params)
+        return self.db.get_dataframe(query)
 
     @cached(cache=TTLCache(maxsize=100, ttl=600))
     def get_inactive_customers(self, min_days: int = 30, max_days: int = 365, vendor_filter: str = None) -> pd.DataFrame:
@@ -141,8 +156,21 @@ class TelesalesAgent:
         """
         
         # Filtro de vendedor opcional usando a nova coluna Vendedor_Atual
-        vendor_condition = "AND Vendedor_Atual LIKE :vendor" if vendor_filter else ""
+        vendor_condition = ""
+        if vendor_filter:
+            # Sanitização básica para evitar injection grosseiro
+            clean_vendor = vendor_filter.replace("'", "''") 
+            vendor_condition = f"AND Vendedor_Atual LIKE '%{clean_vendor}%'"
         
+        # Calcula datas no Python
+        from datetime import datetime, timedelta
+        # Usando lógica sem colons (YYYY-MM-DD)
+        end_date_dt = datetime.now() - timedelta(days=min_days)
+        start_date_dt = datetime.now() - timedelta(days=max_days)
+        
+        end_date = end_date_dt.strftime('%Y-%m-%d')
+        start_date = start_date_dt.strftime('%Y-%m-%d')
+
         # Otimização: Agrupa apenas pelo Código (mais rápido) e pega o MAX dos textos
         query = f"""
         SELECT TOP 50
@@ -156,15 +184,12 @@ class TelesalesAgent:
         WHERE Nome_Cliente NOT LIKE '%FANTASTICO ALIMENTOS LTDA%'
         {vendor_condition}
         GROUP BY Codigo_Cliente
-        HAVING MAX(Data_Emissao) BETWEEN DATEADD(day, -:max_days, GETDATE()) AND DATEADD(day, -:min_days, GETDATE())
+        HAVING MAX(Data_Emissao) >= '{start_date}' 
+           AND MAX(Data_Emissao) < DATEADD(day, 1, '{end_date}')
         ORDER BY Ultima_Compra DESC
         """
         
-        params = {"min_days": min_days, "max_days": max_days}
-        if vendor_filter:
-            params["vendor"] = f"%{vendor_filter}%"
-            
-        return self.db.get_dataframe(query, params=params)
+        return self.db.get_dataframe(query)
 
     def get_customers_by_vendor(self, vendor_name: str) -> pd.DataFrame:
         """
@@ -286,13 +311,13 @@ class TelesalesAgent:
             check_query = "SELECT 1 FROM FAL_IA_Dados_Vendas_Televendas WHERE Codigo_Cliente = :card_code AND Vendedor_Atual LIKE :vendor"
             check_df = self.db.get_dataframe(check_query, params={"card_code": card_code, "vendor": f"%{vendor_filter}%"})
             if check_df.empty:
-                return f"⛔ ERRO: O cliente {card_code} não pertence à carteira de {vendor_filter}."
+                return {"pitch_text": f"⛔ ERRO: O cliente {card_code} não pertence à carteira de {vendor_filter}.", "profile_summary": "Erro de Permissão", "frequency_assessment": "N/A", "reasons": []}
 
         # 1. Coleta dados do cliente
         history_df = self.get_customer_history(card_code, limit=20)
         
         if history_df.empty:
-            return f"Não encontrei dados para o cliente {card_code}."
+            return {"pitch_text": f"Não encontrei dados para o cliente {card_code}.", "profile_summary": "Sem dados", "frequency_assessment": "N/A", "reasons": []}
 
         # Extrai dados básicos para o template
         try:
@@ -329,70 +354,95 @@ class TelesalesAgent:
         </contexto_dados>
 
         <system_instructions>
-        Você é um Consultor de Sucesso do Cliente Sênior, não um vendedor agressivo. Seu objetivo primário é a retenção e reativação de clientes inativos (Churn).
-
-        **DIRETRIZES DE PERSONA:**
-        1.  **Tom de Voz:** Empático, investigativo e "suave". Nunca culpe o cliente pela ausência. Use uma abordagem de "sentimos sua falta e queremos entender".
-        2.  **Análise Temporal:** Antes de responder, analise a tag <data_ultima_compra> e compare com a <data_atual>. Classifique o cliente como:
-            * *Risco Baixo:* 15-30 dias sem compra.
-            * *Risco Médio:* 31-60 dias sem compra.
-            * *Churn:* >60 dias.
-            Adapte a urgência do discurso baseada nessa classificação.
-        3.  **Imperativo de Venda (Non-negotiable):** Independente do histórico, você DEVE oferecer Arroz 1kg e 2kg. Enquadre isso como uma "oportunidade exclusiva" ou "reposição estratégica", nunca como algo aleatório.
-        4.  **O Pedido Ideal:** Ao final, sugira um pedido concreto. A lógica deve ser: (Itens mais comprados do histórico) + (Arroz 1kg/2kg).
-
-        **ESTRUTURA DE RESPOSTA (Chain of Thought):**
-        Não responda imediatamente. Pense passo a passo (mas não mostre o pensamento ao usuário final, apenas a resposta estruturada):
-        1.  Calcule os dias inativos.
-        2.  Identifique os produtos favoritos no <historico_compras>.
-        3.  Formule a pergunta de sondagem sobre o motivo da ausência (preço? concorrência? estoque cheio?).
-        4.  Crie o gancho para o Arroz.
-        5.  Monte o Pedido Ideal.
+        Você é um Consultor de Sucesso do Cliente Sênior.
         
-        **SAÍDA FINAL (O SCRIPT):**
-        Gere apenas o script de abordagem para este cliente via WhatsApp/Telefone.
+        OBJETIVO: Analisar os dados do cliente e gerar uma sugestão de venda estruturada.
+        
+        **ESTRUTURA DE RESPOSTA (JSON OBRIGATÓRIO):**
+        Você DEVE responder APENAS com um JSON válido seguindo exatamente este formato (sem markdown, sem ```json):
+        {{
+            "profile_summary": "Uma frase resumindo o perfil de compra do cliente (ex: 'Cliente de alto volume focado em commodities'). Use **negrito** para destacar produtos chave.",
+            "frequency_assessment": "Uma frase analisando a frequência de compra. Diga se está 'Em dia', 'Atrasado' ou 'Risco de Churn'. Use tags como **Risco Alto** se necessário.",
+            "pitch_text": "O script de abordagem completo para WhatsApp (Saudação + Investigação + Oferta do Arroz + Fechamento).",
+            "reasons": [
+                {{
+                    "icon": "history",
+                    "title": "Fonte dos Dados",
+                    "text": "Explique de onde tirou a conclusão (ex: 'Baseado nas compras de Outubro')."
+                }},
+                {{
+                    "icon": "shuffle",
+                    "title": "Estratégia de Mix",
+                    "text": "Por que sugeriu esse produto específico?"
+                }},
+                {{
+                    "icon": "local_shipping",
+                    "title": "Logística/Oportunidade",
+                    "text": "Algum argumento de frete ou oportunidade de preço?"
+                }}
+            ]
+        }}
 
-        O script deve conter:
-        1.  **Abertura:** Saudação quente reconhecendo o tempo específico (semanas/meses) que não nos falamos.
-        2.  **Investigação:** Uma pergunta aberta e não ameaçadora para entender o motivo da não compra recorrente (Ex: "Houve alguma mudança na sua operação?").
-        3.  **Pitch do Arroz:** Uma transição natural oferecendo o Arroz 1kg e 2kg, citando condições especiais.
-        4.  **Fechamento (Pedido Ideal):** Apresente uma lista pronta sugerida contendo os itens que ele costuma comprar + o Arroz, perguntando se podemos faturar essa grade.
+        DIRETRIZES DE ANÁLISE:
+        1. Compare as datas. Se > 30 dias sem compra, o tom deve ser de RECONQUISTA.
+        2. Force a venda de ARROZ (1kg ou 2kg) no pitch.
+        3. No 'profile_summary', seja direto sobre o que ele compra (ex: "Compra muito Feijão mas pouco Arroz").
         </system_instructions>
         """
 
         if not self.model:
-            return "Modelo de IA não disponível. Apenas dados carregados."
+            print("ERROR: Modelo Gemini não inicializado.")
+            return {"pitch_text": "Modelo de IA não disponível.", "profile_summary": "Erro", "frequency_assessment": "Erro", "reasons": []}
 
         # 3. Chama o Gemini
         try:
+            print(f"DEBUG: Enviando prompt para AI (Tamanho: {len(prompt)} chars)")
             response = self.model.generate_content(
                 prompt,
                 generation_config={
                     "max_output_tokens": 8192,
-                    "temperature": 0.4, # Um pouco mais alto para permitir a empatia/criatividade da persona
+                    "temperature": 0.2, # Baixa temperatura para garantir JSON válido
+                    "response_mime_type": "application/json" # Força JSON Nativo do Gemini 1.5
                 },
                 safety_settings=[
-                    SafetySetting(
-                        category=SafetySetting.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-                        threshold=SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH
-                    ),
-                    SafetySetting(
-                        category=SafetySetting.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-                        threshold=SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH
-                    ),
-                    SafetySetting(
-                        category=SafetySetting.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-                        threshold=SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH
-                    ),
-                    SafetySetting(
-                        category=SafetySetting.HarmCategory.HARM_CATEGORY_HARASSMENT,
-                        threshold=SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH
-                    ),
+                    SafetySetting(category=SafetySetting.HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold=SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH),
+                    SafetySetting(category=SafetySetting.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold=SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH),
+                    SafetySetting(category=SafetySetting.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold=SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH),
+                    SafetySetting(category=SafetySetting.HarmCategory.HARM_CATEGORY_HARASSMENT, threshold=SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH),
                 ]
             )
-            return response.text
+            
+            # Parse do JSON
+            try:
+                import json
+                cleaned_text = response.text.replace('```json', '').replace('```', '').strip()
+                print(f"DEBUG: Resposta Raw da IA: {cleaned_text[:100]}...") # Loga inicio da resposta
+                pitch_data = json.loads(cleaned_text)
+                
+                # Validação Extra: Se a IA devolveu string JSON ("..."), transforma em dict
+                if isinstance(pitch_data, str):
+                    print("AVISO: IA retornou string JSON válida, mas não objeto. Ajustando.")
+                    return {
+                        "pitch_text": pitch_data, 
+                        "profile_summary": "Perfil não estruturado pela IA.",
+                        "frequency_assessment": "Verificar histórico.",
+                        "reasons": []
+                    }
+                    
+                return pitch_data
+            except json.JSONDecodeError as je:
+                print(f"ERRO JSON: {je}")
+                print(f"Conteúdo recebido: {response.text}")
+                # Fallbback
+                return {
+                    "pitch_text": response.text, 
+                    "profile_summary": "Não foi possível estruturar o perfil.",
+                    "frequency_assessment": "Análise indisponível.",
+                    "reasons": []
+                }
+
         except Exception as e:
-            return f"Erro ao gerar insight de IA: {e}"
+            return {"pitch_text": f"Erro técnico ao gerar pitch: {e}", "profile_summary": "Erro", "frequency_assessment": "Erro", "reasons": []}
 
     def chat(self, user_message: str, history: list = [], vendor_filter: str = None) -> str:
         """Conversa livre com o assistente, com capacidade de buscar dados de clientes."""
@@ -537,6 +587,8 @@ if __name__ == "__main__":
     parser.add_argument("--sku", type=str, help="SKU Alvo para venda (Opcional)", default="")
     parser.add_argument("--vendor", type=str, help="Simular Vendedor Específico (Filtro de Carteira)", default=None)
     parser.add_argument("--insights", action="store_true", help="Gerar insights gerais de vendas")
+    parser.add_argument("--min_days", type=int, default=0, help="Dias mínimos para filtro")
+    parser.add_argument("--max_days", type=int, default=30, help="Dias máximos para filtro")
 
     args = parser.parse_args()
     agent = TelesalesAgent()
@@ -550,8 +602,8 @@ if __name__ == "__main__":
         print(agent.generate_pitch(args.customer, args.sku, vendor_filter=args.vendor))
         
     elif args.insights:
-        print("\n--- Insights de Vendas (Top 50 - 30 dias) ---")
-        df = agent.get_sales_insights(vendor_filter=args.vendor)
+        print(f"\n--- Insights de Vendas (Top 50 - {args.min_days} a {args.max_days} dias) ---")
+        df = agent.get_sales_insights(min_days=args.min_days, max_days=args.max_days, vendor_filter=args.vendor)
         print(df.to_markdown(index=False))
     else:
         parser.print_help()

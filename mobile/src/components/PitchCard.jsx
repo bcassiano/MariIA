@@ -21,11 +21,13 @@ export default function PitchCard({ pitch, onFeedback }) {
         }
     };
 
-    // MOCK DATA to match the design request
-    // In a real scenario, these variables would come from the API payload
-    const profileText = 'Cliente do setor Agropecuário com perfil híbrido. O "Carro-Chefe" é o **Farelo de Arroz Ensacado** (compras industriais de ~20 toneladas). Paralelamente, mantém compras recorrentes de itens de Cesta Básica (Arroz, Feijão, Macarrão) em volumes menores.';
-
-    const frequencyText = 'O Farelo de Arroz é reposto a cada **7 a 15 dias**. Itens de cesta básica possuem reposição mensal. Há um pedido em aberto de Farelo datado de 02/12, mas o cliente não comprou Macarrão no último pedido faturado.';
+    // Data derived from the 'pitch' prop (JSON object from AI)
+    // Fallback to empty strings if pitch is somehow just text or missing fields
+    const isStructured = typeof pitch === 'object' && pitch !== null;
+    const profileText = isStructured ? pitch.profile_summary : "Análise não disponível.";
+    const frequencyText = isStructured ? pitch.frequency_assessment : "Análise não disponível.";
+    const pitchText = isStructured ? pitch.pitch_text : (typeof pitch === 'string' ? pitch : "Erro na análise.");
+    const reasons = isStructured && Array.isArray(pitch.reasons) ? pitch.reasons : [];
 
     // Helper to bold text wrapped in **
     const renderStyledText = (text, style) => {
@@ -75,7 +77,7 @@ export default function PitchCard({ pitch, onFeedback }) {
                 </View>
 
                 {/* 3. Pitch de Venda (Highlighted Card) */}
-                <View style={tw`rounded-xl p-1 bg-gradient-to-br from-orange-50 to-pink-50 border border-orange-100 shadow-sm`}>
+                <View style={tw`rounded-xl p-1 bg-orange-50 border border-orange-100 shadow-sm`}>
                     {/* Inner Content */}
                     <View style={tw`bg-white/60 rounded-lg p-4`}>
                         <View style={tw`flex-row justify-between items-center mb-3`}>
@@ -83,7 +85,10 @@ export default function PitchCard({ pitch, onFeedback }) {
                                 <Icon name="record_voice_over" size={20} color="#EA580C" />
                                 <Text style={tw`font-bold text-orange-600 text-sm uppercase`}>Pitch de Venda</Text>
                             </View>
-                            <TouchableOpacity onPress={handleCopy} style={tw`flex-row items-center gap-1 opacity-60`}>
+                            <TouchableOpacity onPress={() => {
+                                Clipboard.setString(pitchText);
+                                Alert.alert('Copiado', 'Pitch copiado para a área de transferência!');
+                            }} style={tw`flex-row items-center gap-1 opacity-60`}>
                                 <Icon name="content_copy" size={14} color="#374151" />
                                 <Text style={tw`text-[10px] font-bold text-gray-700`}>Copiar</Text>
                             </TouchableOpacity>
@@ -91,49 +96,39 @@ export default function PitchCard({ pitch, onFeedback }) {
 
                         {/* Pitch Body */}
                         <Text style={tw`text-gray-800 text-[14px] leading-relaxed italic mb-4`}>
-                            "{pitch || "Olá! Analisei sua fatura e..."}"
+                            "{pitchText}"
                         </Text>
 
                         {/* Quote Box / Call to Action */}
                         <View style={tw`border-l-4 border-orange-500 pl-3 py-1 bg-orange-50 rounded-r-lg`}>
                             <Text style={tw`text-gray-600 text-[12px] italic`}>
-                                "Podemos faturar essa inclusão agora para garantir o preço atual antes da virada de tabela?"
+                                "Dica: {["Use áudio para um toque mais pessoal.", "Confirme se o cliente viu a oferta.", "Pergunte sobre o estoque atual."][Math.floor(Math.random() * 3)]}"
                             </Text>
                         </View>
                     </View>
                 </View>
 
                 {/* 4. Transparência */}
-                <View>
-                    <View style={tw`flex-row items-center gap-2 mb-3`}>
-                        <Icon name="info" size={18} color="#3B82F6" />
-                        <Text style={tw`font-bold text-blue-500 text-[12px] uppercase`}>Por que sugeri isso? (Transparência)</Text>
-                    </View>
+                {reasons.length > 0 && (
+                    <View>
+                        <View style={tw`flex-row items-center gap-2 mb-3`}>
+                            <Icon name="info" size={18} color="#3B82F6" />
+                            <Text style={tw`font-bold text-blue-500 text-[12px] uppercase`}>Por que sugeri isso? (Transparência)</Text>
+                        </View>
 
-                    <View style={tw`gap-2`}>
-                        <View style={tw`flex-row gap-2`}>
-                            <Icon name="history" size={14} color="#6B7280" style={tw`mt-0.5`} />
-                            <Text style={tw`text-[11px] text-gray-500 flex-1 leading-snug`}>
-                                <Text style={tw`font-bold text-gray-700`}>Fonte dos Dados: </Text>
-                                Histórico de faturamento de Out/2025 a Dez/2025.
-                            </Text>
-                        </View>
-                        <View style={tw`flex-row gap-2`}>
-                            <Icon name="shuffle" size={14} color="#6B7280" style={tw`mt-0.5`} />
-                            <Text style={tw`text-[11px] text-gray-500 flex-1 leading-snug`}>
-                                <Text style={tw`font-bold text-gray-700`}>Lógica do Cross-Selling: </Text>
-                                O cliente comprou Macarrão Fantástico consistentemente, mas não comprou no último pedido.
-                            </Text>
-                        </View>
-                        <View style={tw`flex-row gap-2`}>
-                            <Icon name="local_shipping" size={14} color="#6B7280" style={tw`mt-0.5`} />
-                            <Text style={tw`text-[11px] text-gray-500 flex-1 leading-snug`}>
-                                <Text style={tw`font-bold text-gray-700`}>Otimização Logística: </Text>
-                                Adicionar itens leves (macarrão) em carga pesada (farelo) melhora a margem.
-                            </Text>
+                        <View style={tw`gap-2`}>
+                            {reasons.map((reason, idx) => (
+                                <View key={idx} style={tw`flex-row gap-2`}>
+                                    <Icon name={reason.icon || "info"} size={14} color="#6B7280" style={tw`mt-0.5`} />
+                                    <Text style={tw`text-[11px] text-gray-500 flex-1 leading-snug`}>
+                                        <Text style={tw`font-bold text-gray-700`}>{reason.title}: </Text>
+                                        {reason.text}
+                                    </Text>
+                                </View>
+                            ))}
                         </View>
                     </View>
-                </View>
+                )}
 
                 {/* Feedback Buttons */}
                 {!feedbackGiven ? (
