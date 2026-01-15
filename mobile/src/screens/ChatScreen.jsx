@@ -138,7 +138,7 @@ export default function ChatScreen({ navigation }) {
 
                 {/* Avatar */}
                 {!isUser ? (
-                    <View style={tw`w-8 h-8 rounded-full bg-orange-500 justify-center items-center shadow-sm mb-1`}>
+                    <View style={tw`w-8 h-8 rounded-full bg-accent-btn justify-center items-center shadow-sm mb-1`}>
                         {/* Fallback to simple color since linear gradient requires another lib, trying simple brand color */}
                         <MaterialIcons name="smart-toy" size={16} color="white" />
                     </View>
@@ -213,7 +213,7 @@ export default function ChatScreen({ navigation }) {
                     </View>
 
                     <TouchableOpacity
-                        style={tw`p-3 bg-brand-orange rounded-xl shadow-sm items-center justify-center`}
+                        style={tw`p-3 bg-accent-btn rounded-xl shadow-sm items-center justify-center`}
                         onPress={handleSend}
                         disabled={loading}
                     >
