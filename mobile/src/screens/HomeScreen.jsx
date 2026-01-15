@@ -1,6 +1,6 @@
 // Force update
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Platform, ScrollView } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Platform, ScrollView, Image } from 'react-native';
 import { getInsights, getInactiveCustomers } from '../services/api';
 import { create } from 'twrnc';
 
@@ -144,8 +144,12 @@ export default function HomeScreen({ navigation }) {
             {/* Header Section */}
             <View style={tw`mt-10 mb-6`}>
                 <View style={tw`flex-row items-center gap-4 mb-5`}>
-                    <View style={tw`w-12 h-12 rounded-full bg-red-100 items-center justify-center`}>
-                        <Text style={tw`text-2xl text-accent`}>📊</Text>
+                    <View style={tw`w-16 h-16 rounded-full bg-white items-center justify-center shadow-sm border border-gray-100`}>
+                        <Image
+                            source={require('../../assets/logo_fantastico.png')}
+                            style={tw`w-12 h-12`}
+                            resizeMode="contain"
+                        />
                     </View>
                     <View>
                         <Text style={tw`text-xl font-bold text-primary leading-tight`}>Performance de Clientes</Text>
