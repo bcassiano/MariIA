@@ -27,7 +27,10 @@ export default function PitchCard({ pitch, onFeedback }) {
     const profileText = isStructured ? pitch.profile_summary : "Análise não disponível.";
     const frequencyText = isStructured ? pitch.frequency_assessment : "Análise não disponível.";
     const pitchText = isStructured ? pitch.pitch_text : (typeof pitch === 'string' ? pitch : "Erro na análise.");
+
     const reasons = isStructured && Array.isArray(pitch.reasons) ? pitch.reasons : [];
+    const suggestedOrder = isStructured && Array.isArray(pitch.suggested_order) ? pitch.suggested_order : [];
+    const motivation = isStructured ? pitch.motivation : "Boas vendas!";
 
     // Helper to bold text wrapped in **
     const renderStyledText = (text, style) => {
@@ -42,6 +45,13 @@ export default function PitchCard({ pitch, onFeedback }) {
                 })}
             </Text>
         );
+    };
+
+    // Helper clean quantity (removes text)
+    const cleanQty = (qty) => {
+        if (!qty) return 0;
+        const num = parseFloat(String(qty).replace(/[^0-9.]/g, ''));
+        return isNaN(num) ? 0 : num;
     };
 
     return (
@@ -106,7 +116,75 @@ export default function PitchCard({ pitch, onFeedback }) {
                             </Text>
                         </View>
                     </View>
+
+                    {/* SUGGESTED ORDER TABLE - REFACTORED */}
+                    {suggestedOrder.length > 0 && (
+                        <View style={tw`mt-4 bg-white rounded-lg p-3 border border-gray-200`}>
+                            <View style={tw`flex-row items-center gap-2 mb-2 border-b border-gray-100 pb-2`}>
+                                <Icon name="receipt_long" size={18} color="#15803d" />
+                                <Text style={tw`font-bold text-green-700 text-xs uppercase`}>Pedido ideal Mari IA</Text>
+                            </View>
+
+                            {/* Table Header */}
+                            <View style={tw`flex-row mb-1`}>
+                                <Text style={tw`flex-1 text-[10px] font-bold text-gray-500`}>PRODUTO/SKU</Text>
+                                <Text style={tw`w-12 text-[10px] font-bold text-gray-500 text-center`}>VAL. UN</Text>
+                                <Text style={tw`w-8 text-[10px] font-bold text-gray-500 text-center`}>QTD</Text>
+                                <Text style={tw`w-16 text-[10px] font-bold text-gray-500 text-center`}>TOTAL</Text>
+                            </View>
+
+                            {/* Items */}
+                            {suggestedOrder.map((item, idx) => {
+                                const numericQty = cleanQty(item.quantity);
+                                const numericPrice = parseFloat(item.unit_price) || 0;
+                                const totalItem = numericQty * numericPrice;
+
+                                return (
+                                    <View key={idx} style={tw`flex-row py-1.5 border-t border-gray-50 items-center`}>
+                                        <View style={tw`flex-1 pr-2`}>
+                                            <Text style={tw`text-[11px] font-bold text-gray-800 leading-tight`}>{item.product_name}</Text>
+                                            <Text style={tw`text-[9px] text-gray-400`}>{item.sku}</Text>
+                                        </View>
+                                        <Text style={tw`w-12 text-[11px] font-bold text-gray-800 text-center`}>
+                                            {typeof item.unit_price === 'number' || !isNaN(parseFloat(item.unit_price))
+                                                ? (parseFloat(item.unit_price)).toFixed(2)
+                                                : '--'}
+                                        </Text>
+                                        <Text style={tw`w-8 text-[11px] font-bold text-gray-800 text-center`}>{numericQty}</Text>
+                                        <Text style={tw`w-16 text-[11px] font-bold text-gray-800 text-center`}>
+                                            {totalItem > 0 ? totalItem.toFixed(2) : (item.total || '--')}
+                                        </Text>
+                                    </View>
+                                )
+                            })}
+
+                            {/* Order Total Row */}
+                            <View style={tw`flex-row justify-end items-center mt-2 pt-2 border-t border-gray-200`}>
+                                <Text style={tw`text-xs font-bold text-gray-600 mr-2`}>TOTAL PEDIDO:</Text>
+                                <Text style={tw`text-sm font-bold text-green-700`}>
+                                    R$ {suggestedOrder.reduce((acc, item) => {
+                                        const qty = cleanQty(item.quantity);
+                                        const price = parseFloat(item.unit_price) || 0;
+                                        return acc + (qty * price);
+                                    }, 0).toFixed(2)}
+                                </Text>
+                            </View>
+                        </View>
+                    )}
+
                 </View>
+
+                {/* MOTIVATION FOOTER - High Contrast */}
+                {motivation && (
+                    <View style={tw`bg-indigo-900 mx-4 mb-4 p-4 rounded-xl shadow-md border-l-4 border-yellow-400`}>
+                        <View style={tw`flex-row items-center gap-3`}>
+                            <Icon name="emoji_events" size={24} color="#FACC15" />
+                            <Text style={tw`flex-1 text-white font-bold text-sm italic leading-snug`}>
+                                "{motivation}"
+                            </Text>
+                        </View>
+                    </View>
+                )}
 
                 {/* 4. Transparência */}
                 {reasons.length > 0 && (

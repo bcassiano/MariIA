@@ -5,7 +5,7 @@ import { Platform } from 'react-native';
 // Prod: Cloud Run
 // const API_URL = 'https://mariia-backend-635293407607.us-central1.run.app';
 // Dev Local (IP da sua máquina ou localhost para Web)
-const API_URL = 'http://192.168.0.72:8001'; // Changed to Local LAN IP for Mobile Access
+const API_URL = 'http://192.168.0.72:8000'; // Changed to Local LAN IP for Mobile Access
 
 const api = axios.create({
     baseURL: API_URL,

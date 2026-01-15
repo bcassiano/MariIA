@@ -27,7 +27,11 @@ app.add_middleware(
 from fastapi import Security, Depends
 from fastapi.security.api_key import APIKeyHeader
 
-API_KEY = os.getenv("API_KEY", "mariia-secret-key-123") # Em produção, use .env forte
+# --- Configurações ---
+from src.core.config import get_settings
+settings = get_settings()
+
+API_KEY = settings.API_KEY
 api_key_header = APIKeyHeader(name="x-api-key", auto_error=False)
 
 async def get_api_key(api_key_header: str = Security(api_key_header)):
@@ -222,10 +226,10 @@ class FeedbackRequest(BaseModel):
     user_id: Optional[str] = None
 
 @app.post("/pitch", dependencies=[Depends(get_api_key)])
-def generate_pitch(request: PitchRequest):
+async def generate_pitch(request: PitchRequest):
     """Gera um pitch de vendas usando IA."""
     try:
-        pitch = agent.generate_pitch(request.card_code, request.target_sku, vendor_filter=CURRENT_VENDOR)
+        pitch = await agent.generate_pitch(request.card_code, request.target_sku, vendor_filter=CURRENT_VENDOR)
         pitch_id = str(uuid.uuid4())
         
         if not isinstance(pitch, dict):
@@ -283,10 +287,10 @@ def pitch_feedback(request: FeedbackRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/chat", dependencies=[Depends(get_api_key)])
-def chat_with_agent(request: ChatRequest):
+async def chat_with_agent(request: ChatRequest):
     """Conversa com o assistente."""
     try:
-        response = agent.chat(request.message, request.history, vendor_filter=CURRENT_VENDOR)
+        response = await agent.chat(request.message, request.history, vendor_filter=CURRENT_VENDOR)
         return {"response": response}
     except Exception as e:
         import traceback

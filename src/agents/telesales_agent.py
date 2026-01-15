@@ -13,19 +13,20 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'
 from src.database.connector import DatabaseConnector
 
 # Configurações Vertex AI
-PROJECT_ID = os.getenv("PROJECT_ID", "amazing-firefly-475113-p3")
-LOCATION = os.getenv("LOCATION", "us-central1")
+from src.core.config import get_settings
+settings = get_settings()
+
 GLOBAL_ENDPOINT = "aiplatform.googleapis.com"
-MODEL_ID = "gemini-3-pro-preview" 
+ 
 
 class TelesalesAgent:
     def __init__(self):
         print("DEBUG: Iniciando Vertex AI...", flush=True)
         try:
             # FIX: Força o endpoint global para evitar 404 em modelos preview/novos
-            vertexai.init(project=PROJECT_ID, location=LOCATION, api_endpoint=GLOBAL_ENDPOINT)
+            vertexai.init(project=settings.PROJECT_ID, location=settings.LOCATION, api_endpoint=GLOBAL_ENDPOINT)
             self.model = GenerativeModel(
-                model_name=MODEL_ID,
+                model_name=settings.MODEL_ID,
                 system_instruction="""
                 Você é um Assistente Especialista em Televendas (B2B).
                 Sua missão é analisar dados de clientes e produtos para gerar insights acionáveis e argumentos de venda.
@@ -302,8 +303,8 @@ class TelesalesAgent:
         """
         return self.db.get_dataframe(query, params={"days": days})
 
-    def generate_pitch(self, card_code: str, target_sku: str = "", vendor_filter: str = None) -> str:
-        """Gera um pitch de vendas personalizado com persona de Consultor de Sucesso."""
+    async def generate_pitch(self, card_code: str, target_sku: str = "", vendor_filter: str = None) -> dict:
+        """Gera um pitch de vendas personalizado com persona de Consultor de Sucesso (Async)."""
         
         # 0. Validação de Carteira (Se filtro estiver ativo)
         if vendor_filter:
@@ -356,37 +357,38 @@ class TelesalesAgent:
         <system_instructions>
         Você é um Consultor de Sucesso do Cliente Sênior.
         
-        OBJETIVO: Analisar os dados do cliente e gerar uma sugestão de venda estruturada.
+        OBJETIVO: Analisar os dados do cliente e gerar uma sugestão de venda PRÁTICA e DIRETA.
         
         **ESTRUTURA DE RESPOSTA (JSON OBRIGATÓRIO):**
         Você DEVE responder APENAS com um JSON válido seguindo exatamente este formato (sem markdown, sem ```json):
         {{
-            "profile_summary": "Uma frase resumindo o perfil de compra do cliente (ex: 'Cliente de alto volume focado em commodities'). Use **negrito** para destacar produtos chave.",
-            "frequency_assessment": "Uma frase analisando a frequência de compra. Diga se está 'Em dia', 'Atrasado' ou 'Risco de Churn'. Use tags como **Risco Alto** se necessário.",
-            "pitch_text": "O script de abordagem completo para WhatsApp (Saudação + Investigação + Oferta do Arroz + Fechamento).",
+            "profile_summary": "Uma frase resumindo o perfil de compra (ex: 'Cliente Commodities - Foco Arroz/Feijão').",
+            "frequency_assessment": "Status: 'Em dia', 'Atrasado' ou 'Risco' (Seja breve).",
+            "pitch_text": "Script curto para WhatsApp. Sem saudações longas. Vá direto ao ponto: 'Vi que seu estoque de X está baixo. Sugiro repor Y tb'.",
+            "suggested_order": [
+                {{
+                    "sku": "A001 (Exemplo)",
+                    "product_name": "Nome do Produto",
+                    "quantity": "Quantidade (APENAS NÚMEROS, ex: 10)",
+                    "unit_price": "Preço Unitário (floater)",
+                    "total": "Total (floater)"
+                }}
+            ],
+            "motivation": "Frase curta para motivar o vendedor (máx 15 palavras).",
             "reasons": [
                 {{
                     "icon": "history",
-                    "title": "Fonte dos Dados",
-                    "text": "Explique de onde tirou a conclusão (ex: 'Baseado nas compras de Outubro')."
-                }},
-                {{
-                    "icon": "shuffle",
-                    "title": "Estratégia de Mix",
-                    "text": "Por que sugeriu esse produto específico?"
-                }},
-                {{
-                    "icon": "local_shipping",
-                    "title": "Logística/Oportunidade",
-                    "text": "Algum argumento de frete ou oportunidade de preço?"
+                    "title": "Fonte",
+                    "text": "Baseado na média de compras."
                 }}
             ]
         }}
 
-        DIRETRIZES DE ANÁLISE:
-        1. Compare as datas. Se > 30 dias sem compra, o tom deve ser de RECONQUISTA.
-        2. Force a venda de ARROZ (1kg ou 2kg) no pitch.
-        3. No 'profile_summary', seja direto sobre o que ele compra (ex: "Compra muito Feijão mas pouco Arroz").
+        DIRETRIZES:
+        1. SEJA MÍNIMALISTA. O vendedor está na rua e tem pouco tempo.
+        2. Force a venda de ARROZ (1kg ou 2kg).
+        3. Se não tiver preço exato, use o do último pedido ou deixe indicativo.
+        4. O 'suggested_order' deve ser técnico. 'quantity' DEVE SER APENAS O NÚMERO (Ex: 10, e NÃO "10 Fardos").
         </system_instructions>
         """
 
@@ -397,7 +399,8 @@ class TelesalesAgent:
         # 3. Chama o Gemini
         try:
             print(f"DEBUG: Enviando prompt para AI (Tamanho: {len(prompt)} chars)")
-            response = self.model.generate_content(
+            # ASYNC CALL
+            response = await self.model.generate_content_async(
                 prompt,
                 generation_config={
                     "max_output_tokens": 8192,
@@ -422,12 +425,15 @@ class TelesalesAgent:
                 # Validação Extra: Se a IA devolveu string JSON ("..."), transforma em dict
                 if isinstance(pitch_data, str):
                     print("AVISO: IA retornou string JSON válida, mas não objeto. Ajustando.")
-                    return {
-                        "pitch_text": pitch_data, 
-                        "profile_summary": "Perfil não estruturado pela IA.",
+                    default_keys = {
+                        "pitch_text": "Texto indisponível.",
+                        "profile_summary": "Análise não disponível.",
                         "frequency_assessment": "Verificar histórico.",
+                        "suggested_order": [],
+                        "motivation": "Vamos pra cima!",
                         "reasons": []
                     }
+                    return {**default_keys, "pitch_text": pitch_data}
                     
                 return pitch_data
             except json.JSONDecodeError as je:
@@ -444,8 +450,8 @@ class TelesalesAgent:
         except Exception as e:
             return {"pitch_text": f"Erro técnico ao gerar pitch: {e}", "profile_summary": "Erro", "frequency_assessment": "Erro", "reasons": []}
 
-    def chat(self, user_message: str, history: list = [], vendor_filter: str = None) -> str:
-        """Conversa livre com o assistente, com capacidade de buscar dados de clientes."""
+    async def chat(self, user_message: str, history: list = [], vendor_filter: str = None) -> str:
+        """Conversa livre com o assistente, com capacidade de buscar dados de clientes (Async)."""
         if not self.model:
             return "O modelo de IA não está disponível no momento."
             
@@ -551,7 +557,7 @@ class TelesalesAgent:
 
             ASSISTENTE:"""
             
-            response = self.model.generate_content(
+            response = await self.model.generate_content_async(
                 prompt,
                 generation_config={
                     "max_output_tokens": 8192,
@@ -582,6 +588,8 @@ class TelesalesAgent:
 
 # --- CLI para Teste ---
 if __name__ == "__main__":
+    import asyncio
+    
     parser = argparse.ArgumentParser(description="Agente de Televendas MariIA")
     parser.add_argument("--customer", type=str, help="Código do Cliente (CardCode)")
     parser.add_argument("--sku", type=str, help="SKU Alvo para venda (Opcional)", default="")
@@ -599,7 +607,8 @@ if __name__ == "__main__":
             print(f"--- Simulando Vendedor: {args.vendor} ---")
             
         print("Gerando Pitch de Vendas...\n")
-        print(agent.generate_pitch(args.customer, args.sku, vendor_filter=args.vendor))
+        # Run async method
+        print(asyncio.run(agent.generate_pitch(args.customer, args.sku, vendor_filter=args.vendor)))
         
     elif args.insights:
         print(f"\n--- Insights de Vendas (Top 50 - {args.min_days} a {args.max_days} dias) ---")
