@@ -120,9 +120,18 @@ export default function PitchCard({ pitch, onFeedback }) {
                     {/* SUGGESTED ORDER TABLE - REFACTORED */}
                     {suggestedOrder.length > 0 && (
                         <View style={tw`mt-4 bg-white rounded-lg p-3 border border-gray-200`}>
-                            <View style={tw`flex-row items-center gap-2 mb-2 border-b border-gray-100 pb-2`}>
-                                <Icon name="receipt_long" size={18} color="#15803d" />
-                                <Text style={tw`font-bold text-green-700 text-xs uppercase`}>Pedido ideal Mari IA</Text>
+                            <View style={tw`flex-row items-center justify-between mb-2 border-b border-gray-100 pb-2`}>
+                                <View style={tw`flex-row items-center gap-2`}>
+                                    <Icon name="receipt_long" size={18} color="#15803d" />
+                                    <Text style={tw`font-bold text-green-700 text-xs uppercase`}>Pedido ideal Mari IA</Text>
+                                </View>
+                                <TouchableOpacity
+                                    style={tw`bg-accent-btn px-3 py-1.5 rounded-full flex-row items-center gap-1 shadow-sm`}
+                                    onPress={() => Alert.alert('Sucesso', 'Pedido criado com sucesso!')}
+                                >
+                                    <Icon name="add_shopping_cart" size={14} color="white" />
+                                    <Text style={tw`text-white text-[10px] font-bold`}>Criar Pedido</Text>
+                                </TouchableOpacity>
                             </View>
 
                             {/* Table Header */}

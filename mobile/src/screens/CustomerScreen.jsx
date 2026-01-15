@@ -286,7 +286,7 @@ export default function CustomerScreen({ route }) {
                     <View style={tw`flex-row items-center justify-between mb-2`}>
                         <Text style={tw`text-lg font-bold text-gray-900 dark:text-white`}>Tendências de Vendas</Text>
                         <TouchableOpacity
-                            style={tw`bg-[#F05527] px-3 py-1.5 rounded-full flex-row items-center gap-1 shadow-sm`}
+                            style={tw`bg-accent-btn px-3 py-1.5 rounded-full flex-row items-center gap-1 shadow-sm`}
                             onPress={handleGeneratePitch}
                             disabled={pitchLoading}
                         >
@@ -505,15 +505,7 @@ export default function CustomerScreen({ route }) {
                     <Text style={tw`text-[10px] text-gray-500`}>Powered by AI</Text>
                 </View>
 
-                {/* Static Bottom Actions (Scrolls with content) */}
-                <View style={tw`w-full bg-white dark:bg-surface-dark px-4 pt-4 pb-8 border-t border-gray-200 dark:border-gray-800 flex-row gap-3`}>
-                    <TouchableOpacity style={tw`flex-1 bg-brand-navy py-3 rounded-xl items-center shadow-md active:opacity-90`}>
-                        <Text style={tw`text-white font-semibold text-[15px]`}>Contatar Cliente</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={tw`flex-1 bg-brand-navy py-3 rounded-xl items-center shadow-md active:opacity-90`}>
-                        <Text style={tw`text-white font-semibold text-[15px]`}>Criar Novo Pedido</Text>
-                    </TouchableOpacity>
-                </View>
+
             </ScrollView>
 
             {/* Sales Trend Modal */}

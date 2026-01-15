@@ -240,7 +240,7 @@ export default function HomeScreen({ navigation }) {
             )}
 
             <TouchableOpacity
-                style={tw`absolute bottom-6 right-6 bg-chat-orange w-16 h-16 rounded-full items-center justify-center shadow-lg elevation-5 z-50 border-2 border-white`}
+                style={tw`absolute bottom-6 right-6 bg-accent-btn w-16 h-16 rounded-full items-center justify-center shadow-lg elevation-5 z-50 border-2 border-white`}
                 onPress={() => navigation.navigate('Chat')}
             >
                 <Text style={tw`text-3xl text-white`}>💬</Text>
