@@ -13,12 +13,78 @@ const STORAGE_KEY = '@mariia_chat_history';
 
 export default function ChatScreen({ navigation }) {
     const [messages, setMessages] = useState([
-        { id: 1, text: "Olá! Sou a Mari, sua assistente de vendas da Fantástico Alimentos. 🌾\n\nPosso ajudar você a analisar vendas de arroz, feijão e macarrão, ou encontrar oportunidades de recuperação de clientes. O que vamos fazer hoje?", sender: 'bot', time: '09:42' }
+        { id: 1, text: "Olá! Sou a Mari IA a inteligência Artificial da Fantástico Alimentos. 🌾\n\nPosso ajudar você a analisar vendas de arroz, feijão e macarrão, ou encontrar oportunidades de recuperação de clientes. O que vamos fazer hoje?", sender: 'bot', time: '09:42' }
     ]);
     const [inputText, setInputText] = useState('');
     const [loading, setLoading] = useState(false);
+    const [thinkingText, setThinkingText] = useState('');
     const flatListRef = useRef(null);
     const insets = useSafeAreaInsets();
+    const abortControllerRef = useRef(null);
+
+    // ... (useEffect for history loading/saving remains the same)
+
+    // Efeito para animação de "Pensando..."
+    useEffect(() => {
+        let interval;
+        if (loading) {
+            let dots = 0;
+            interval = setInterval(() => {
+                dots = (dots + 1) % 4;
+                setThinkingText(`Mari está pensando${'.'.repeat(dots)}`);
+            }, 500);
+        } else {
+            setThinkingText('');
+        }
+        return () => clearInterval(interval);
+    }, [loading]);
+
+
+
+    const handleSend = async () => {
+        if (!inputText.trim()) return;
+
+        const userMsg = { id: Date.now(), text: inputText, sender: 'user', time: getCurrentTime() };
+        setMessages(prev => [...prev, userMsg]);
+        setInputText('');
+        setLoading(true);
+
+        // Cancel previous request if any
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+
+        // Create new controller
+        abortControllerRef.current = new AbortController();
+
+        try {
+            // Pass signal to api call (Need to update api.js to accept signal if not already supported, 
+            // but for now we simulate cancellation in UI or assume axios supports it)
+            // Note: detailed implementation depends on api.js support.
+
+            const result = await sendChatMessage(userMsg.text, messages, abortControllerRef.current.signal);
+
+            const botMsg = {
+                id: Date.now() + 1,
+                text: result.response || "Desculpe, não entendi.",
+                sender: 'bot',
+                time: getCurrentTime()
+            };
+            setMessages(prev => [...prev, botMsg]);
+        } catch (error) {
+            if (error.name === 'AbortError' || error.message === 'Canceled') {
+                console.log('Request canceled');
+            } else {
+                const errorMsg = { id: Date.now() + 1, text: "Erro de conexão ou resposta.", sender: 'bot', time: getCurrentTime() };
+                setMessages(prev => [...prev, errorMsg]);
+            }
+        } finally {
+            setLoading(false);
+            abortControllerRef.current = null;
+        }
+    };
+
+
 
     // Carrega histórico ao iniciar
     useEffect(() => {
@@ -95,77 +161,7 @@ export default function ChatScreen({ navigation }) {
         }
     };
 
-    const getCurrentTime = () => {
-        const now = new Date();
-        return now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    };
 
-    const handleSend = async () => {
-        if (!inputText.trim()) return;
-
-        const userMsg = { id: Date.now(), text: inputText, sender: 'user', time: getCurrentTime() };
-        setMessages(prev => [...prev, userMsg]);
-        setInputText('');
-        setLoading(true);
-
-        try {
-            const result = await sendChatMessage(userMsg.text, messages);
-            const botMsg = {
-                id: Date.now() + 1,
-                text: result.response || "Desculpe, não entendi.",
-                sender: 'bot',
-                time: getCurrentTime()
-            };
-            setMessages(prev => [...prev, botMsg]);
-        } catch (error) {
-            const errorMsg = { id: Date.now() + 1, text: "Erro de conexão.", sender: 'bot', time: getCurrentTime() };
-            setMessages(prev => [...prev, errorMsg]);
-        }
-        setLoading(false);
-    };
-
-    const handleKeyPress = (e) => {
-        if (Platform.OS === 'web' && e.nativeEvent.key === 'Enter' && !e.nativeEvent.shiftKey) {
-            e.preventDefault();
-            handleSend();
-        }
-    };
-
-    const renderItem = ({ item }) => {
-        const isUser = item.sender === 'user';
-        return (
-            <View style={tw`flex-row ${isUser ? 'flex-row-reverse' : ''} items-end gap-2 mb-6 px-4`}>
-
-                {/* Avatar */}
-                {!isUser ? (
-                    <View style={tw`w-8 h-8 rounded-full bg-accent-btn justify-center items-center shadow-sm mb-1`}>
-                        {/* Fallback to simple color since linear gradient requires another lib, trying simple brand color */}
-                        <MaterialIcons name="smart-toy" size={16} color="white" />
-                    </View>
-                ) : (
-                    <View style={tw`w-8` /* Spacer for alignment if needed, or remove */} />
-                )}
-
-                <View style={tw`flex-col ${isUser ? 'items-end' : 'items-start'} max-w-[85%]`}>
-                    <Text style={tw`text-[10px] text-gray-400 mb-1 mx-1`}>
-                        {isUser ? `Você • ${item.time || ''}` : `Mari IA • ${item.time || ''}`}
-                    </Text>
-
-                    <View style={tw`
-                        p-3.5 rounded-2xl shadow-sm
-                        ${isUser
-                            ? 'bg-brand-navy rounded-br-none'
-                            : 'bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-700 rounded-bl-none'
-                        }
-                    `}>
-                        <Text style={tw`text-[15px] leading-relaxed ${isUser ? 'text-white' : 'text-gray-800 dark:text-gray-200'}`}>
-                            {item.text}
-                        </Text>
-                    </View>
-                </View>
-            </View>
-        );
-    };
 
     return (
         <KeyboardAvoidingView
@@ -214,17 +210,20 @@ export default function ChatScreen({ navigation }) {
 
                     <TouchableOpacity
                         style={tw`p-3 bg-accent-btn rounded-xl shadow-sm items-center justify-center`}
-                        onPress={handleSend}
-                        disabled={loading}
+                        onPress={loading ? handleStop : handleSend}
                     >
                         {loading ? (
-                            <ActivityIndicator size="small" color="white" />
+                            <MaterialIcons name="stop" size={20} color="white" />
                         ) : (
                             <MaterialIcons name="send" size={20} color="white" />
                         )}
                     </TouchableOpacity>
                 </View>
+                {loading && (
+                    <Text style={tw`text-[10px] text-gray-400 text-center mt-2 italic`}>{thinkingText}</Text>
+                )}
             </View>
-        </KeyboardAvoidingView>
+        </View>
+        </KeyboardAvoidingView >
     );
 }

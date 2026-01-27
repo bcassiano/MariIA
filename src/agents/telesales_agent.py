@@ -375,7 +375,37 @@ class TelesalesAgent:
         GROUP BY Vendedor_Atual
         ORDER BY Total_Vendas DESC
         """
-        return self.db.get_dataframe(query, params={"days": days})
+        df = self.db.get_dataframe(query, params={"days": days})
+        
+        # Resolve nomes de vendedores
+        if not df.empty and 'Vendedor' in df.columns:
+            df['Vendedor'] = df['Vendedor'].apply(self._resolve_vendor_name)
+            
+        return df
+
+    def _resolve_vendor_name(self, vendor_str: str) -> str:
+        """Resolve códigos de vendedor para nomes legíveis."""
+        if not vendor_str:
+            return "Desconhecido"
+            
+        # Dicionário de Correção Manual (Codes -> Nomes)
+        manual_map = {
+            "V.vp": "Vendedor Paulo",
+            "R.ka": "Luiz Sorato",
+            "V.tv": "Elen Hasman"
+        }
+        
+        # 1. Verifica match exato no dicionário
+        clean_code = vendor_str.strip()
+        if clean_code in manual_map:
+            return manual_map[clean_code]
+            
+        # 2. Se já tiver hífen, assume que já tem nome (Ex: "R.ka - Luiz Sorato")
+        if " - " in vendor_str:
+            return vendor_str.split(" - ")[-1] # Retorna só o nome
+            
+        # 3. Fallback: Retorna o próprio código se não conhecer
+        return vendor_str
 
     async def generate_pitch(self, card_code: str, target_sku: str = "", vendor_filter: str = None) -> dict:
         """Gera um pitch de vendas personalizado com persona de Consultor de Sucesso (Async)."""
