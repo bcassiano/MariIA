@@ -48,4 +48,4 @@ jobs:
           --platform managed \
           --allow-unauthenticated \
           --vpc-connector mariia-vpc-conn \
-          --set-env-vars "DB_SERVER=192.168.1.85,DB_DATABASE=RUSTON_PRODUCAO,DB_USER=powerbi,DB_PASSWORD=P0w3rB1@25,DB_DRIVER=ODBC Driver 18 for SQL Server,API_KEY=mariia-secret-key-123,MODEL_ID=gemini-1.5-pro-preview-0409"
+          --set-env-vars "DB_SERVER=192.168.1.85,DB_DATABASE=RUSTON_PRODUCAO,DB_USER=powerbi,DB_PASSWORD=P0w3rB1@25,DB_DRIVER=ODBC Driver 18 for SQL Server,API_KEY=mariia-secret-key-123,MODEL_ID=gemini-3-pro-preview"
