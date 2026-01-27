@@ -17,7 +17,7 @@ if ($LASTEXITCODE -ne 0) {
 # 3. Deploy no Firebase
 Write-Host "Enviando para o Firebase Hosting..."
 # O --non-interactive evita que ele trave pedindo input, mas requer login prévio
-npx firebase deploy --only hosting
+npx firebase deploy --only hosting --project amazing-firefly-475113-p3
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Erro no Deploy. Tente rodar 'npx firebase login' antes." -ForegroundColor Red
