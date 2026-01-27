@@ -123,16 +123,29 @@ export default function HomeScreen({ navigation }) {
                         </Text>
                     </View>
 
-                    <View style={tw.style(
-                        `w-8 h-8 rounded-full flex items-center justify-center`,
-                        viewMode === 'active' ? 'bg-primary/10' : 'bg-red-50'
-                    )}>
-                        <Text style={tw.style(
-                            `font-bold`,
-                            viewMode === 'active' ? 'text-primary' : 'text-accent'
+                    <View style={tw`flex-row items-center`}>
+                        {item.Media_Fardos != null && (
+                            <View style={tw`items-end mr-3`}>
+                                <Text style={tw`text-[10px] uppercase tracking-wider text-text-sub-light mb-0.5 font-medium`}>
+                                    Média FD:
+                                </Text>
+                                <Text style={tw`text-sm font-bold text-green-600`}>
+                                    {item.Media_Fardos}
+                                </Text>
+                            </View>
+                        )}
+
+                        <View style={tw.style(
+                            `w-8 h-8 rounded-full flex items-center justify-center`,
+                            viewMode === 'active' ? 'bg-primary/10' : 'bg-red-50'
                         )}>
-                            {'>'}
-                        </Text>
+                            <Text style={tw.style(
+                                `font-bold`,
+                                viewMode === 'active' ? 'text-primary' : 'text-accent'
+                            )}>
+                                {'>'}
+                            </Text>
+                        </View>
                     </View>
                 </View>
             </View>

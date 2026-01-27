@@ -119,14 +119,24 @@ class TelesalesAgent:
         from datetime import datetime, timedelta
         
         # Datas formatadas como YYYY-MM-DD (seguro para SQL Server e sem colons)
+        # Datas formatadas como YYYY-MM-DD (seguro para SQL Server e sem colons)
         end_date_dt = datetime.now() - timedelta(days=min_days)
         start_date_dt = datetime.now() - timedelta(days=max_days)
         
+        # Data para a Média de Fardos (Sempre 6 meses atrás)
+        six_months_ago_dt = datetime.now() - timedelta(days=180)
+        
         end_date = end_date_dt.strftime('%Y-%m-%d')
         start_date = start_date_dt.strftime('%Y-%m-%d')
+        six_months_ago = six_months_ago_dt.strftime('%Y-%m-%d')
+        
+        # Define a data mínima para a cláusula WHERE (a mais antiga entre o filtro e 6 meses)
+        where_min_date = min(start_date, six_months_ago)
 
         # Otimização: Agrupa apenas pelo Código (mais rápido) e pega o MAX dos textos
-        # Lógica: >= DataInicio AND < DataFim + 1 dia (para pegar o dia todo até 23:59:59.999 sem usar colons)
+        # Lógica: 
+        # 1. Total_Venda: Soma apenas dentro do filtro escolhido
+        # 2. Media_Fardos: Soma Fardos dos ultimos 6 meses / 6
         query = f"""
         SELECT TOP 50
             Codigo_Cliente,
@@ -134,13 +144,26 @@ class TelesalesAgent:
             MAX(Cidade) as Cidade,
             MAX(Estado) as Estado,
             MAX(Data_Emissao) as Ultima_Compra,
-            SUM(COALESCE(Valor_Liquido, Valor_Total_Linha)) as Total_Venda
+            SUM(CASE 
+                WHEN Data_Emissao >= '{start_date}' AND Data_Emissao < DATEADD(day, 1, '{end_date}') 
+                THEN COALESCE(Valor_Liquido, Valor_Total_Linha) 
+                ELSE 0 
+            END) as Total_Venda,
+            CAST(SUM(CASE 
+                WHEN Data_Emissao >= '{six_months_ago}' AND Unidade_Medida LIKE '%FD%' 
+                THEN Quantidade 
+                ELSE 0 
+            END) / 6.0 AS DECIMAL(10,1)) as Media_Fardos
         FROM FAL_IA_Dados_Vendas_Televendas WITH (NOLOCK)
         WHERE Nome_Cliente NOT LIKE '%FANTASTICO ALIMENTOS LTDA%'
-        AND Data_Emissao >= '{start_date}' 
-        AND Data_Emissao < DATEADD(day, 1, '{end_date}')
+        AND Data_Emissao >= '{where_min_date}' 
         {vendor_condition}
         GROUP BY Codigo_Cliente
+        HAVING SUM(CASE 
+                WHEN Data_Emissao >= '{start_date}' AND Data_Emissao < DATEADD(day, 1, '{end_date}') 
+                THEN 1 
+                ELSE 0 
+            END) > 0
         ORDER BY Total_Venda DESC
         """
         
@@ -172,22 +195,38 @@ class TelesalesAgent:
         end_date = end_date_dt.strftime('%Y-%m-%d')
         start_date = start_date_dt.strftime('%Y-%m-%d')
 
-        # Otimização: Agrupa apenas pelo Código (mais rápido) e pega o MAX dos textos
+        # Otimização: CTE para filtrar Clientes Inativos primeiro, depois Join para calcular métricas
+        # Lógica da Média: (Soma de Fardos nos 6 meses ANTERIORES à Última Compra) / 6
         query = f"""
+        WITH TargetCustomers AS (
+            SELECT 
+                Codigo_Cliente,
+                MAX(Data_Emissao) as Ultima_Compra
+            FROM FAL_IA_Dados_Vendas_Televendas WITH (NOLOCK)
+            WHERE Nome_Cliente NOT LIKE '%FANTASTICO ALIMENTOS LTDA%'
+            {vendor_condition}
+            GROUP BY Codigo_Cliente
+            HAVING MAX(Data_Emissao) >= '{start_date}' 
+               AND MAX(Data_Emissao) < DATEADD(day, 1, '{end_date}')
+        )
         SELECT TOP 50
-            Codigo_Cliente,
-            MAX(Nome_Cliente) as Nome_Cliente,
-            MAX(Cidade) as Cidade,
-            MAX(Estado) as Estado,
-            MAX(Data_Emissao) as Ultima_Compra,
-            SUM(COALESCE(Valor_Liquido, Valor_Total_Linha)) as Total_Historico
-        FROM FAL_IA_Dados_Vendas_Televendas WITH (NOLOCK)
-        WHERE Nome_Cliente NOT LIKE '%FANTASTICO ALIMENTOS LTDA%'
-        {vendor_condition}
-        GROUP BY Codigo_Cliente
-        HAVING MAX(Data_Emissao) >= '{start_date}' 
-           AND MAX(Data_Emissao) < DATEADD(day, 1, '{end_date}')
-        ORDER BY Ultima_Compra DESC
+            T.Codigo_Cliente,
+            MAX(V.Nome_Cliente) as Nome_Cliente,
+            MAX(V.Cidade) as Cidade,
+            MAX(V.Estado) as Estado,
+            T.Ultima_Compra,
+            SUM(COALESCE(V.Valor_Liquido, V.Valor_Total_Linha)) as Total_Historico,
+            CAST(SUM(CASE 
+                WHEN V.Data_Emissao >= DATEADD(day, -180, T.Ultima_Compra) 
+                     AND V.Data_Emissao <= T.Ultima_Compra 
+                     AND V.Unidade_Medida LIKE '%FD%' 
+                THEN V.Quantidade 
+                ELSE 0 
+            END) / 6.0 AS DECIMAL(10,1)) as Media_Fardos
+        FROM TargetCustomers T
+        INNER JOIN FAL_IA_Dados_Vendas_Televendas V WITH (NOLOCK) ON T.Codigo_Cliente = V.Codigo_Cliente
+        GROUP BY T.Codigo_Cliente, T.Ultima_Compra
+        ORDER BY T.Ultima_Compra DESC
         """
         
         return self.db.get_dataframe(query)
