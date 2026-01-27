@@ -342,6 +342,41 @@ class TelesalesAgent:
         """
         return self.db.get_dataframe(query, params={"days": days})
 
+    @cached(cache=TTLCache(maxsize=1, ttl=300)) # Cache de 5 minutos
+    def get_company_kpis(self, days: int = 30) -> dict:
+        """Busca KPIs globais da empresa para visão da Diretoria."""
+        query = """
+        SELECT
+            SUM(COALESCE(Valor_Liquido, Valor_Total_Linha)) as Faturamento_Total,
+            COUNT(DISTINCT Numero_Documento) as Total_Pedidos,
+            COUNT(DISTINCT Codigo_Cliente) as Clientes_Ativos_Periodo,
+            CAST(SUM(CASE WHEN Unidade_Medida LIKE '%FD%' THEN Quantidade ELSE 0 END) AS DECIMAL(10,1)) as Total_Fardos
+        FROM FAL_IA_Dados_Vendas_Televendas WITH (NOLOCK)
+        WHERE Data_Emissao >= DATEADD(day, -:days, GETDATE())
+          AND Nome_Cliente NOT LIKE '%FANTASTICO ALIMENTOS LTDA%'
+        """
+        df = self.db.get_dataframe(query, params={"days": days})
+        if not df.empty:
+            return df.iloc[0].to_dict()
+        return {}
+
+    @cached(cache=TTLCache(maxsize=1, ttl=300)) # Cache de 5 minutos
+    def get_top_sellers(self, days: int = 30, limit: int = 5) -> pd.DataFrame:
+        """Busca ranking de vendedores por faturamento."""
+        query = f"""
+        SELECT TOP {limit}
+            Vendedor_Atual as Vendedor,
+            SUM(COALESCE(Valor_Liquido, Valor_Total_Linha)) as Total_Vendas,
+            COUNT(DISTINCT Numero_Documento) as Pedidos,
+            COUNT(DISTINCT Codigo_Cliente) as Clientes_Atendidos
+        FROM FAL_IA_Dados_Vendas_Televendas WITH (NOLOCK)
+        WHERE Data_Emissao >= DATEADD(day, -:days, GETDATE())
+          AND Nome_Cliente NOT LIKE '%FANTASTICO ALIMENTOS LTDA%'
+        GROUP BY Vendedor_Atual
+        ORDER BY Total_Vendas DESC
+        """
+        return self.db.get_dataframe(query, params={"days": days})
+
     async def generate_pitch(self, card_code: str, target_sku: str = "", vendor_filter: str = None) -> dict:
         """Gera um pitch de vendas personalizado com persona de Consultor de Sucesso (Async)."""
         
@@ -489,141 +524,229 @@ class TelesalesAgent:
         except Exception as e:
             return {"pitch_text": f"Erro técnico ao gerar pitch: {e}", "profile_summary": "Erro", "frequency_assessment": "Erro", "reasons": []}
 
+    async def classify_intent(self, user_message: str, history: list = []) -> str:
+        """Classifica a intenção do usuário usando LLM."""
+        if not self.model: return "UNKNOWN"
+        
+        prompt = f"""
+        Classifique a intenção da mensagem do usuário em uma das categorias abaixo.
+        Responda APENAS o nome da categoria.
+
+        CATEGORIAS:
+        - CUSTOMER_DETAIL: Perguntas sobre um cliente específico (Ex: "Como estão as compras do C00123?", "O Mercado X comprou?").
+        - SALES_OPERATIONAL: Perguntas operacionais de vendas (Ex: "Quem eu devo ligar?", "Minha carteira", "Clientes inativos").
+        - DIRECTOR_STRATEGIC: Perguntas gerenciais/estratégicas (Ex: "Quanto vendemos hoje?", "Resumo do mês", "Ranking de vendedores", "Ticket médio", "Como está a empresa?").
+        - CATALOG: Perguntas sobre produtos/preços gerais (Ex: "Qual o preço do Arroz?", "Temos Feijão?").
+        - CHIT_CHAT: Cumprimentos ou conversas fora do contexto de negócios.
+
+        Histórico recente (se houver): {str(history[-2:]) if history else 'Nenhum'}
+        Mensagem atual: "{user_message}"
+        
+        Categoria:"""
+        
+        try:
+            print(f"DEBUG: Classifying intent for: '{user_message}'")
+            response = await self.model.generate_content_async(
+                prompt,
+                generation_config={"max_output_tokens": 10, "temperature": 0.0}
+            )
+            raw_intent = response.text.upper().strip()
+            print(f"DEBUG: Raw Intent Response: {raw_intent}")
+            
+            valid_intents = ["CUSTOMER_DETAIL", "SALES_OPERATIONAL", "DIRECTOR_STRATEGIC", "CATALOG", "CHIT_CHAT"]
+            
+            # 1. Tenta match exato ou substring
+            for valid in valid_intents:
+                if valid in raw_intent:
+                    print(f"DEBUG: Intent detected: {valid}")
+                    return valid
+            
+            # 2. Fallback por palavras-chave (Segurança)
+            msg_lower = user_message.lower()
+            if any(x in msg_lower for x in ["faturamento", "total", "empresa", "meta", "ranking", "ticket", "vendedores"]):
+                print("DEBUG: Fallback Intent -> DIRECTOR_STRATEGIC")
+                return "DIRECTOR_STRATEGIC"
+            
+            if "carteira" in msg_lower or "ligar" in msg_lower:
+                print("DEBUG: Fallback Intent -> SALES_OPERATIONAL")
+                return "SALES_OPERATIONAL"
+
+            import re
+            if re.search(r'\bc\d+\b', msg_lower):
+                print("DEBUG: Fallback Intent -> CUSTOMER_DETAIL")
+                return "CUSTOMER_DETAIL"
+
+            return "CHIT_CHAT"
+
+        except Exception as e:
+            print(f"Erro ao classificar intenção: {e}")
+            # Fallback de emergência
+            if "faturamento" in user_message.lower(): return "DIRECTOR_STRATEGIC"
+            if re.search(r'\bc\d+\b', user_message.lower()): return "CUSTOMER_DETAIL"
+            return "CHIT_CHAT"
+
     async def chat(self, user_message: str, history: list = [], vendor_filter: str = None) -> str:
-        """Conversa livre com o assistente, com capacidade de buscar dados de clientes (Async)."""
+        """Conversa inteligente com roteamento de intenção e personas dinâmicas."""
         if not self.model:
             return "O modelo de IA não está disponível no momento."
-            
-        # Tenta identificar um código de cliente na mensagem (Ex: C00123)
-        import re
-        customer_match = re.search(r'\b(C\d+)\b', user_message, re.IGNORECASE)
-        
+
+        # Initialize vars to prevent UnboundLocalError
+        intent = "UNKNOWN"
         context_data = ""
+        system_persona = "Você é um Assistente de Vendas útil."
         
-        # Carrega catálogo de produtos (Top 50) para evitar alucinações
         try:
-            products_df = self.get_top_products()
-            if not products_df.empty:
-                products_list = products_df.to_markdown(index=False)
-                context_data += f"\n\n[CATÁLOGO DE PRODUTOS DISPONÍVEIS (TOP 50)]:\n{products_list}\n\nATENÇÃO: Apenas sugira produtos listados acima ou que constem no histórico do cliente. NÃO invente produtos."
-        except Exception as e:
-            print(f"Erro ao carregar produtos: {e}")
-        
-        # Cenário 1: Cliente Específico
-        if customer_match:
-            card_code = customer_match.group(1).upper()
-            try:
-                history_df = self.get_customer_history(card_code, limit=15)
-                if not history_df.empty:
-                    history_summary = history_df.to_markdown(index=False)
-                    context_data = f"\n\n[DADOS DO SISTEMA PARA O CLIENTE {card_code}]:\n{history_summary}\n\nUse esses dados para responder à pergunta do usuário com base no histórico real."
-                else:
-                    context_data = f"\n\n[SISTEMA]: Busquei no banco de dados, mas não encontrei vendas recentes para o cliente {card_code}."
-            except Exception as e:
-                print(f"Erro ao buscar dados no chat: {e}")
-
-        # Cenário 2: Carteira de Vendedor (Atualizado para usar Vendedor_Atual)
-        elif "carteira" in user_message.lower():
-            # Se o usuário pedir "minha carteira", usa o filtro do vendedor atual
-            target_vendor = vendor_filter if "minha" in user_message.lower() and vendor_filter else None
+            # 1. Identifica Intenção
+            intent = await self.classify_intent(user_message, history)
             
-            # Se não, tenta extrair o nome da mensagem
-            if not target_vendor:
-                vendor_match = re.search(r'carteira (?:de|da|do)?\s*([A-Za-zÀ-ÿ]+)', user_message, re.IGNORECASE)
-                if vendor_match:
-                    target_vendor = vendor_match.group(1)
+            # 2. Busca Dados baseados na Intenção
             
-            if target_vendor:
+            # --- CENÁRIO: DIRETORIA / ESTRATÉGICO ---
+            if intent == "DIRECTOR_STRATEGIC":
                 try:
-                    customers_df = self.get_customers_by_vendor(target_vendor)
-                    if not customers_df.empty:
-                        # Limita a 50 para não estourar tokens
-                        context_data = f"\n\n[DADOS DO SISTEMA - CARTEIRA ATUAL DE {target_vendor.upper()}]:\n{customers_df.head(50).to_markdown(index=False)}"
-                    else:
-                        context_data = f"\n\n[SISTEMA]: Não encontrei clientes na carteira atual de {target_vendor}."
+                    # Busca KPIs de 30 dias por padrão
+                    kpis = self.get_company_kpis(days=30)
+                    ranking = self.get_top_sellers(days=30, limit=5)
+                    
+                    context_data = f"""
+                    [DADOS ESTRATÉGICOS DA EMPRESA (ÚLTIMOS 30 DIAS)]:
+                    
+                    KPIs GLOBAIS:
+                    - Faturamento Total: {float(kpis.get('Faturamento_Total', 0) or 0):.2f}
+                    - Total Pedidos: {kpis.get('Total_Pedidos')}
+                    - Clientes Ativos (no período): {kpis.get('Clientes_Ativos_Periodo')}
+                    - Volume Total (Fardos): {kpis.get('Total_Fardos')}
+                    
+                    TOP 5 VENDEDORES (RANKING):
+                    {ranking.to_markdown(index=False)}
+                    """
+                    system_persona = """
+                    Você é um ANALISTA EXECUTIVO sênior reportando para a Diretoria.
+                    Seu tom deve ser: Profissional, Objetivo e Baseado em Dados.
+                    Ao responder:
+                    1. Comece com os números mais importantes (Faturamento, Volume).
+                    2. Dê insights sobre o ranking de vendedores.
+                    3. Se os números forem bons, elogie. Se ruins, sugira atenção.
+                    4. NÃO use gírias de vendedor. Use termos corporativos.
+                    """
                 except Exception as e:
-                    print(f"Erro ao buscar carteira: {e}")
-        
-        # Cenário 3: Perguntas Gerais sobre Vendas/Clientes
-        elif any(term in user_message.lower() for term in ["venda", "ligar", "cliente", "melhor", "top", "inativo", "parado", "comprou", "ranking", "faturamento", "data", "quando", "ultimo", "ultima", "lista", "tabela", "analise", "sugestao", "estrategia", "potencial"]):
-            try:
-                # Busca Top 20 Clientes Ativos (COM FILTRO SE HOUVER)
-                active_df = self.get_sales_insights(max_days=30, vendor_filter=vendor_filter).head(20)
-                
-                # Busca Top 20 Clientes Inativos (COM FILTRO SE HOUVER)
-                inactive_df = self.get_inactive_customers(max_days=30, vendor_filter=vendor_filter).head(20)
-                
-                context_data = f"""
-                \n\n[DADOS DO SISTEMA - TOP CLIENTES ATIVOS (30 DIAS) - CARTEIRA: {vendor_filter or 'TODOS'}]:
-                {active_df.to_markdown(index=False) if not active_df.empty else "Sem dados."}
-                
-                \n[DADOS DO SISTEMA - CLIENTES INATIVOS/RISCO (30 DIAS) - CARTEIRA: {vendor_filter or 'TODOS'}]:
-                {inactive_df.to_markdown(index=False) if not inactive_df.empty else "Sem dados."}
-                
-                \nUse essas listas para sugerir clientes para o vendedor ligar. Priorize inativos com alto histórico ou ativos com queda."""
-            except Exception as e:
-                print(f"Erro ao buscar insights no chat: {e}")
+                    context_data = f"Erro ao buscar dados de diretoria: {e}"
 
-        try:
-            # Formata o histórico para o prompt
+            # --- CENÁRIO: OPERACIONAL / CARTEIRA ---
+            elif intent == "SALES_OPERATIONAL":
+                try:
+                    # Tenta identificar vendedor específico ou usa o filtro
+                    target_vendor = vendor_filter
+                    import re
+                    vendor_match = re.search(r'carteira (?:de|da|do)?\s*([A-Za-zÀ-ÿ]+)', user_message, re.IGNORECASE)
+                    if vendor_match: target_vendor = vendor_match.group(1)
+                    
+                    # Busca insights operacionais (Ativos/Inativos)
+                    active_df = self.get_sales_insights(max_days=30, vendor_filter=target_vendor).head(10)
+                    inactive_df = self.get_inactive_customers(min_days=30, max_days=90, vendor_filter=target_vendor).head(10)
+                    
+                    context_data = f"""
+                    [DADOS OPERACIONAIS DE VENDAS (Filtro: {target_vendor or 'GERAL'})]:
+                    
+                    SUGESTÕES DE ATIVOS (Para Cross-sell):
+                    {active_df.to_markdown(index=False) if not active_df.empty else "Nenhum dado."}
+                    
+                    ALERTA DE INATIVOS (Risco de Churn - 30 a 90 dias sem compra):
+                    {inactive_df.to_markdown(index=False) if not inactive_df.empty else "Nenhum inativo crítico."}
+                    """
+                    system_persona = """
+                    Você é um SUPERVISOR DE VENDAS focado em resultado imediato.
+                    Seu objetivo é fazer o vendedor AGIR.
+                    Ao responder:
+                    1. Indique claramente quem ele deve priorizar (Inativos com alto histórico).
+                    2. Sugira ações práticas ("Ligue para o cliente X e oferte Y").
+                    3. Seja energético e motivador.
+                    """
+                except Exception as e:
+                    context_data = f"Erro ao buscar dados operacionais: {e}"
+
+            # --- CENÁRIO: DETALHE DO CLIENTE ---
+            elif intent == "CUSTOMER_DETAIL":
+                import re
+                # Tenta achar CXXXX
+                customer_match = re.search(r'\b(C\d+)\b', user_message, re.IGNORECASE)
+                # Se não achar no texto, tenta pegar do contexto anterior (history) - simplificado aqui
+                
+                if customer_match:
+                    card_code = customer_match.group(1).upper()
+                    try:
+                        history_df = self.get_customer_history(card_code, limit=10)
+                        details = self.get_customer_details(card_code)
+                        
+                        context_data = f"""
+                        [FICHA DO CLIENTE {card_code}]:
+                        Detalhes: {details}
+                        
+                        ÚLTIMAS COMPRAS:
+                        {history_df.to_markdown(index=False) if not history_df.empty else "Sem histórico recente."}
+                        """
+                        system_persona = """
+                        Você é um ASSISTENTE DE CONTA (Key Account Manager).
+                        Analise o histórico do cliente para responder.
+                        Se ele parou de comprar itens essenciais (Arroz/Feijão), alerte o usuário.
+                        """
+                    except Exception as e:
+                        context_data = f"Erro ao buscar cliente: {e}"
+                else:
+                    context_data = "O usuário perguntou sobre cliente, mas não identifiquei o código (Ex: C00123)."
+
+            # --- CENÁRIO: CATÁLOGO / PRODUTOS ---
+            elif intent == "CATALOG":
+                try:
+                    products_df = self.get_top_products()
+                    context_data = f"""
+                    [CATÁLOGO - TOP 50 PRODUTOS MAIS VENDIDOS]:
+                    {products_df.to_markdown(index=False)}
+                    """
+                    system_persona = "Você é um Especialista de Produto. Tire dúvidas sobre preços e mix disponível."
+                except:
+                    context_data = "Erro ao carregar catálogo."
+            
+            # --- OUTROS (CHIT_CHAT) ---
+            else:
+                context_data = "Não há dados de sistema específicos para esta interação. Apenas converse amigavelmente."
+                system_persona = "Você é o Mari IA, um assistente virtual corporalmente educado e prestativo."
+
+            # 3. Monta e Envia Prompt Final
+           
+            # Formata histórico
             history_text = ""
             if history:
-                # Pega as últimas 6 mensagens para contexto (evita estourar tokens)
-                recent_history = history[-6:] 
-                for msg in recent_history:
+                for msg in history[-4:]: # Ultimas 4 mensagens
                     role = "USUÁRIO" if msg.get('sender') == 'user' else "ASSISTENTE"
                     history_text += f"{role}: {msg.get('text')}\n"
 
-            # Configuração simples para chat com histórico
-            prompt = f"""
+            final_prompt = f"""
+            {system_persona}
+            
+            INTENÇÃO DETECTADA: {intent}
+            
             HISTÓRICO DA CONVERSA:
             {history_text}
             
-            CONTEXTO ATUAL (DADOS REAIS):
+            DADOS DE CONTEXTO (SISTEMA):
             {context_data}
             
-            USUÁRIO: {user_message}
+            PERGUNTA DO USUÁRIO: "{user_message}"
             
-            REGRAS DE OURO (ANTI-ALUCINAÇÃO):
-            - Baseie-se ESTRITAMENTE nos dados de contexto fornecidos acima.
-            - NÃO invente produtos, datas ou valores que não estejam na tabela.
-            - Se não houver dados suficientes para uma conclusão, diga "Não há dados suficientes".
-
-            TRANSPARÊNCIA (OBRIGATÓRIO):
-            Ao final da resposta, adicione uma seção "🔍 Por que sugeri isso?":
-            - Cite a fonte dos dados (ex: "Baseado no histórico de compras").
-            - Explique o cálculo ou lógica usada.
-
-            ASSISTENTE:"""
+            Responda à pergunta do usuário utilizando os dados acima. Se os dados não responderem, diga que não sabe.
+            """
+            
+            print(f"DEBUG: Processing Chat with Intent {intent}")
             
             response = await self.model.generate_content_async(
-                prompt,
-                generation_config={
-                    "max_output_tokens": 8192,
-                    "temperature": 0.2,
-                },
-                safety_settings=[
-                    SafetySetting(
-                        category=SafetySetting.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-                        threshold=SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH
-                    ),
-                    SafetySetting(
-                        category=SafetySetting.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-                        threshold=SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH
-                    ),
-                    SafetySetting(
-                        category=SafetySetting.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-                        threshold=SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH
-                    ),
-                    SafetySetting(
-                        category=SafetySetting.HarmCategory.HARM_CATEGORY_HARASSMENT,
-                        threshold=SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH
-                    ),
-                ]
+                final_prompt,
+                generation_config={"max_output_tokens": 1024, "temperature": 0.4}
             )
             return response.text
+            
         except Exception as e:
-            return f"Erro ao processar mensagem: {e}"
+            return f"Desculpe, tive um erro ao processar sua solicitação: {e}"
 
 # --- CLI para Teste ---
 if __name__ == "__main__":
@@ -634,6 +757,8 @@ if __name__ == "__main__":
     parser.add_argument("--sku", type=str, help="SKU Alvo para venda (Opcional)", default="")
     parser.add_argument("--vendor", type=str, help="Simular Vendedor Específico (Filtro de Carteira)", default=None)
     parser.add_argument("--insights", action="store_true", help="Gerar insights gerais de vendas")
+    parser.add_argument("--director", action="store_true", help="Gerar KPIs de Diretoria (Novo)")
+    parser.add_argument("--chat", type=str, help="Enviar mensagem para o Chat (Teste)")
     parser.add_argument("--min_days", type=int, default=0, help="Dias mínimos para filtro")
     parser.add_argument("--max_days", type=int, default=30, help="Dias máximos para filtro")
 
@@ -653,5 +778,22 @@ if __name__ == "__main__":
         print(f"\n--- Insights de Vendas (Top 50 - {args.min_days} a {args.max_days} dias) ---")
         df = agent.get_sales_insights(min_days=args.min_days, max_days=args.max_days, vendor_filter=args.vendor)
         print(df.to_markdown(index=False))
+        
+    elif args.director:
+        print(f"\n--- KPIs de Diretoria (Últimos {args.max_days} dias) ---")
+        kpis = agent.get_company_kpis(days=args.max_days)
+        print("Resumo Global:")
+        print(json.dumps(kpis, indent=2, default=str))
+        
+        print(f"\n--- Top Vendedores ---")
+        ranking = agent.get_top_sellers(days=args.max_days)
+        print(ranking.to_markdown(index=False))
+
+    elif args.chat:
+        print(f"\n--- Chat Mari IA (Mensagem: {args.chat}) ---")
+        # Simula filtro de vendedor se passado
+        response = asyncio.run(agent.chat(args.chat, vendor_filter=args.vendor))
+        print(f"RESPOSTA:\n{response}")
+
     else:
         parser.print_help()
