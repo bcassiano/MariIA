@@ -137,11 +137,11 @@ class TelesalesAgent:
             SUM(COALESCE(Valor_Liquido, Valor_Total_Linha)) as Total_Venda
         FROM FAL_IA_Dados_Vendas_Televendas WITH (NOLOCK)
         WHERE Nome_Cliente NOT LIKE '%FANTASTICO ALIMENTOS LTDA%'
+        AND Data_Emissao >= '{start_date}' 
+        AND Data_Emissao < DATEADD(day, 1, '{end_date}')
         {vendor_condition}
         GROUP BY Codigo_Cliente
-        HAVING MAX(Data_Emissao) >= '{start_date}' 
-           AND MAX(Data_Emissao) < DATEADD(day, 1, '{end_date}')
-        ORDER BY Ultima_Compra DESC
+        ORDER BY Total_Venda DESC
         """
         
         # DEBUG QUERY

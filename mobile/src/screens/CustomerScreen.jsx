@@ -502,7 +502,7 @@ export default function CustomerScreen({ route }) {
                         </View>
                         <Text style={tw`font-bold text-sm text-gray-900 dark:text-white`}>Fantástico Alimentos</Text>
                     </View>
-                    <Text style={tw`text-[10px] text-gray-500`}>Powered by AI</Text>
+                    <Text style={tw`text-[10px] text-gray-500`}>Desenvolvido por Ti Fantástico</Text>
                 </View>
 
 
