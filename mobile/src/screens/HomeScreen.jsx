@@ -365,7 +365,7 @@ export default function HomeScreen({ navigation }) {
                 onPress={() => navigation.navigate('Chat')}
                 activeOpacity={0.8}
             >
-                <Icon name="forum" size={28} color="white" />
+                <Icon name="smart_toy" size={28} color="white" />
                 <View style={tw`absolute -top-1 -right-1 bg-white rounded-full w-5 h-5 items-center justify-center shadow-sm`}>
                     <View style={tw`bg-green-500 rounded-full w-3 h-3`} />
                 </View>

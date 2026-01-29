@@ -29,7 +29,8 @@ const ICON_MAPPING = {
     'chevron_right': { native: 'chevron-right', family: 'FontAwesome', web: 'chevron_right' },
     'receipt_long': { native: 'list-alt', family: 'FontAwesome', web: 'receipt_long' },
     'emoji_events': { native: 'trophy', family: 'FontAwesome', web: 'emoji_events' },
-    'forum': { native: 'forum', web: 'forum' }
+    'forum': { native: 'forum', web: 'forum' },
+    'smart_toy': { native: 'smart-toy', web: 'smart_toy' }
 };
 
 export default function Icon({ name, size = 24, color = '#000', style }) {
