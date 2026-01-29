@@ -125,6 +125,19 @@ def get_inactive(min_days: int = 30, max_days: int = 365):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/customer/{card_code}/bales_breakdown", dependencies=[Depends(get_api_key)])
+def get_bales_breakdown(card_code: str, days: int = 180):
+    """Retorna a média de fardos por SKU para um cliente."""
+    try:
+        df = agent.get_bales_breakdown(card_code=card_code, days=days)
+        if df.empty:
+            return []
+        return clean_data(df).to_dict(orient="records")
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/customer/{card_code}", dependencies=[Depends(get_api_key)])
 def get_customer(card_code: str):
     """Retorna o histórico de um cliente."""

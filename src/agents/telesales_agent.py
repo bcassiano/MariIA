@@ -299,6 +299,22 @@ class TelesalesAgent:
         
         return self.db.get_dataframe(query)
 
+    def get_bales_breakdown(self, card_code: str, days: int = 180) -> pd.DataFrame:
+        """Busca a média de fardos por SKU para um cliente específico."""
+        query = f"""
+        SELECT 
+            SKU,
+            MAX(Nome_Produto) as Produto,
+            ROUND(AVG(Quantidade), 1) as Media_SKU,
+            COUNT(Numero_Documento) as Vezes_Comprado
+        FROM FAL_IA_Dados_Vendas_Televendas 
+        WHERE Codigo_Cliente = :card_code 
+          AND Data_Emissao >= DATEADD(day, -{days}, GETDATE())
+        GROUP BY SKU
+        ORDER BY Media_SKU DESC
+        """
+        return self.db.get_dataframe(query, params={"card_code": card_code})
+
     def get_inactive_customers_markdown(self, days_without_purchase: int = 30, vendor_filter: str = None) -> str:
         """Clientes inativos (Versão Chat/Markdown)."""
         vendor_clause = f" AND Vendedor_Atual = '{vendor_filter}'" if vendor_filter else ""

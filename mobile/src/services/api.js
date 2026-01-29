@@ -39,6 +39,16 @@ export const getInactiveCustomers = async (minDays = 30, maxDays = 365) => {
     }
 };
 
+export const getBalesBreakdown = async (cardCode) => {
+    try {
+        const response = await api.get(`/customer/${cardCode}/bales_breakdown`);
+        return response.data;
+    } catch (error) {
+        console.error("Erro ao buscar breakdown de fardos:", error);
+        return [];
+    }
+};
+
 export const getCustomer = async (cardCode) => {
     try {
         const response = await api.get(`/customer/${cardCode}`);

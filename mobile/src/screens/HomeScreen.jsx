@@ -1,8 +1,9 @@
 // Force update
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Platform, ScrollView, Image } from 'react-native';
-import { getInsights, getInactiveCustomers } from '../services/api';
+import { getInsights, getInactiveCustomers, getBalesBreakdown } from '../services/api';
 import { create } from 'twrnc';
+import { MaterialIcons } from '@expo/vector-icons';
 
 // Load Tailwind config
 const tw = create(require('../../tailwind.config.js'));
@@ -11,6 +12,12 @@ export default function HomeScreen({ navigation }) {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [errorMsg, setErrorMsg] = useState(null);
+
+    // Analytical Breakdown State
+    const [breakdownData, setBreakdownData] = useState([]);
+    const [showBreakdownModal, setShowBreakdownModal] = useState(false);
+    const [breakdownLoading, setBreakdownLoading] = useState(false);
+    const [selectedCustomerName, setSelectedCustomerName] = useState('');
     // Filtro inicial: 30 dias
     const [selectedFilter, setSelectedFilter] = useState({ label: '30', val: 30 });
     const [viewMode, setViewMode] = useState('active'); // 'active' | 'inactive'
@@ -64,6 +71,20 @@ export default function HomeScreen({ navigation }) {
             setErrorMsg("Erro inesperado: " + e.message);
         }
         setLoading(false);
+    };
+
+    const handleMediaFDPress = async (item) => {
+        try {
+            setSelectedCustomerName(item.Nome_Cliente);
+            setBreakdownLoading(true);
+            setShowBreakdownModal(true);
+            const result = await getBalesBreakdown(item.Codigo_Cliente);
+            setBreakdownData(result);
+        } catch (err) {
+            console.error("Error loading breakdown:", err);
+        } finally {
+            setBreakdownLoading(false);
+        }
     };
 
     const formatCurrency = (value) => {
@@ -125,14 +146,17 @@ export default function HomeScreen({ navigation }) {
 
                     <View style={tw`flex-row items-center`}>
                         {item.Media_Fardos != null && (
-                            <View style={tw`items-end mr-3`}>
-                                <Text style={tw`text-[10px] uppercase tracking-wider text-text-sub-light mb-0.5 font-medium`}>
+                            <TouchableOpacity
+                                style={tw`items-end mr-3 bg-green-50 px-2 py-1 rounded-lg border border-green-100`}
+                                onPress={() => handleMediaFDPress(item)}
+                            >
+                                <Text style={tw`text-[10px] uppercase tracking-wider text-green-700 mb-0.5 font-bold`}>
                                     Média FD:
                                 </Text>
                                 <Text style={tw`text-sm font-bold text-green-600`}>
                                     {item.Media_Fardos}
                                 </Text>
-                            </View>
+                            </TouchableOpacity>
                         )}
 
                         <View style={tw.style(
@@ -252,12 +276,71 @@ export default function HomeScreen({ navigation }) {
                 />
             )}
 
-            <TouchableOpacity
-                style={tw`absolute bottom-6 right-6 bg-accent-btn w-16 h-16 rounded-full items-center justify-center shadow-lg elevation-5 z-50 border-2 border-white`}
-                onPress={() => navigation.navigate('Chat')}
+            {/* Analytical Breakdown Modal */}
+            <Modal
+                visible={showBreakdownModal}
+                animationType="slide"
+                transparent={true}
+                onRequestClose={() => setShowBreakdownModal(false)}
             >
-                <Text style={tw`text-3xl text-white`}>💬</Text>
-            </TouchableOpacity>
+                <View style={tw`flex-1 justify-end bg-black/50`}>
+                    <View style={tw`bg-white rounded-t-3xl p-6 h-2/3 shadow-xl`}>
+                        <View style={tw`flex-row justify-between items-center mb-6`}>
+                            <View style={tw`flex-1`}>
+                                <Text style={tw`text-xs font-bold text-primary uppercase tracking-widest`}>Breakdown Analítico</Text>
+                                <Text style={tw`text-lg font-bold text-indigo-900`} numberOfLines={1}>{selectedCustomerName}</Text>
+                            </View>
+                            <TouchableOpacity
+                                onPress={() => {
+                                    setShowBreakdownModal(false);
+                                    setBreakdownData([]);
+                                }}
+                                style={tw`bg-gray-100 p-2 rounded-full`}
+                            >
+                                <MaterialIcons name="close" size={24} color="#64748B" />
+                            </TouchableOpacity>
+                        </View>
+
+                        {breakdownLoading ? (
+                            <View style={tw`flex-1 items-center justify-center`}>
+                                <ActivityIndicator size="large" color="#1A2F5A" />
+                                <Text style={tw`mt-4 text-gray-500 font-medium`}>Analisando SKUs...</Text>
+                            </View>
+                        ) : (
+                            <FlatList
+                                data={breakdownData}
+                                keyExtractor={(item) => item.SKU}
+                                renderItem={({ item }) => (
+                                    <View style={tw`flex-row py-4 border-b border-gray-50 items-center`}>
+                                        <View style={tw`flex-1 pr-4`}>
+                                            <Text style={tw`text-sm font-bold text-gray-800 mb-0.5`}>{item.Produto}</Text>
+                                            <Text style={tw`text-[10px] text-gray-400 font-medium`}>SKU: {item.SKU} • {item.Vezes_Comprado} pedidos</Text>
+                                        </View>
+                                        <View style={tw`items-end bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100`}>
+                                            <Text style={tw`text-[9px] uppercase font-bold text-blue-600 mb-0.5`}>Média</Text>
+                                            <Text style={tw`text-base font-bold text-blue-900`}>{item.Media_SKU}</Text>
+                                        </View>
+                                    </View>
+                                )}
+                                ListEmptyComponent={() => (
+                                    <View style={tw`items-center justify-center mt-20`}>
+                                        <MaterialIcons name="inventory_2" size={48} color="#E2E8F0" />
+                                        <Text style={tw`text-gray-400 mt-4 font-medium`}>Nenhum histórico detalhado nos últimos 180 dias.</Text>
+                                    </View>
+                                )}
+                                showsVerticalScrollIndicator={false}
+                            />
+                        )}
+
+                        <View style={tw`mt-4 p-4 bg-gray-50 rounded-2xl flex-row items-center gap-3`}>
+                            <MaterialIcons name="info" size={20} color="#64748B" />
+                            <Text style={tw`text-[11px] text-gray-500 flex-1 leading-snug`}>
+                                Estes valores representam a média de fardos por SKU considerando os pedidos dos últimos 6 meses.
+                            </Text>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
