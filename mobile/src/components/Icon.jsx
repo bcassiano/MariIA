@@ -30,7 +30,8 @@ const ICON_MAPPING = {
     'receipt_long': { native: 'list-alt', family: 'FontAwesome', web: 'receipt_long' },
     'emoji_events': { native: 'trophy', family: 'FontAwesome', web: 'emoji_events' },
     'forum': { native: 'forum', web: 'forum' },
-    'smart_toy': { native: 'smart-toy', web: 'smart_toy' }
+    'smart_toy': { native: 'smart-toy', web: 'smart_toy' },
+    'assistant': { native: 'assistant', web: 'assistant' }
 };
 
 export default function Icon({ name, size = 24, color = '#000', style }) {
