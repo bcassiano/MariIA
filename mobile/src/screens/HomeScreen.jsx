@@ -357,6 +357,18 @@ export default function HomeScreen({ navigation }) {
                     </View>
                 </View>
             </Modal>
+
+            {/* Floating Chat Button */}
+            <TouchableOpacity
+                style={tw`absolute bottom-8 right-8 bg-[#FF6B2C] w-16 h-16 rounded-full items-center justify-center shadow-lg z-50`}
+                onPress={() => navigation.navigate('Chat')}
+                activeOpacity={0.8}
+            >
+                <MaterialIcons name="chat" size={30} color="white" />
+                <View style={tw`absolute -top-1 -right-1 bg-white rounded-full w-5 h-5 items-center justify-center shadow-sm`}>
+                    <View style={tw`bg-green-500 rounded-full w-3 h-3`} />
+                </View>
+            </TouchableOpacity>
         </View>
     );
 }
