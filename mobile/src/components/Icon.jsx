@@ -28,7 +28,8 @@ const ICON_MAPPING = {
     'chevron_left': { native: 'chevron-left', family: 'FontAwesome', web: 'chevron_left' },
     'chevron_right': { native: 'chevron-right', family: 'FontAwesome', web: 'chevron_right' },
     'receipt_long': { native: 'list-alt', family: 'FontAwesome', web: 'receipt_long' },
-    'emoji_events': { native: 'trophy', family: 'FontAwesome', web: 'emoji_events' }
+    'emoji_events': { native: 'trophy', family: 'FontAwesome', web: 'emoji_events' },
+    'forum': { native: 'forum', web: 'forum' }
 };
 
 export default function Icon({ name, size = 24, color = '#000', style }) {

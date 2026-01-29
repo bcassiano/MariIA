@@ -5,6 +5,7 @@ import { getInsights, getInactiveCustomers, getBalesBreakdown } from '../service
 import { create } from 'twrnc';
 import { MaterialIcons } from '@expo/vector-icons';
 import Svg, { Rect, Path, G } from 'react-native-svg';
+import Icon from '../components/Icon';
 
 // Load Tailwind config
 const tw = create(require('../../tailwind.config.js'));
@@ -364,7 +365,7 @@ export default function HomeScreen({ navigation }) {
                 onPress={() => navigation.navigate('Chat')}
                 activeOpacity={0.8}
             >
-                <MaterialIcons name="chat" size={30} color="white" />
+                <Icon name="forum" size={28} color="white" />
                 <View style={tw`absolute -top-1 -right-1 bg-white rounded-full w-5 h-5 items-center justify-center shadow-sm`}>
                     <View style={tw`bg-green-500 rounded-full w-3 h-3`} />
                 </View>
