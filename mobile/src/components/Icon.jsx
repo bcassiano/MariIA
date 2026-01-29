@@ -31,7 +31,9 @@ const ICON_MAPPING = {
     'emoji_events': { native: 'trophy', family: 'FontAwesome', web: 'emoji_events' },
     'forum': { native: 'forum', web: 'forum' },
     'smart_toy': { native: 'smart-toy', web: 'smart_toy' },
-    'assistant': { native: 'assistant', web: 'assistant' }
+    'assistant': { native: 'assistant', web: 'assistant' },
+    'bar_chart': { native: 'bar-chart', web: 'bar_chart' },
+    'analytics': { native: 'analytics', web: 'analytics' }
 };
 
 export default function Icon({ name, size = 24, color = '#000', style }) {
