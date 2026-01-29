@@ -161,12 +161,9 @@ export default function HomeScreen({ navigation }) {
                                 style={tw`items-end bg-green-50 px-2 py-1 rounded-lg border border-green-100`}
                                 onPress={() => handleMediaFDPress(item)}
                             >
-                                <View style={tw`flex-row items-center gap-1 mb-0.5`}>
-                                    <Icon name="analytics" size={10} color="#15803d" />
-                                    <Text style={tw`text-[10px] uppercase tracking-wider text-green-700 font-bold`}>
-                                        Média FD:
-                                    </Text>
-                                </View>
+                                <Text style={tw`text-[10px] uppercase tracking-wider text-green-700 mb-0.5 font-bold`}>
+                                    Média FD:
+                                </Text>
                                 <Text style={tw`text-sm font-bold text-green-600`}>
                                     {item.Media_Fardos}
                                 </Text>
@@ -363,14 +360,11 @@ export default function HomeScreen({ navigation }) {
 
             {/* Floating Chat Button */}
             <TouchableOpacity
-                style={tw`absolute bottom-8 right-8 bg-[#FF6B2C] w-16 h-16 rounded-full items-center justify-center shadow-lg z-50`}
+                style={tw`absolute bottom-8 right-8 bg-accent-btn w-16 h-16 rounded-full items-center justify-center shadow-lg z-50`}
                 onPress={() => navigation.navigate('Chat')}
                 activeOpacity={0.8}
             >
-                <Icon name="auto_awesome" size={32} color="white" />
-                <View style={tw`absolute -top-1 -right-1 bg-white rounded-full w-5 h-5 items-center justify-center shadow-sm`}>
-                    <View style={tw`bg-green-500 rounded-full w-3 h-3`} />
-                </View>
+                <Icon name="chat_bubble" size={28} color="white" />
             </TouchableOpacity>
         </View>
     );

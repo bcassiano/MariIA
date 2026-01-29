@@ -14,7 +14,7 @@ const ICON_MAPPING = {
     'check_circle': { native: 'check-circle', family: 'FontAwesome', web: 'check_circle' },
 
     // Others
-    'auto_awesome': { native: 'stars', web: 'auto_awesome' },
+    'auto_awesome': { native: 'auto-awesome', web: 'auto_awesome' },
     'expand_more': { native: 'keyboard-arrow-down', web: 'expand_more' },
     'expand_less': { native: 'keyboard-arrow-up', web: 'expand_less' },
     'local_shipping': { native: 'truck', family: 'FontAwesome', web: 'local_shipping' }, // Material 'local-shipping' -> FA 'truck'
@@ -33,7 +33,9 @@ const ICON_MAPPING = {
     'smart_toy': { native: 'smart-toy', web: 'smart_toy' },
     'assistant': { native: 'assistant', web: 'assistant' },
     'bar_chart': { native: 'bar-chart', web: 'bar_chart' },
-    'analytics': { native: 'analytics', web: 'analytics' }
+    'analytics': { native: 'analytics', web: 'analytics' },
+    'chat_bubble': { native: 'chat-bubble', web: 'chat_bubble' },
+    'chat': { native: 'chat-bubble', web: 'chat_bubble' }
 };
 
 export default function Icon({ name, size = 24, color = '#000', style }) {
