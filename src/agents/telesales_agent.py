@@ -531,35 +531,38 @@ class TelesalesAgent:
         - Ativo Desde: {details.get('AtivoDesde', 'N/A')}
         
         HISTÓRICO RECENTE DE COMPRAS:
-        {hist if not hist.empty else "Nenhuma compra recente encontrada."}
+        {hist.to_markdown(index=False) if not hist.empty else "Nenhuma compra recente encontrada."}
 
-        PRODUTOS MAIS VENDIDOS (REFERÊNCIA):
+        PRODUTOS MAIS VENDIDOS DA EMPRESA (PARA OPORTUNIDADES):
         {top_selling}
 
-        TAREFAS:
-        1. Baseado no histórico, resuma o perfil de compra (ex: compra muito arroz, parou de comprar feijão).
-        2. Avalie a frequência (ex: compra toda semana, está há 15 dias sem pedir).
-        3. Crie um PITCH de venda curto e persuasivo (máximo 3 frases).
-        4. Sugira um PEDIDO IDEAL com 2 a 4 itens que o cliente costuma comprar ou que estão no Top Selling.
-        5. Justifique sua sugestão com 3 motivos claros (TRANSPARÊNCIA).
+        TAREFAS E REGRAS DE NEGÓCIO:
+        1. **Perfil de Compra**: Resuma o que o cliente compra (ex: Foco em Arroz, itens de cesta básica).
+        2. **Frequência**: Avalie a recorrência e dias desde o último pedido faturado.
+        3. **Pitch de Venda**: Crie uma abordagem curta (2-3 frases), matadora e persuasiva.
+        4. **Pedido Ideal**: Sugira 2 a 4 SKUs. Inclua ITENS RECORRENTES (que ele sempre compra) e 1 OPORTUNIDADE (um item do Top Selling que ele NÃO comprou recentemente).
+        5. **Transparência (REGRAS ESTRITAS)**: Você DEVE retornar exatamente 3 motivos na lista `reasons`, com os seguintes títulos e ícones:
+           - Título: "Timing Ideal" | Ícone: "history" | Conteúdo: Análise de dias desde a última compra e risco de ruptura.
+           - Título: "Giro Garantido" | Ícone: "star" | Conteúdo: SKU recorrente do cliente que não pode faltar.
+           - Título: "Oportunidade" | Ícone: "trending_up" | Conteúdo: Por que ele deve comprar o item novo sugerido (ex: é o mais vendido da cia).
+        6. **Motivação**: Uma frase curta no campo `motivation` que resuma a estratégia (ex: "Reposição de estoque + Oportunidade de Mix").
 
         REGRAS DO JSON:
-        - "suggested_order" deve ser uma lista de objetos: {{"product_name": "...", "sku": "...", "quantity": 10, "unit_price": 0.00}}
-        - "reasons" deve ser uma lista de objetos: {{"title": "...", "text": "...", "icon": "trending_up|history|star"}}
-        - Se não tiver histórico, sugira os produtos mais vendidos da Fantástico Alimentos.
+        - "suggested_order": [ {{"product_name": "...", "sku": "...", "quantity": 10, "unit_price": 25.50}} ]
+        - "reasons": [ {{"title": "Timing Ideal", "text": "...", "icon": "history"}}, ... ]
+        - "motivation": "Frase de impacto"
 
         RESPONDA EXATAMENTE NESTE FORMATO JSON:
         {{
-            "pitch_text": "Texto do pitch...",
-            "profile_summary": "Resumo do perfil...",
-            "frequency_assessment": "Avaliação da frequência...",
-            "suggested_order": [
-                {{"product_name": "ARROZ FANTASTICO T1 5KG", "sku": "123", "quantity": 10, "unit_price": 25.50}}
-            ],
-            "motivation": "Destaque principal da sugestão",
+            "pitch_text": "...",
+            "profile_summary": "...",
+            "frequency_assessment": "...",
+            "suggested_order": [...],
+            "motivation": "...",
             "reasons": [
-                {{"title": "Histórico", "text": "Cliente compra este item a cada 15 dias.", "icon": "history"}},
-                {{"title": "Tendência", "text": "Este produto está com alta saída na região.", "icon": "trending_up"}}
+                {{"title": "Timing Ideal", "text": "...", "icon": "history"}},
+                {{"title": "Giro Garantido", "text": "...", "icon": "star"}},
+                {{"title": "Oportunidade", "text": "...", "icon": "trending_up"}}
             ]
         }}
         """
