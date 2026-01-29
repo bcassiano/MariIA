@@ -3,9 +3,11 @@ import { Platform } from 'react-native';
 
 // Define a URL base dependendo do dispositivo
 // Prod: Cloud Run
-const API_URL = 'https://mariia-backend-635293407607.us-central1.run.app';
-// Dev Local (IP da sua máquina ou localhost para Web)
-// const API_URL = 'http://192.168.0.60:8000'; // Changed to Local LAN IP for Mobile Access
+// Prod: Cloud Run
+// const API_URL = 'https://mariia-backend-635293407607.us-central1.run.app';
+// Dev Local (IP da sua máquina para Mobile / localhost para Web)
+const LOCAL_IP = '192.168.0.60';
+const API_URL = Platform.OS === 'web' ? 'http://localhost:8005' : `http://${LOCAL_IP}:8005`;
 
 const api = axios.create({
     baseURL: API_URL,
@@ -89,14 +91,58 @@ export const sendPitchFeedback = async (pitchId, feedbackType, userId = "vendedo
     }
 };
 
-export const sendChatMessage = async (message, history = []) => {
+export const sendChatMessage = async (message, history = [], signal = null) => {
     try {
-        const response = await api.post('/chat', { message, history });
+        const response = await api.post('/chat', { message, history }, { signal });
         return response.data;
     } catch (error) {
         console.error("Erro no chat:", error);
         return { response: "Erro ao conectar com a IA." };
     }
 };
+
+export const streamChatMessage = async (message, history, onChunk, signal) => {
+    const fullUrl = `${api.defaults.baseURL}/chat/stream`;
+
+    try {
+        const response = await fetch(fullUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': api.defaults.headers['x-api-key']
+            },
+            body: JSON.stringify({ message, history }),
+            signal
+        });
+
+        if (!response.ok) throw new Error(response.statusText);
+
+        // --- ADAPTAÇÃO PARA MOBILE (React Native Fetch não suporta body.getReader) ---
+        if (!response.body || !response.body.getReader) {
+            console.log("Ambiente não suporta streaming nativo (body.getReader). Usando fallback de resposta completa.");
+            const fullText = await response.text();
+            if (fullText) onChunk(fullText);
+            return true;
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            const chunk = decoder.decode(value, { stream: true });
+            if (chunk) onChunk(chunk);
+        }
+        return true;
+    } catch (error) {
+        console.error("Stream Error:", error);
+        if (error.name !== 'AbortError' && error.message !== 'Canceled') {
+            onChunk("\n[Erro de conexão: " + error.message + "]");
+        }
+        return false;
+    }
+};
+
 
 export default api;

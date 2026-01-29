@@ -6,4 +6,4 @@ Write-Host "A API estará disponível em: http://0.0.0.0:8000" -ForegroundColor 
 
 # Carrega ambiente se necessário (mas uvicorn carrega .env se usar python-dotenv no app)
 # Executa uvicorn com host 0.0.0.0 para permitir acesso do celular
-uvicorn src.api.app:app --host 0.0.0.0 --port 8000 --reload
+uvicorn src.api.app:app --host 0.0.0.0 --port 8005 --reload

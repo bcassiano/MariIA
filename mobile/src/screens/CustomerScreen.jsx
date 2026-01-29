@@ -195,16 +195,21 @@ export default function CustomerScreen({ route }) {
     ];
 
     return (
-        <SafeAreaView style={tw`flex-1 bg-background-light dark:bg-black`}>
-
-
-            <ScrollView contentContainerStyle={tw`pb-32`} showsVerticalScrollIndicator={false}>
+        <SafeAreaView style={tw`flex-1 bg-primary dark:bg-black`}>
+            <View style={tw`px-4 pt-2 pb-4 flex-row items-center justify-between`}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={tw`flex-row items-center gap-1`}>
+                    <Text style={tw`text-white font-bold text-lg`}>Voltar</Text>
+                </TouchableOpacity>
+                <Text style={tw`text-white font-bold text-lg`}>Detalhes do Cliente</Text>
+                <View style={tw`w-12`} />
+            </View>
+            <ScrollView contentContainerStyle={tw`bg-background-light pb-32`} showsVerticalScrollIndicator={false}>
 
                 {/* Profile Card */}
                 <View style={tw`px-4 pt-4`}>
                     <View style={tw`bg-white dark:bg-surface-dark rounded-2xl p-5 shadow-sm`}>
                         <View style={tw`flex-row items-center gap-4 mb-6`}>
-                            <View style={tw`w-16 h-16 rounded-full bg-gray-200 justify-center items-center border border-gray-100`}>
+                            <View style={tw`w-16 h-16 rounded-full bg-gray-100 justify-center items-center border border-gray-100`}>
                                 <Icon name="person" size={40} color="#9CA3AF" />
                             </View>
                             <View style={tw`flex-1`}>
@@ -270,13 +275,16 @@ export default function CustomerScreen({ route }) {
                     <Text style={tw`text-lg font-bold mb-2 text-gray-900 dark:text-white`}>Informações de Contato</Text>
                     <View style={tw`gap-1`}>
                         <Text style={tw`text-[15px] text-gray-700 dark:text-gray-300`}>
-                            <Text style={tw`font-semibold text-gray-900 dark:text-white`}>Telefone: </Text>{details?.Telefone || 'Não informado'}
+                            <Text style={tw`font-semibold text-gray-900 dark:text-white`}>Telefone: </Text>
+                            {details?.Telefone || 'Não informado'}
                         </Text>
                         <Text style={tw`text-[15px] text-gray-700 dark:text-gray-300`}>
-                            <Text style={tw`font-semibold text-gray-900 dark:text-white`}>E-mail: </Text>{details?.Email ? details.Email.toLowerCase() : 'Não informado'}
+                            <Text style={tw`font-semibold text-gray-900 dark:text-white`}>E-mail: </Text>
+                            {details?.Email ? details.Email.toLowerCase() : 'Não informado'}
                         </Text>
                         <Text style={tw`text-[15px] text-gray-700 dark:text-gray-300`}>
-                            <Text style={tw`font-semibold text-gray-900 dark:text-white`}>Endereço: </Text>{details?.Endereco || 'Não informado'}
+                            <Text style={tw`font-semibold text-gray-900 dark:text-white`}>Endereço: </Text>
+                            {details?.Endereco || 'Não informado'}
                         </Text>
                     </View>
                 </View>
@@ -403,7 +411,7 @@ export default function CustomerScreen({ route }) {
 
                 {/* Recommended Products Carousel */}
                 <View style={tw`mt-6 mb-4`}>
-                    <View style={tw`px-5 header flex-row items-center gap-2 mb-3`}>
+                    <View style={tw`px-5 flex-row items-center gap-2 mb-3`}>
                         <Text style={tw`text-lg font-bold text-gray-900 dark:text-white`}>Produtos Recomendados</Text>
                         <View style={tw`bg-indigo-100 px-2 py-0.5 rounded-full`}>
                             <Text style={tw`text-[10px] text-indigo-700 font-bold uppercase`}>MARI IA</Text>
@@ -571,7 +579,6 @@ export default function CustomerScreen({ route }) {
                                     <Text style={tw`text-xs text-center text-gray-400 mt-2`}>Valores em Reais (R$)</Text>
                                 </View>
                             </ScrollView>
-
                         ) : (
                             <View style={tw`flex-1 justify-center items-center px-4`}>
                                 <Text style={tw`text-gray-500 text-center mb-2`}>Dados insuficientes para gerar o gráfico.</Text>
@@ -583,6 +590,6 @@ export default function CustomerScreen({ route }) {
                     </View>
                 </View>
             </Modal>
-        </SafeAreaView >
+        </SafeAreaView>
     );
 }

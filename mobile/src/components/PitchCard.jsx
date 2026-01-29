@@ -10,7 +10,8 @@ export default function PitchCard({ pitch, onFeedback }) {
     const [feedbackGiven, setFeedbackGiven] = useState(false);
 
     const handleCopy = () => {
-        Clipboard.setString(pitch);
+        const pitchText = isStructured ? pitch.pitch_text : (typeof pitch === 'string' ? pitch : "Erro na análise.");
+        Clipboard.setString(pitchText);
         Alert.alert('Copiado', 'Pitch copiado para a área de transferência!');
     };
 
@@ -22,19 +23,21 @@ export default function PitchCard({ pitch, onFeedback }) {
     };
 
     // Data derived from the 'pitch' prop (JSON object from AI)
-    // Fallback to empty strings if pitch is somehow just text or missing fields
     const isStructured = typeof pitch === 'object' && pitch !== null;
     const profileText = isStructured ? pitch.profile_summary : "Análise não disponível.";
     const frequencyText = isStructured ? pitch.frequency_assessment : "Análise não disponível.";
     const pitchText = isStructured ? pitch.pitch_text : (typeof pitch === 'string' ? pitch : "Erro na análise.");
 
-    const reasons = isStructured && Array.isArray(pitch.reasons) ? pitch.reasons : [];
+    const reasons = isStructured && Array.isArray(pitch.reasons) && pitch.reasons.length > 0 ? pitch.reasons : [
+        { title: "Análise", text: "Mari IA analisando histórico...", icon: "history" }
+    ];
     const suggestedOrder = isStructured && Array.isArray(pitch.suggested_order) ? pitch.suggested_order : [];
     const motivation = isStructured ? pitch.motivation : "Boas vendas!";
 
     // Helper to bold text wrapped in **
     const renderStyledText = (text, style) => {
-        const parts = text.split(/(\*\*.*?\*\*)/g);
+        if (!text) return null;
+        const parts = String(text).split(/(\*\*.*?\*\*)/g);
         return (
             <Text style={style}>
                 {parts.map((part, index) => {
@@ -88,7 +91,6 @@ export default function PitchCard({ pitch, onFeedback }) {
 
                 {/* 3. Pitch de Venda (Highlighted Card) */}
                 <View style={tw`rounded-xl p-1 bg-orange-50 border border-orange-100 shadow-sm`}>
-                    {/* Inner Content */}
                     <View style={tw`bg-white/60 rounded-lg p-4`}>
                         <View style={tw`flex-row justify-between items-center mb-3`}>
                             <View style={tw`flex-row items-center gap-2`}>
@@ -104,12 +106,10 @@ export default function PitchCard({ pitch, onFeedback }) {
                             </TouchableOpacity>
                         </View>
 
-                        {/* Pitch Body */}
                         <Text style={tw`text-gray-800 text-[14px] leading-relaxed italic mb-4`}>
                             "{pitchText}"
                         </Text>
 
-                        {/* Quote Box / Call to Action */}
                         <View style={tw`border-l-4 border-orange-500 pl-3 py-1 bg-orange-50 rounded-r-lg`}>
                             <Text style={tw`text-gray-600 text-[12px] italic`}>
                                 "Dica: {["Use áudio para um toque mais pessoal.", "Confirme se o cliente viu a oferta.", "Pergunte sobre o estoque atual."][Math.floor(Math.random() * 3)]}"
@@ -117,8 +117,8 @@ export default function PitchCard({ pitch, onFeedback }) {
                         </View>
                     </View>
 
-                    {/* SUGGESTED ORDER TABLE - REFACTORED */}
-                    {suggestedOrder.length > 0 && (
+                    {/* SUGGESTED ORDER TABLE */}
+                    {suggestedOrder.length > 0 ? (
                         <View style={tw`mt-4 bg-white rounded-lg p-3 border border-gray-200`}>
                             <View style={tw`flex-row items-center justify-between mb-2 border-b border-gray-100 pb-2`}>
                                 <View style={tw`flex-row items-center gap-2`}>
@@ -134,7 +134,6 @@ export default function PitchCard({ pitch, onFeedback }) {
                                 </TouchableOpacity>
                             </View>
 
-                            {/* Table Header */}
                             <View style={tw`flex-row mb-1`}>
                                 <Text style={tw`flex-1 text-[10px] font-bold text-gray-500`}>PRODUTO/SKU</Text>
                                 <Text style={tw`w-12 text-[10px] font-bold text-gray-500 text-center`}>VAL. UN</Text>
@@ -142,7 +141,6 @@ export default function PitchCard({ pitch, onFeedback }) {
                                 <Text style={tw`w-16 text-[10px] font-bold text-gray-500 text-center`}>TOTAL</Text>
                             </View>
 
-                            {/* Items */}
                             {suggestedOrder.map((item, idx) => {
                                 const numericQty = cleanQty(item.quantity);
                                 const numericPrice = parseFloat(item.unit_price) || 0;
@@ -155,19 +153,16 @@ export default function PitchCard({ pitch, onFeedback }) {
                                             <Text style={tw`text-[9px] text-gray-400`}>{item.sku}</Text>
                                         </View>
                                         <Text style={tw`w-12 text-[11px] font-bold text-gray-800 text-center`}>
-                                            {typeof item.unit_price === 'number' || !isNaN(parseFloat(item.unit_price))
-                                                ? (parseFloat(item.unit_price)).toFixed(2)
-                                                : '--'}
+                                            {numericPrice > 0 ? numericPrice.toFixed(2) : '--'}
                                         </Text>
                                         <Text style={tw`w-8 text-[11px] font-bold text-gray-800 text-center`}>{numericQty}</Text>
                                         <Text style={tw`w-16 text-[11px] font-bold text-gray-800 text-center`}>
-                                            {totalItem > 0 ? totalItem.toFixed(2) : (item.total || '--')}
+                                            {totalItem > 0 ? totalItem.toFixed(2) : '--'}
                                         </Text>
                                     </View>
-                                )
+                                );
                             })}
 
-                            {/* Order Total Row */}
                             <View style={tw`flex-row justify-end items-center mt-2 pt-2 border-t border-gray-200`}>
                                 <Text style={tw`text-xs font-bold text-gray-600 mr-2`}>TOTAL PEDIDO:</Text>
                                 <Text style={tw`text-sm font-bold text-green-700`}>
@@ -179,11 +174,15 @@ export default function PitchCard({ pitch, onFeedback }) {
                                 </Text>
                             </View>
                         </View>
+                    ) : (
+                        <View style={tw`mt-4 bg-white/40 rounded-lg p-4 border border-dashed border-gray-300 items-center`}>
+                            <Icon name="inventory_2" size={24} color="#9CA3AF" />
+                            <Text style={tw`text-gray-500 text-[11px] mt-1 font-medium`}>Aguardando dados específicos de estoque...</Text>
+                        </View>
                     )}
-
                 </View>
 
-                {/* MOTIVATION FOOTER - High Contrast */}
+                {/* MOTIVATION FOOTER */}
                 {motivation && (
                     <View style={tw`bg-indigo-900 mx-4 mb-4 p-4 rounded-xl shadow-md border-l-4 border-yellow-400`}>
                         <View style={tw`flex-row items-center gap-3`}>
@@ -196,26 +195,24 @@ export default function PitchCard({ pitch, onFeedback }) {
                 )}
 
                 {/* 4. Transparência */}
-                {reasons.length > 0 && (
-                    <View>
-                        <View style={tw`flex-row items-center gap-2 mb-3`}>
-                            <Icon name="info" size={18} color="#3B82F6" />
-                            <Text style={tw`font-bold text-blue-500 text-[12px] uppercase`}>Por que sugeri isso? (Transparência)</Text>
-                        </View>
-
-                        <View style={tw`gap-2`}>
-                            {reasons.map((reason, idx) => (
-                                <View key={idx} style={tw`flex-row gap-2`}>
-                                    <Icon name={reason.icon || "info"} size={14} color="#6B7280" style={tw`mt-0.5`} />
-                                    <Text style={tw`text-[11px] text-gray-500 flex-1 leading-snug`}>
-                                        <Text style={tw`font-bold text-gray-700`}>{reason.title}: </Text>
-                                        {reason.text}
-                                    </Text>
-                                </View>
-                            ))}
-                        </View>
+                <View>
+                    <View style={tw`flex-row items-center gap-2 mb-3`}>
+                        <Icon name="info" size={18} color="#3B82F6" />
+                        <Text style={tw`font-bold text-blue-500 text-[12px] uppercase`}>Por que sugeri isso? (Transparência)</Text>
                     </View>
-                )}
+
+                    <View style={tw`gap-2`}>
+                        {reasons.map((reason, idx) => (
+                            <View key={idx} style={tw`flex-row gap-2`}>
+                                <Icon name={reason.icon || "info"} size={14} color="#6B7280" style={tw`mt-0.5`} />
+                                <Text style={tw`text-[11px] text-gray-500 flex-1 leading-snug`}>
+                                    <Text style={tw`font-bold text-gray-700`}>{reason.title || "Dica"}: </Text>
+                                    {reason.text || "Analisando histórico de consumo..."}
+                                </Text>
+                            </View>
+                        ))}
+                    </View>
+                </View>
 
                 {/* Feedback Buttons */}
                 {!feedbackGiven ? (

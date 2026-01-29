@@ -183,7 +183,7 @@ export default function HomeScreen({ navigation }) {
                             `text-sm font-bold`,
                             viewMode === 'active' ? 'text-white' : 'text-text-sub-light'
                         )}>
-                            {viewMode === 'active' ? '✓ ' : ''}Ativos
+                            {viewMode === 'active' ? '✓ ' : ''}Positivados
                         </Text>
                     </TouchableOpacity>
 

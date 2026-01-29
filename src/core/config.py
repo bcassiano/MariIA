@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     # Google Cloud / Vertex AI
     PROJECT_ID: str = "amazing-firefly-475113-p3"
     LOCATION: str = "us-central1"
-    MODEL_ID: str = "gemini-1.5-pro-preview-0409" # Atualizado para versão estável mais recente se possível
+    MODEL_ID: str = "gemini-1.5-flash-001" # Otimizado para latência e custo
 
     # Segurança
     API_KEY: str

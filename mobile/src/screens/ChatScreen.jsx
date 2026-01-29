@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { sendChatMessage } from '../services/api';
+import { sendChatMessage, streamChatMessage } from '../services/api';
 import { create } from 'twrnc';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import TypingIndicator from '../components/TypingIndicator';
 
 // Tailwind Config
 const tw = create(require('../../tailwind.config.js'));
@@ -17,27 +18,9 @@ export default function ChatScreen({ navigation }) {
     ]);
     const [inputText, setInputText] = useState('');
     const [loading, setLoading] = useState(false);
-    const [thinkingText, setThinkingText] = useState('');
     const flatListRef = useRef(null);
     const insets = useSafeAreaInsets();
     const abortControllerRef = useRef(null);
-
-    // ... (useEffect for history loading/saving remains the same)
-
-    // Efeito para animação de "Pensando..."
-    useEffect(() => {
-        let interval;
-        if (loading) {
-            let dots = 0;
-            interval = setInterval(() => {
-                dots = (dots + 1) % 4;
-                setThinkingText(`Mari está pensando${'.'.repeat(dots)}`);
-            }, 500);
-        } else {
-            setThinkingText('');
-        }
-        return () => clearInterval(interval);
-    }, [loading]);
 
 
 
@@ -45,6 +28,8 @@ export default function ChatScreen({ navigation }) {
         if (!inputText.trim()) return;
 
         const userMsg = { id: Date.now(), text: inputText, sender: 'user', time: getCurrentTime() };
+
+        // Adiciona mensagem do usuário
         setMessages(prev => [...prev, userMsg]);
         setInputText('');
         setLoading(true);
@@ -57,31 +42,56 @@ export default function ChatScreen({ navigation }) {
         // Create new controller
         abortControllerRef.current = new AbortController();
 
+        // Adiciona placeholder da resposta do Bot IMEDIATAMENTE
+        const botMsgId = Date.now() + 1;
+        const botMsg = {
+            id: botMsgId,
+            text: "", // Começa vazio
+            sender: 'bot',
+            time: getCurrentTime()
+        };
+
+        setMessages(prev => [...prev, botMsg]);
+
         try {
-            // Pass signal to api call (Need to update api.js to accept signal if not already supported, 
-            // but for now we simulate cancellation in UI or assume axios supports it)
-            // Note: detailed implementation depends on api.js support.
+            await streamChatMessage(
+                userMsg.text,
+                messages.slice(-6), // Envia histórico recente
+                (chunk) => {
+                    // Update incremental
+                    setMessages(prev => {
+                        const newMessages = [...prev];
+                        const lastMsgIndex = newMessages.findIndex(m => m.id === botMsgId);
+                        if (lastMsgIndex !== -1) {
+                            newMessages[lastMsgIndex] = {
+                                ...newMessages[lastMsgIndex],
+                                text: newMessages[lastMsgIndex].text + chunk
+                            };
+                        }
+                        return newMessages;
+                    });
+                },
+                abortControllerRef.current.signal
+            );
 
-            const result = await sendChatMessage(userMsg.text, messages, abortControllerRef.current.signal);
-
-            const botMsg = {
-                id: Date.now() + 1,
-                text: result.response || "Desculpe, não entendi.",
-                sender: 'bot',
-                time: getCurrentTime()
-            };
-            setMessages(prev => [...prev, botMsg]);
         } catch (error) {
             if (error.name === 'AbortError' || error.message === 'Canceled') {
                 console.log('Request canceled');
             } else {
-                const errorMsg = { id: Date.now() + 1, text: "Erro de conexão ou resposta.", sender: 'bot', time: getCurrentTime() };
-                setMessages(prev => [...prev, errorMsg]);
+                setMessages(prev => [...prev, { id: Date.now() + 2, text: "Erro ao processar resposta.", sender: 'bot', time: getCurrentTime() }]);
             }
         } finally {
             setLoading(false);
             abortControllerRef.current = null;
         }
+    };
+
+    const handleStop = () => {
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+            abortControllerRef.current = null;
+        }
+        setLoading(false);
     };
 
 
@@ -149,7 +159,7 @@ export default function ChatScreen({ navigation }) {
     const startNewChat = async () => {
         const initialMsg = [{
             id: Date.now(),
-            text: "Olá! Sou a Mari, sua assistente de vendas da Fantástico Alimentos. 🌾\n\nPosso ajudar você a analisar vendas de arroz, feijão e macarrão, ou encontrar oportunidades de recuperação de clientes. O que vamos fazer hoje?",
+            text: "Olá! Sou a Mari IA a inteligência Artificial da Fantástico Alimentos. 🌾\n\nPosso ajudar você a analisar vendas de arroz, feijão e macarrão, ou encontrar oportunidades de recuperação de clientes. O que vamos fazer hoje?",
             sender: 'bot',
             time: getCurrentTime()
         }];
@@ -161,7 +171,52 @@ export default function ChatScreen({ navigation }) {
         }
     };
 
+    const getCurrentTime = () => {
+        return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    };
 
+    const handleKeyPress = (e) => {
+        if (e.nativeEvent.key === 'Enter' && !e.nativeEvent.shiftKey) {
+            handleSend();
+        }
+    };
+
+    const renderItem = ({ item }) => {
+        const isUser = item.sender === 'user';
+        return (
+            <View style={[
+                tw`flex-row mb-4 px-4`,
+                isUser ? tw`justify-end` : tw`justify-start`
+            ]}>
+                {!isUser && (
+                    <View style={tw`w-8 h-8 rounded-full bg-white items-center justify-center mr-2 shadow-sm border border-gray-100`}>
+                        <Image source={require('../../assets/logo_fantastico.png')} style={{ width: 24, height: 24 }} resizeMode="contain" />
+                    </View>
+                )}
+                <View style={[
+                    tw`max-w-[80%] p-4 rounded-2xl shadow-sm`,
+                    isUser ? tw`bg-blue-900 rounded-tr-none` : tw`bg-white dark:bg-gray-800 rounded-tl-none`
+                ]}>
+                    {!isUser && loading && item.text === "" ? (
+                        <TypingIndicator />
+                    ) : (
+                        <Text style={[
+                            tw`text-base leading-relaxed`,
+                            isUser ? tw`text-white` : tw`text-gray-800 dark:text-gray-200`
+                        ]}>
+                            {item.text}
+                        </Text>
+                    )}
+                    <Text style={[
+                        tw`text-[10px] mt-1 text-right`,
+                        isUser ? tw`text-blue-200` : tw`text-gray-400`
+                    ]}>
+                        {item.time}
+                    </Text>
+                </View>
+            </View>
+        );
+    };
 
     return (
         <KeyboardAvoidingView
@@ -192,38 +247,46 @@ export default function ChatScreen({ navigation }) {
                 { paddingBottom: Platform.OS === 'ios' ? insets.bottom : 20 }
             ]}>
                 <View style={tw`flex-row items-end gap-2 max-w-lg mx-auto w-full`}>
-                    <TouchableOpacity style={tw`p-2.5 rounded-full bg-gray-50 hover:bg-gray-100 items-center justify-center`}>
-                        <MaterialIcons name="add-circle-outline" size={24} color="#64748B" />
-                    </TouchableOpacity>
+                    {!inputText && !loading && (
+                        <TouchableOpacity style={tw`p-2.5 rounded-full bg-gray-50 dark:bg-gray-800 items-center justify-center`}>
+                            <MaterialIcons name="add" size={24} color="#64748B" />
+                        </TouchableOpacity>
+                    )}
 
-                    <View style={tw`flex-1 bg-gray-100 dark:bg-gray-800 rounded-2xl border border-transparent focus:border-brand-navy`}>
+                    <View style={tw`flex-1 bg-gray-100 dark:bg-gray-800 rounded-3xl border border-transparent focus:border-brand-navy flex-row items-end px-2`}>
                         <TextInput
-                            style={tw`w-full text-base px-4 py-3 text-gray-800 dark:text-white max-h-24`}
+                            style={tw`flex-1 text-base px-3 py-3 text-gray-800 dark:text-white max-h-32`}
                             value={inputText}
                             onChangeText={setInputText}
-                            placeholder="Digite sua mensagem..."
+                            placeholder="Mensagem"
                             placeholderTextColor="#94A3B8"
                             multiline={true}
                             onKeyPress={handleKeyPress}
                         />
+                        {!inputText && !loading && (
+                            <TouchableOpacity style={tw`p-2`}>
+                                <MaterialIcons name="sticky-note-2" size={22} color="#94A3B8" />
+                            </TouchableOpacity>
+                        )}
                     </View>
 
                     <TouchableOpacity
-                        style={tw`p-3 bg-accent-btn rounded-xl shadow-sm items-center justify-center`}
-                        onPress={loading ? handleStop : handleSend}
+                        style={tw.style(
+                            `p-3 rounded-full shadow-sm items-center justify-center w-12 h-12`,
+                            (inputText || loading) ? 'bg-blue-900' : 'bg-gray-200 dark:bg-gray-800'
+                        )}
+                        onPress={loading ? handleStop : (inputText ? handleSend : null)}
                     >
                         {loading ? (
-                            <MaterialIcons name="stop" size={20} color="white" />
+                            <MaterialIcons name="stop" size={24} color="white" />
+                        ) : inputText ? (
+                            <MaterialIcons name="send" size={24} color="white" />
                         ) : (
-                            <MaterialIcons name="send" size={20} color="white" />
+                            <MaterialIcons name="mic" size={24} color="#64748B" />
                         )}
                     </TouchableOpacity>
                 </View>
-                {loading && (
-                    <Text style={tw`text-[10px] text-gray-400 text-center mt-2 italic`}>{thinkingText}</Text>
-                )}
             </View>
-        </View>
-        </KeyboardAvoidingView >
+        </KeyboardAvoidingView>
     );
 }

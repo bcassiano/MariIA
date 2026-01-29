@@ -32,6 +32,23 @@ const ICON_MAPPING = {
 };
 
 export default function Icon({ name, size = 24, color = '#000', style }) {
+    // Add font loading for Web
+    React.useEffect(() => {
+        if (Platform.OS === 'web') {
+            const fontFace = `
+                @font-face {
+                    font-family: 'Material Icons';
+                    font-style: normal;
+                    font-weight: 400;
+                    src: url(https://fonts.gstatic.com/s/materialicons/v140/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ.woff2) format('woff2');
+                }
+            `;
+            const style = document.createElement('style');
+            style.type = 'text/css';
+            style.appendChild(document.createTextNode(fontFace));
+            document.head.appendChild(style);
+        }
+    }, []);
 
     // Special handling for WhatsApp
     if (name === 'whatsapp') {
@@ -40,7 +57,8 @@ export default function Icon({ name, size = 24, color = '#000', style }) {
                 <View style={[style, { width: size, height: size }]}>
                     <Image
                         source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg' }}
-                        style={{ width: size, height: size, resizeMode: 'contain' }}
+                        style={{ width: size, height: size }}
+                        resizeMode="contain"
                         accessibilityLabel="WhatsApp"
                     />
                 </View>

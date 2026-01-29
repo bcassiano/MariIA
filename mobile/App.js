@@ -3,6 +3,9 @@ import React from 'react';
 import { Platform, TouchableOpacity, Text } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import * as Font from 'expo-font';
+import { MaterialIcons } from '@expo/vector-icons';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import HomeScreen from './src/screens/HomeScreen';
 import CustomerScreen from './src/screens/CustomerScreen';
 import ChatScreen from './src/screens/ChatScreen';
@@ -10,84 +13,91 @@ import ChatScreen from './src/screens/ChatScreen';
 const Stack = createStackNavigator();
 
 export default function App() {
-    // Fix para Web: Garante que o corpo da página permita scroll e carrega fontes
-    if (Platform.OS === 'web') {
-        // Carrega fonte Montserrat
-        const style = document.createElement('style');
-        style.textContent = `
-            @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap');
-            html, body, #root {
-                height: 100%;
-                overflow-y: auto;
-                -webkit-overflow-scrolling: touch;
-            }
-        `;
-        document.head.appendChild(style);
+    // State for font loading
+    const [fontsLoaded, setFontsLoaded] = React.useState(false);
 
-        // Carrega fonte Material Icons (necessário para @expo/vector-icons funcionar na web)
-        const iconLink = document.createElement('link');
-        iconLink.href = 'https://fonts.googleapis.com/icon?family=Material+Icons';
-        iconLink.rel = 'stylesheet';
-        document.head.appendChild(iconLink);
+    React.useEffect(() => {
+        async function loadFonts() {
+            try {
+                // Load fonts for Web and Mobile
+                await Font.loadAsync({
+                    ...MaterialIcons.font,
+                });
+
+                // For Web specifically, we might still want global styles for scroll
+                if (Platform.OS === 'web') {
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap');
+                        html, body, #root {
+                            height: 100%;
+                            overflow-y: auto;
+                            -webkit-overflow-scrolling: touch;
+                        }
+                     `;
+                    document.head.appendChild(style);
+                }
+            } catch (e) {
+                console.warn("Error loading fonts", e);
+            } finally {
+                setFontsLoaded(true);
+            }
+        }
+        loadFonts();
+    }, []);
+
+    if (!fontsLoaded) {
+        return null; // Or a Loading indicator
     }
 
     return (
-        <NavigationContainer>
-            <Stack.Navigator
-                screenOptions={{
-                    cardStyle: { flex: 1 },
-                    headerStyle: {
-                        backgroundColor: '#1A2F5A',
-                        elevation: 0, // Remove shadow for cleaner look
-                        shadowOpacity: 0,
-                    },
-                    headerTintColor: '#fff',
-                    headerTitleStyle: {
-                        fontWeight: 'bold',
-                        fontFamily: Platform.OS === 'web' ? 'Montserrat' : undefined,
-                    },
-                }}
-            >
-                <Stack.Screen
-                    name="Home"
-                    component={HomeScreen}
-                    options={{
-                        title: 'Mari IA',
-                        headerTitleAlign: 'center',
+        <SafeAreaProvider>
+            <NavigationContainer>
+                <Stack.Navigator
+                    screenOptions={{
+                        cardStyle: { flex: 1 },
+                        headerStyle: {
+                            backgroundColor: '#1A2F5A',
+                            elevation: 0, // Remove shadow for cleaner look
+                        },
+                        headerTintColor: '#fff',
                         headerTitleStyle: {
                             fontWeight: 'bold',
-                            fontSize: Platform.OS === 'web' ? 24 : 20,
                             fontFamily: Platform.OS === 'web' ? 'Montserrat' : undefined,
                         },
                     }}
-                />
-                <Stack.Screen
-                    name="Customer"
-                    component={CustomerScreen}
-                    options={({ navigation }) => ({
-                        title: 'Detalhes do Cliente',
-                        headerTitleAlign: 'center',
-                        headerLeft: () => (
-                            <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginLeft: 15 }}>
-                                <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>Voltar</Text>
-                            </TouchableOpacity>
-                        )
-                    })}
-                />
-                <Stack.Screen
-                    name="Chat"
-                    component={ChatScreen}
-                    options={({ navigation }) => ({
-                        title: 'Chat com Mari IA',
-                        headerTitleAlign: 'center',
-                        headerLeft: () => (
-                            <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginLeft: 15 }}>
-                                <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>Voltar</Text>
-                            </TouchableOpacity>
-                        )
-                    })}
-                />
-            </Stack.Navigator>
-        </NavigationContainer>
+                >
+                    <Stack.Screen
+                        name="Home"
+                        component={HomeScreen}
+                        options={{
+                            title: 'Mari IA',
+                            headerTitleAlign: 'center',
+                            headerTitleStyle: {
+                                fontWeight: 'bold',
+                                fontSize: Platform.OS === 'web' ? 24 : 20,
+                                fontFamily: Platform.OS === 'web' ? 'Montserrat' : undefined,
+                            },
+                        }}
+                    />
+                    <Stack.Screen
+                        name="Customer"
+                        component={CustomerScreen}
+                        options={{
+                            headerShown: false
+                        }}
+                    />
+                    <Stack.Screen
+                        name="Chat"
+                        component={ChatScreen}
+                        options={{
+                            headerShown: true,
+                            title: 'Assistente Mari IA',
+                            headerTitleAlign: 'center'
+                        }}
+                    />
+                </Stack.Navigator>
+            </NavigationContainer>
+        </SafeAreaProvider>
     );
 }

@@ -245,6 +245,7 @@ async def generate_pitch(request: PitchRequest):
             "pitch_text": "Texto indisponível.",
             "profile_summary": "Análise não disponível.",
             "frequency_assessment": "Verificar histórico.",
+            "suggested_order": [],
             "reasons": []
         }
         for k, v in default_keys.items():
@@ -296,6 +297,21 @@ async def chat_with_agent(request: ChatRequest):
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+
+from fastapi.responses import StreamingResponse
+
+@app.post("/chat/stream", dependencies=[Depends(get_api_key)])
+async def chat_stream_endpoint(request: ChatRequest):
+    """Conversa com o assistente via Streaming (Server-Sent Events style)."""
+    async def event_generator():
+        try:
+            async for chunk in agent.chat_stream(request.message, request.history, vendor_filter=CURRENT_VENDOR):
+                yield chunk
+        except Exception as e:
+            yield f"Erro no stream: {e}"
+
+    return StreamingResponse(event_generator(), media_type="text/plain")
+
 
 if __name__ == "__main__":
     import uvicorn
