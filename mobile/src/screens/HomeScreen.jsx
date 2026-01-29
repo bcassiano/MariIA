@@ -1,6 +1,6 @@
 // Force update
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Platform, ScrollView, Image } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Platform, ScrollView, Image, Modal } from 'react-native';
 import { getInsights, getInactiveCustomers, getBalesBreakdown } from '../services/api';
 import { create } from 'twrnc';
 import { MaterialIcons } from '@expo/vector-icons';
