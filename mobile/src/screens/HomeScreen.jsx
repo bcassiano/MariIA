@@ -212,7 +212,7 @@ export default function HomeScreen({ navigation }) {
                 </View>
 
                 {/* Toggle Buttons */}
-                <View style={tw`flex-row bg-white p-1.5 rounded-2xl shadow-sm border border-gray-100 mb-6`}>
+                <View style={tw`flex-row bg-white rounded-2xl shadow-sm border border-gray-100 mb-6`}>
                     <TouchableOpacity
                         style={tw.style(
                             `flex-1 py-3 rounded-xl items-center justify-center flex-row gap-2`,
