@@ -220,7 +220,7 @@ export default function ChatScreen({ navigation }) {
 
     return (
         <KeyboardAvoidingView
-            style={tw`flex-1 bg-gray-50 dark:bg-black`}
+            style={tw`flex-1 bg-background-light dark:bg-black`}
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 80}
         >

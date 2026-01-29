@@ -207,7 +207,7 @@ export default function CustomerScreen({ route }) {
 
                 {/* Profile Card */}
                 <View style={tw`px-4 pt-4`}>
-                    <View style={tw`bg-white dark:bg-surface-dark rounded-2xl p-5 shadow-sm`}>
+                    <View style={tw`bg-white dark:bg-surface-dark rounded-2xl p-5 shadow-md`}>
                         <View style={tw`flex-row items-center gap-4 mb-6`}>
                             <View style={tw`w-16 h-16 rounded-full bg-gray-100 justify-center items-center border border-gray-100`}>
                                 <Icon name="person" size={40} color="#9CA3AF" />
@@ -309,7 +309,7 @@ export default function CustomerScreen({ route }) {
                         </TouchableOpacity>
                     </View>
 
-                    <View style={tw`bg-white dark:bg-surface-dark rounded-lg p-3 flex-row items-center gap-4 shadow-sm border border-gray-100 dark:border-gray-800`}>
+                    <View style={tw`bg-white dark:bg-surface-dark rounded-lg p-3 flex-row items-center gap-4 shadow-md border border-gray-100 dark:border-gray-800`}>
                         <Text style={tw`text-[14px] text-gray-600 dark:text-gray-300 flex-1 leading-snug`}>
                             Tendência de vendas nos últimos 6 meses: arroz, feijão e massas.
                         </Text>

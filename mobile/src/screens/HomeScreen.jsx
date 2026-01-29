@@ -4,6 +4,7 @@ import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Platform, Sc
 import { getInsights, getInactiveCustomers, getBalesBreakdown } from '../services/api';
 import { create } from 'twrnc';
 import { MaterialIcons } from '@expo/vector-icons';
+import Svg, { Rect, Path, G } from 'react-native-svg';
 
 // Load Tailwind config
 const tw = create(require('../../tailwind.config.js'));
@@ -103,8 +104,7 @@ export default function HomeScreen({ navigation }) {
     const renderItem = ({ item }) => (
         <TouchableOpacity
             style={tw.style(
-                `bg-white dark:bg-card-dark rounded-3xl mb-4 shadow-sm border border-gray-100 dark:border-gray-800 flex-row overflow-hidden`,
-                // viewMode === 'inactive' && 'border-l-[8px] border-l-accent' // Removed problematic border
+                `bg-white dark:bg-card-dark rounded-3xl mb-5 shadow-md border border-gray-100 dark:border-gray-800 flex-row overflow-hidden`,
             )}
             onPress={() => navigation.navigate('Customer', { cardCode: item.Codigo_Cliente })}
         >
@@ -178,6 +178,23 @@ export default function HomeScreen({ navigation }) {
 
     return (
         <View style={tw`flex-1 bg-background-light p-4`}>
+            {/* Subtle Texture Pattern */}
+            <View style={[tw`absolute inset-0`, { opacity: 0.05 }]}>
+                <Svg width="100%" height="100%">
+                    <Path
+                        d="M0 0h100v100H0z"
+                        fill="none"
+                    />
+                    <G fill="#1A2F5A">
+                        {/* Simple subtle dot grid for texture */}
+                        {Array.from({ length: 20 }).map((_, i) =>
+                            Array.from({ length: 40 }).map((_, j) => (
+                                <Rect key={`${i}-${j}`} x={i * 25} y={j * 25} width="1" height="1" rx="0.5" />
+                            ))
+                        )}
+                    </G>
+                </Svg>
+            </View>
             {/* Header Section */}
             <View style={tw`mt-10 mb-6`}>
                 <View style={tw`flex-row items-center gap-4 mb-5`}>

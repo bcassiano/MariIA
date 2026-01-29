@@ -10,7 +10,7 @@ module.exports = {
                 accent: "#FF4500", // Adjusted to match the orange/red bar reference
                 "accent-light": "#FFF5F5",
                 "accent-btn": "#EF4444", // Bright red for active filter
-                "background-light": "#F8FAFC", // Slightly blueish gray bg
+                "background-light": "#E2E8F0", // Darker slate for better contrast with white cards
                 "background-dark": "#111827",
                 "card-light": "#FFFFFF",
                 "card-dark": "#1F2937",
