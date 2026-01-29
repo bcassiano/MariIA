@@ -115,10 +115,21 @@ export default function HomeScreen({ navigation }) {
             )}
 
             <View style={tw`flex-1 p-5 pl-4`}>
-                <View style={tw`flex-row justify-between items-start mb-2`}>
+                <View style={tw`flex-row justify-between items-center mb-2`}>
                     <Text style={tw`text-[11px] font-bold text-primary bg-blue-50 px-3 py-1 rounded-full uppercase tracking-wider`}>
                         {item.Codigo_Cliente}
                     </Text>
+                    <View style={tw.style(
+                        `w-8 h-8 rounded-full flex items-center justify-center`,
+                        viewMode === 'active' ? 'bg-primary/10' : 'bg-red-50'
+                    )}>
+                        <Text style={tw.style(
+                            `font-bold`,
+                            viewMode === 'active' ? 'text-primary' : 'text-accent'
+                        )}>
+                            {'>'}
+                        </Text>
+                    </View>
                 </View>
 
                 <Text style={tw`text-[15px] font-bold text-primary mb-1.5 leading-snug`} numberOfLines={1}>
@@ -147,7 +158,7 @@ export default function HomeScreen({ navigation }) {
                     <View style={tw`flex-row items-center`}>
                         {item.Media_Fardos != null && (
                             <TouchableOpacity
-                                style={tw`items-end mr-3 bg-green-50 px-2 py-1 rounded-lg border border-green-100`}
+                                style={tw`items-end bg-green-50 px-2 py-1 rounded-lg border border-green-100`}
                                 onPress={() => handleMediaFDPress(item)}
                             >
                                 <Text style={tw`text-[10px] uppercase tracking-wider text-green-700 mb-0.5 font-bold`}>
@@ -158,18 +169,6 @@ export default function HomeScreen({ navigation }) {
                                 </Text>
                             </TouchableOpacity>
                         )}
-
-                        <View style={tw.style(
-                            `w-8 h-8 rounded-full flex items-center justify-center`,
-                            viewMode === 'active' ? 'bg-primary/10' : 'bg-red-50'
-                        )}>
-                            <Text style={tw.style(
-                                `font-bold`,
-                                viewMode === 'active' ? 'text-primary' : 'text-accent'
-                            )}>
-                                {'>'}
-                            </Text>
-                        </View>
                     </View>
                 </View>
             </View>
