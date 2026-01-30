@@ -25,7 +25,7 @@ module.exports = {
                 "brand-red": "#FF4500", // Vibrant red/orange for the button
             },
             fontFamily: {
-                sans: ["Inter", "sans-serif"],
+                sans: ["-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica", "Arial", "sans-serif"],
             },
         },
     },

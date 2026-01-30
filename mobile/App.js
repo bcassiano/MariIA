@@ -24,15 +24,14 @@ export default function App() {
                     ...MaterialIcons.font,
                 });
 
-                // For Web specifically, we might still want global styles for scroll
                 if (Platform.OS === 'web') {
                     const style = document.createElement('style');
                     style.textContent = `
-                        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap');
                         html, body, #root {
                             height: 100%;
                             overflow-y: auto;
                             -webkit-overflow-scrolling: touch;
+                            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
                         }
                      `;
                     document.head.appendChild(style);
@@ -63,7 +62,7 @@ export default function App() {
                         headerTintColor: '#fff',
                         headerTitleStyle: {
                             fontWeight: 'bold',
-                            fontFamily: Platform.OS === 'web' ? 'Montserrat' : undefined,
+                            fontFamily: Platform.OS === 'web' ? 'sans-serif' : undefined,
                         },
                     }}
                 >
@@ -76,7 +75,7 @@ export default function App() {
                             headerTitleStyle: {
                                 fontWeight: 'bold',
                                 fontSize: Platform.OS === 'web' ? 24 : 20,
-                                fontFamily: Platform.OS === 'web' ? 'Montserrat' : undefined,
+                                fontFamily: Platform.OS === 'web' ? 'sans-serif' : undefined,
                             },
                         }}
                     />
@@ -84,7 +83,8 @@ export default function App() {
                         name="Customer"
                         component={CustomerScreen}
                         options={{
-                            headerShown: false
+                            headerShown: false,
+                            title: 'Mari IA - Detalhes'
                         }}
                     />
                     <Stack.Screen
@@ -92,7 +92,7 @@ export default function App() {
                         component={ChatScreen}
                         options={{
                             headerShown: true,
-                            title: 'Assistente Mari IA',
+                            title: 'Mari IA - Assistente',
                             headerTitleAlign: 'center'
                         }}
                     />

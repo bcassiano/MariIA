@@ -277,25 +277,46 @@ class TelesalesAgent:
 
     def get_sales_insights(self, min_days: int = 0, max_days: int = 30, vendor_filter: str = None) -> pd.DataFrame:
         """Busca vendas agregadas por cliente (Versão Dashboard/DataFrame)."""
-        # Agrega por cliente para exibir Total_Venda no card
+        # 1. Calcula a Média de Perfil (Fardos totais por Pedido) nos últimos 180 dias
+        # Isso garante uma média estável e condizente com a "carga" do cliente
+        vendor_clause = f" AND Vendedor_Atual = '{vendor_filter}'" if vendor_filter else ""
+        
         query = f"""
+        WITH Vendas_Ultimos_6_Meses AS (
+            SELECT 
+                Codigo_Cliente,
+                Numero_Documento,
+                SUM(Quantidade) as Total_Fardos_Pedido
+            FROM FAL_IA_Dados_Vendas_Televendas
+            WHERE Data_Emissao >= DATEADD(day, -180, GETDATE())
+            {vendor_clause}
+            GROUP BY Codigo_Cliente, Numero_Documento
+        ),
+        Media_Perfil AS (
+            SELECT 
+                Codigo_Cliente,
+                ROUND(AVG(CAST(Total_Fardos_Pedido AS FLOAT)), 1) as Media_Perfil_Fardos
+            FROM Vendas_Ultimos_6_Meses
+            GROUP BY Codigo_Cliente
+        )
         SELECT 
-            Codigo_Cliente,
-            MAX(Nome_Cliente) as Nome_Cliente,
-            MAX(Cidade) as Cidade,
-            MAX(Estado) as Estado,
-            SUM(Valor_Liquido) as Total_Venda,
-            ROUND(AVG(Quantidade), 1) as Media_Fardos,
-            MAX(Data_Emissao) as Ultima_Compra
-        FROM FAL_IA_Dados_Vendas_Televendas 
-        WHERE Data_Emissao >= DATEADD(day, -{max_days}, GETDATE()) 
-          AND Data_Emissao <= DATEADD(day, -{min_days}, GETDATE())
+            V.Codigo_Cliente,
+            MAX(V.Nome_Cliente) as Nome_Cliente,
+            MAX(V.Cidade) as Cidade,
+            MAX(V.Estado) as Estado,
+            SUM(V.Valor_Liquido) as Total_Venda,
+            ISNULL(MAX(MP.Media_Perfil_Fardos), 0) as Media_Fardos,
+            MAX(V.Data_Emissao) as Ultima_Compra
+        FROM FAL_IA_Dados_Vendas_Televendas V
+        LEFT JOIN Media_Perfil MP ON V.Codigo_Cliente = MP.Codigo_Cliente
+        WHERE V.Data_Emissao >= DATEADD(day, -{max_days}, GETDATE()) 
+          AND V.Data_Emissao <= DATEADD(day, -{min_days}, GETDATE())
         """
         
         if vendor_filter:
-             query += f" AND Vendedor_Atual = '{vendor_filter}'"
+             query += f" AND V.Vendedor_Atual = '{vendor_filter}'"
              
-        query += " GROUP BY Codigo_Cliente ORDER BY Total_Venda DESC"
+        query += " GROUP BY V.Codigo_Cliente ORDER BY Total_Venda DESC"
         
         return self.db.get_dataframe(query)
 
@@ -357,11 +378,15 @@ class TelesalesAgent:
             BI.Estado,
             0 as Total_Venda, -- Inativo não tem venda no período filtrado
             ISNULL((
-                SELECT ROUND(AVG(S.Quantidade), 1)
-                FROM FAL_IA_Dados_Vendas_Televendas S
-                WHERE S.Codigo_Cliente = BI.Codigo_Cliente
-                  AND S.Data_Emissao >= DATEADD(month, -6, BI.Ultima_Compra)
-                  AND S.Data_Emissao <= BI.Ultima_Compra
+                SELECT ROUND(AVG(CAST(SumQ.Total_Fardos_Pedido AS FLOAT)), 1)
+                FROM (
+                    SELECT Numero_Documento, SUM(Quantidade) as Total_Fardos_Pedido
+                    FROM FAL_IA_Dados_Vendas_Televendas S
+                    WHERE S.Codigo_Cliente = BI.Codigo_Cliente
+                      AND S.Data_Emissao >= DATEADD(month, -6, BI.Ultima_Compra)
+                      AND S.Data_Emissao <= BI.Ultima_Compra
+                    GROUP BY Numero_Documento
+                ) SumQ
             ), 0) as Media_Fardos,
             BI.Ultima_Compra
         FROM Base_Inativos BI
