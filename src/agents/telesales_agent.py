@@ -149,6 +149,8 @@ class TelesalesAgent:
             
         print("DEBUG: Iniciando DatabaseConnector...", flush=True)
         self.db = DatabaseConnector()
+        # Cache para perfis de clientes (Média FD de 6 meses) - 24h de TTL
+        self.profile_cache = TTLCache(maxsize=2000, ttl=3600 * 24)
         print("DEBUG: Init concluído.", flush=True)
 
     # --- Métodos de Negócio (Implementação das Tools) ---
@@ -275,50 +277,76 @@ class TelesalesAgent:
         if df.empty: return "Sem vendas no período para sua carteira."
         return df.to_markdown(index=False)
 
+    def get_customer_profile_average(self, card_code: str, last_purchase_date) -> float:
+        """
+        Calcula a média de fardos totais por pedido nos 180 dias ANTERIORES à última compra.
+        Usa cache manual para evitar reprocessamento constante.
+        """
+        # Chave composta para garantir que se a data mudar, o cache invalida
+        cache_key = f"profile_{card_code}_{last_purchase_date}"
+        if cache_key in self.profile_cache:
+            return self.profile_cache[cache_key]
+
+        try:
+            # Garante que a data está em formato string ISO para o SQL se necessário
+            date_ref = str(last_purchase_date)
+            
+            query = f"""
+            SELECT ROUND(AVG(CAST(SumQ.Total_Fardos_Pedido AS FLOAT)), 1) as Media_Hist
+            FROM (
+                SELECT Numero_Documento, SUM(Quantidade) as Total_Fardos_Pedido
+                FROM FAL_IA_Dados_Vendas_Televendas
+                WHERE Codigo_Cliente = :card_code
+                  AND Data_Emissao >= DATEADD(day, -180, :date_ref)
+                  AND Data_Emissao <= :date_ref
+                GROUP BY Numero_Documento
+            ) SumQ
+            """
+            df = self.db.get_dataframe(query, params={"card_code": card_code, "date_ref": date_ref})
+            
+            result = 0.0
+            if not df.empty and df.iloc[0]['Media_Hist'] is not None:
+                result = max(0.0, float(df.iloc[0]['Media_Hist']))
+            
+            # Salva no cache antes de retornar
+            self.profile_cache[cache_key] = result
+            # print(f"DEBUG: Profile Average for {card_code}: {result} (Date Ref: {date_ref})")
+            return result
+        except Exception as e:
+            print(f"Erro ao calcular média de perfil para {card_code}: {e}")
+            return 0.0
+
     def get_sales_insights(self, min_days: int = 0, max_days: int = 30, vendor_filter: str = None) -> pd.DataFrame:
         """Busca vendas agregadas por cliente (Versão Dashboard/DataFrame)."""
-        # 1. Calcula a Média de Perfil (Fardos totais por Pedido) nos últimos 180 dias
-        # Isso garante uma média estável e condizente com a "carga" do cliente
-        vendor_clause = f" AND Vendedor_Atual = '{vendor_filter}'" if vendor_filter else ""
-        
+        # Query ultra-rápida focada no ranking dinâmico
         query = f"""
-        WITH Vendas_Ultimos_6_Meses AS (
-            SELECT 
-                Codigo_Cliente,
-                Numero_Documento,
-                SUM(Quantidade) as Total_Fardos_Pedido
-            FROM FAL_IA_Dados_Vendas_Televendas
-            WHERE Data_Emissao >= DATEADD(day, -180, GETDATE())
-            {vendor_clause}
-            GROUP BY Codigo_Cliente, Numero_Documento
-        ),
-        Media_Perfil AS (
-            SELECT 
-                Codigo_Cliente,
-                ROUND(AVG(CAST(Total_Fardos_Pedido AS FLOAT)), 1) as Media_Perfil_Fardos
-            FROM Vendas_Ultimos_6_Meses
-            GROUP BY Codigo_Cliente
-        )
         SELECT 
-            V.Codigo_Cliente,
-            MAX(V.Nome_Cliente) as Nome_Cliente,
-            MAX(V.Cidade) as Cidade,
-            MAX(V.Estado) as Estado,
-            SUM(V.Valor_Liquido) as Total_Venda,
-            ISNULL(MAX(MP.Media_Perfil_Fardos), 0) as Media_Fardos,
-            MAX(V.Data_Emissao) as Ultima_Compra
-        FROM FAL_IA_Dados_Vendas_Televendas V
-        LEFT JOIN Media_Perfil MP ON V.Codigo_Cliente = MP.Codigo_Cliente
-        WHERE V.Data_Emissao >= DATEADD(day, -{max_days}, GETDATE()) 
-          AND V.Data_Emissao <= DATEADD(day, -{min_days}, GETDATE())
+            Codigo_Cliente,
+            MAX(Nome_Cliente) as Nome_Cliente,
+            MAX(Cidade) as Cidade,
+            MAX(Estado) as Estado,
+            SUM(Valor_Liquido) as Total_Venda,
+            MAX(Data_Emissao) as Ultima_Compra
+        FROM FAL_IA_Dados_Vendas_Televendas 
+        WHERE Data_Emissao >= DATEADD(day, -{max_days}, GETDATE()) 
+          AND Data_Emissao <= DATEADD(day, -{min_days}, GETDATE())
         """
         
         if vendor_filter:
-             query += f" AND V.Vendedor_Atual = '{vendor_filter}'"
+             query += f" AND Vendedor_Atual = '{vendor_filter}'"
              
-        query += " GROUP BY V.Codigo_Cliente ORDER BY Total_Venda DESC"
+        query += " GROUP BY Codigo_Cliente ORDER BY Total_Venda DESC"
         
-        return self.db.get_dataframe(query)
+        df = self.db.get_dataframe(query)
+        
+        # Enriquecimento com Média de Perfil (usando Cache)
+        if not df.empty:
+            df['Media_Fardos'] = df.apply(
+                lambda row: self.get_customer_profile_average(row['Codigo_Cliente'], row['Ultima_Compra']), 
+                axis=1
+            )
+            
+        return df
 
     def get_bales_breakdown(self, card_code: str, days: int = 180) -> pd.DataFrame:
         """Busca a média de fardos por SKU para um cliente específico."""
@@ -371,29 +399,19 @@ class TelesalesAgent:
             HAVING MAX(Data_Emissao) < DATEADD(day, -{min_days}, GETDATE())
                AND MAX(Data_Emissao) >= DATEADD(day, -{max_days}, GETDATE())
         )
-        SELECT 
-            BI.Codigo_Cliente,
-            BI.Nome_Cliente,
-            BI.Cidade,
-            BI.Estado,
-            0 as Total_Venda, -- Inativo não tem venda no período filtrado
-            ISNULL((
-                SELECT ROUND(AVG(CAST(SumQ.Total_Fardos_Pedido AS FLOAT)), 1)
-                FROM (
-                    SELECT Numero_Documento, SUM(Quantidade) as Total_Fardos_Pedido
-                    FROM FAL_IA_Dados_Vendas_Televendas S
-                    WHERE S.Codigo_Cliente = BI.Codigo_Cliente
-                      AND S.Data_Emissao >= DATEADD(month, -6, BI.Ultima_Compra)
-                      AND S.Data_Emissao <= BI.Ultima_Compra
-                    GROUP BY Numero_Documento
-                ) SumQ
-            ), 0) as Media_Fardos,
-            BI.Ultima_Compra
-        FROM Base_Inativos BI
-        ORDER BY BI.Ultima_Compra DESC
+        SELECT * FROM Base_Inativos ORDER BY Ultima_Compra DESC
         """
         
-        return self.db.get_dataframe(query)
+        df = self.db.get_dataframe(query)
+        
+        # Enriquecimento com Média de Perfil (usando Cache)
+        if not df.empty:
+            df['Media_Fardos'] = df.apply(
+                lambda row: self.get_customer_profile_average(row['Codigo_Cliente'], row['Ultima_Compra']), 
+                axis=1
+            )
+            
+        return df
 
     def get_top_products(self, days: int = 90, vendor_filter: str = None) -> str:
         query = f"""
