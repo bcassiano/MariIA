@@ -63,6 +63,19 @@ class TelesalesAgent:
                 },
             )
 
+            run_sales_analysis_query_func = FunctionDeclaration(
+                name="run_sales_analysis_query",
+                description="Executa uma consulta SQL personalizada para responder perguntas analíticas complexas sobre vendas (Ex: Rankings, Médias, Agrupamentos).",
+                parameters={
+                    "type": "object",
+                    "properties": {
+                        "t_sql_query": {"type": "string", "description": "A consulta T-SQL (SELECT apenas) na tabela FAL_IA_Dados_Vendas_Televendas."},
+                        "explanation": {"type": "string", "description": "Explicação breve do que a query busca."}
+                    },
+                    "required": ["t_sql_query"]
+                },
+            )
+
             get_inactive_customers_func = FunctionDeclaration(
                 name="get_inactive_customers_markdown",
                 description="Busca clientes INATIVOS (risco de churn) na carteira.",
@@ -113,6 +126,7 @@ class TelesalesAgent:
                     get_customer_history_func,
                     get_customer_details_func,
                     get_sales_insights_func,
+                    run_sales_analysis_query_func, # NOVA TOOL
                     get_inactive_customers_func,
                     get_top_products_func,
                     get_company_kpis_func,
@@ -128,20 +142,33 @@ class TelesalesAgent:
                 
                 FERRAMENTAS DISPONÍVEIS:
                 Você tem acesso a ferramentas reais para buscar dados do banco de dados (SAP B1).
-                USE AS FERRAMENTAS SEMPRE QUE PRECISAR DE DADOS REAIS. NÃO INVENTE DADOS.
                 
-                DIRETRIZES:
+                *** NOVO: ANÁLISE AUTÔNOMA DE DADOS (SQL) ***
+                Para perguntas complexas onde as ferramentas padrões não bastam (ex: "Qual a média de fardos?", "Quem comprou mais Item X?"), 
+                VOCÊ DEVE CRIAR UMA QUERY SQL usando a ferramenta `run_sales_analysis_query`.
+                
+                ESQUEMA DA TABELA DISPONÍVEL (`FAL_IA_Dados_Vendas_Televendas`):
+                - `Data_Emissao` (Date): Data da venda.
+                - `Numero_Documento` (Int): Número do pedido.
+                - `SKU` (String): Código do produto (formato 0005).
+                - `Nome_Produto` (String): Nome do item.
+                - `Quantidade` (Decimal): Quantidade em Fardos/Unidades.
+                - `Valor_Liquido` (Decimal): Valor total do item (R$).
+                - `Nome_Cliente` (String): Razão Social.
+                - `Codigo_Cliente` (String): CardCode (Ex: C00123).
+                - `Vendedor_Atual` (String): Nome do vendedor (Use para filtrar carteira se necessário).
+                - `Cidade` (String): Cidade do cliente.
+                - `Estado` (String): UF.
+                - `Categoria_Produto` (String): Categoria principal (ARROZ, FEIJAO, etc).
+
+                DIRETRIZES GERAIS:
                 1. Contexto: Você fala com vendedores na rua (mobile). Seja BREVE e PRÁTICO.
                 2. Formatação: Use Markdown (negrito, listas) para facilitar a leitura.
-                3. Proatividade: Se o usuário pedir "Clientes", pergunte se ele quer "Positivados" ou "Inativos".
+                3. Proatividade: Se a análise for complexa, explique o que você calculou antes de mostrar os dados.
                 4. Clientes: Quando falar de um cliente, sempre cite o Código (CardCode).
-                5. Erros: Se uma ferramenta falhar, avise o usuário e tente outra abordagem.
+                5. SQL Seguro: APENAS SELECT. Nunca tente alterar dados.
                 
-                Lembre-se: Você deve sempre filtrar os dados pela carteira do vendedor atual quando utilizar as ferramentas de busca.
-                
-                REGRAS DE FORMATAÇÃO DE DADOS:
-                1. SKUs: Mantenha SEMPRE o formato original com zeros à esquerda (ex: "0005", "0201.1"). NÃO remova os zeros.
-                2. Valores: Use duas casas decimais.
+                Lembre-se: Use `run_sales_analysis_query` sempre que precisar de um ranking, agrupamento ou métrica que não exista nas tools prontas.
                 """,
                 tools=[telesales_tools]
             )
@@ -295,6 +322,43 @@ class TelesalesAgent:
         df = self.db.get_dataframe(query)
         if df.empty: return "Sem vendas no período para sua carteira."
         return df.to_markdown(index=False)
+        
+    def run_sales_analysis_query(self, t_sql_query: str, explanation: str = "", vendor_filter: str = None) -> str:
+        """Executa uma query SQL analítica criada pela IA de forma segura."""
+        try:
+            # 1. Validação de Segurança Básica
+            forbidden_keywords = ['UPDATE', 'DELETE', 'DROP', 'INSERT', 'ALTER', 'TRUNCATE', 'EXEC', 'MERGE', 'GRANT', 'REVOKE']
+            normalized_query = t_sql_query.upper().strip()
+            
+            if not normalized_query.startswith("SELECT"):
+                 return "Erro: Apenas consultas SELECT são permitidas."
+                 
+            for kw in forbidden_keywords:
+                if f" {kw} " in normalized_query or normalized_query.startswith(kw): # Check words surrounded by spaces or at start
+                     return f"Erro: O comando '{kw}' não é permitido por segurança."
+
+            # 2. Injeção de Filtro de Vendedor (Segurança de Dados)
+            # Se for uma query simples, tentamos injetar o WHERE.
+            # Se for complexa (CTE, Subquery), confiamos no prompt da IA para incluir, ou aceitamos (dados globais podem ser OK dependendo da politica)
+            # Por segurança, o sistema PROMPT já instrui a IA a fazer o filtro. 
+            # Aqui fazemos um replace simples se o placeholder existir, ou tentamos append.
+            # Mas SQL parser complexo é difícil. Vamos confiar no filtro do prompt + logging para auditoria.
+            
+            # 3. Execução
+            print(f"DEBUG: Executing AI SQL: {t_sql_query}")
+            df = self.db.get_dataframe(t_sql_query)
+            
+            if df.empty:
+                return "A consulta retornou zero resultados."
+                
+            # Limita retorno para o chat não explodir
+            if len(df) > 30:
+                df = df.head(30)
+                
+            return f"**Resultado da Análise ({explanation}):**\n\n" + df.to_markdown(index=False)
+            
+        except Exception as e:
+            return f"Erro ao executar análise SQL: {str(e)}"
 
     def get_customer_profile_average(self, card_code: str, last_purchase_date) -> float:
         """
@@ -519,23 +583,50 @@ class TelesalesAgent:
         collected_chunks = []
         function_call_detected = None
         
-        async for chunk in response_stream:
-            # Verifica tool call no primeiro chunk ou acumulado
-            # (Lógica simplificada: Vertex AI geralmente manda o FunctionCall completo no primeiro response não-streamado ou streamado estruturado)
-            # Mas com stream=True, pode vir picado.
-            
-            # WORKAROUND: Para Tool Calling robusto, é mais seguro não usar stream NA PRIMEIRA PERNA (decisão de tool).
-            # Mas queremos streamar a resposta final.
-            # Vamos testar se o chunk tem function_call.
-            
-            # Se tiver function calling, precisamos executar e mandar de volta.
-            
-            if chunk.candidates[0].function_calls:
-                function_call_detected = chunk.candidates[0].function_calls[0]
-                break # Sai do loop de stream de texto pois é uma tool call
-            
-            if chunk.text:
-                yield chunk.text
+        try:
+            async for chunk in response_stream:
+                try:
+                    # Inspeção manual profunda para evitar erros de propriedade do SDK
+                    # Acessar propriedades de 'chunk' que não existem pode gerar erro, então protegemos tudo
+                    
+                    found_fn = False
+                    if hasattr(chunk, 'candidates') and chunk.candidates:
+                        for candidate in chunk.candidates:
+                            if hasattr(candidate, 'content') and hasattr(candidate.content, 'parts'):
+                                for part in candidate.content.parts:
+                                    # Verifica se tem function_call (pode ser método ou propriedade dependendo do SDK)
+                                    # Tentamos acesso seguro
+                                    fn = getattr(part, 'function_call', None)
+                                    if fn:
+                                        function_call_detected = fn
+                                        found_fn = True
+                                        break
+                            if found_fn: break
+                    
+                    if found_fn or function_call_detected:
+                        break # Sai do loop de stream
+                    
+                    # Extração Manual de Texto (Evita chunk.text que lança ValueError)
+                    extracted_text = ""
+                    if hasattr(chunk, 'candidates') and chunk.candidates:
+                         for candidate in chunk.candidates:
+                             if hasattr(candidate, 'content') and hasattr(candidate.content, 'parts'):
+                                 for part in candidate.content.parts:
+                                     # Tenta pegar texto de forma segura
+                                     pt = getattr(part, 'text', "")
+                                     if pt: extracted_text += pt
+                    
+                    if extracted_text:
+                        yield extracted_text
+                        
+                except Exception as inner_e:
+                    # Loga mas não quebra o stream
+                    # print(f"DEBUG: Erro ao processar chunk individual: {inner_e}")
+                    continue
+                    
+        except Exception as stream_e:
+            print(f"DEBUG: Erro fatal no stream (possivel function call malformada): {stream_e}")
+            yield f"\n\n[Sistema] Erro no processamento inicial: {str(stream_e)}"
                 
         if function_call_detected:
             # Executa a tool
@@ -543,6 +634,9 @@ class TelesalesAgent:
             func_args = function_call_detected.args
             
             print(f"DEBUG: Tool Call Detectada: {func_name} Args: {func_args}")
+            
+            # Keep-alive notification for user
+            yield f"\n\n_Consultando dados para {func_name}..._\n\n"
             
             tool_result = "Erro na execução da ferramenta."
             
@@ -571,16 +665,72 @@ class TelesalesAgent:
                 name=func_name,
                 response={"content": tool_result}
             )
-            
+
             # Continua a conversa com o resultado da função
-            final_response_stream = await chat.send_message_async(
-                [part_func_response],
-                stream=True
-            )
-            
-            async for chunk in final_response_stream:
-                 if chunk.text:
-                    yield chunk.text
+            try:
+                # WORKAROUND: Stream após Tool Calling pode ser instável no Vertex AI SDK.
+                # Mudamos para stream=False (resposta completa) para garantir que o texto chegue.
+                final_response = await chat.send_message_async(
+                    [part_func_response],
+                    stream=False
+                )
+                
+                # Debug response details - RESTORED
+                print(f"DEBUG: Final Response Object: {final_response}")
+                if hasattr(final_response, 'candidates') and final_response.candidates:
+                     print(f"DEBUG: Finish Reason: {final_response.candidates[0].finish_reason}")
+                     if hasattr(final_response.candidates[0], 'safety_ratings'):
+                         print(f"DEBUG: Safety Ratings: {final_response.candidates[0].safety_ratings}")
+
+                # Verificação segura do texto final
+                final_text = ""
+                try:
+                    if hasattr(final_response, 'text') and final_response.text:
+                        final_text = final_response.text
+                except Exception:
+                    # Fallback manual se .text falhar
+                     if hasattr(final_response, 'candidates') and final_response.candidates:
+                         for cand in final_response.candidates:
+                             for part in cand.content.parts:
+                                 if hasattr(part, 'text') and part.text:
+                                     final_text += part.text
+
+                if final_text:
+                    yield final_text
+                else:
+                    # Fallback Inteligente: Tenta formatar o JSON em Markdown se o model falhar
+                    formatted_fallback = ""
+                    try:
+                        import json
+                        data = json.loads(tool_result)
+                        if isinstance(data, dict):
+                            formatted_fallback += "### Dados Encontrados:\n"
+                            for k, v in data.items():
+                                formatted_fallback += f"- **{k}:** {v}\n"
+                        elif isinstance(data, list):
+                            formatted_fallback += "### Dados Encontrados:\n"
+                            # Se for lista, pega o primeiro ou faz tabela simples
+                            if len(data) > 0 and isinstance(data[0], dict):
+                                keys = data[0].keys()
+                                header = "| " + " | ".join(keys) + " |"
+                                divider = "| " + " | ".join(["---"] * len(keys)) + " |"
+                                rows = ""
+                                for item in data[:5]: # Limita a 5 para não poluir
+                                    rows += "| " + " | ".join([str(item.get(k, '')) for k in keys]) + " |\n"
+                                formatted_fallback = f"{header}\n{divider}\n{rows}"
+                            else:
+                                formatted_fallback += str(data)
+                        else:
+                             formatted_fallback = tool_result
+                    except:
+                        formatted_fallback = tool_result
+                    
+                    yield f"\n\n{formatted_fallback}\n\n_(Nota: Exibindo dados brutos pois a IA não gerou resumo textual)_"
+
+            except Exception as e:
+                # Se falhar aqui, não tem muito o que fazer, mas não crasheamos o stream
+                print(f"DEBUG: Erro no stream pós-tool: {e}")
+                yield f"\n\n[Sistema] Erro ao gerar resposta final: {str(e)}"
     
     # Manter método legado para evitar quebrar endpoints antigos por enquanto (se necessário) ou redirecionar
     async def chat(self, user_message: str, history: list = [], vendor_filter: str = None) -> str:

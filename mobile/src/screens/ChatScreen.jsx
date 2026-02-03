@@ -6,6 +6,7 @@ import { create } from 'twrnc';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import TypingIndicator from '../components/TypingIndicator';
+import Markdown from 'react-native-markdown-display';
 
 // Tailwind Config
 const tw = create(require('../../tailwind.config.js'));
@@ -200,12 +201,30 @@ export default function ChatScreen({ navigation }) {
                     {!isUser && loading && item.text === "" ? (
                         <TypingIndicator />
                     ) : (
-                        <Text style={[
-                            tw`text-base leading-relaxed`,
-                            isUser ? tw`text-white` : tw`text-gray-800 dark:text-gray-200`
-                        ]}>
-                            {item.text}
-                        </Text>
+                        <View style={isUser ? {} : tw`w-full`}>
+                            {/* Renderiza Markdown para mensagens do Bot, Texto simples para User */}
+                            {isUser ? (
+                                <Text style={tw`text-base text-white leading-relaxed`}>
+                                    {item.text}
+                                </Text>
+                            ) : (
+                                <Markdown
+                                    style={{
+                                        body: { color: '#1F2937', fontSize: 16, lineHeight: 24 },
+                                        paragraph: { marginBottom: 10 },
+                                        heading3: { fontSize: 18, fontWeight: 'bold', color: '#111827', marginTop: 10, marginBottom: 5 },
+                                        code_block: { backgroundColor: '#F3F4F6', padding: 10, borderRadius: 8, fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace', fontSize: 12 },
+                                        table: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 8, overflow: 'hidden', marginTop: 10 },
+                                        tr: { borderBottomWidth: 1, borderColor: '#E5E7EB', flexDirection: 'row' },
+                                        th: { padding: 10, backgroundColor: '#F9FAFB', fontWeight: 'bold', color: '#374151' },
+                                        td: { padding: 10, color: '#4B5563' },
+                                        li: { marginBottom: 5 },
+                                    }}
+                                >
+                                    {item.text}
+                                </Markdown>
+                            )}
+                        </View>
                     )}
                     <Text style={[
                         tw`text-[10px] mt-1 text-right`,
