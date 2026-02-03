@@ -725,7 +725,7 @@ class TelesalesAgent:
                     except:
                         formatted_fallback = tool_result
                     
-                    yield f"\n\n{formatted_fallback}\n\n_(Nota: Exibindo dados brutos pois a IA não gerou resumo textual)_"
+                    yield f"\n\n{formatted_fallback}\n\n"
 
             except Exception as e:
                 # Se falhar aqui, não tem muito o que fazer, mas não crasheamos o stream

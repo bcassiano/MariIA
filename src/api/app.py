@@ -167,8 +167,14 @@ def get_customer(card_code: str):
                 first_row = group.iloc[0]
                 # Calcula total do pedido
                 def get_row_val(row):
-                    val = row['Valor_Liquido'] if row['Valor_Liquido'] > 0 else (row.get('Valor_Total_Linha', 0) if row.get('Valor_Total_Linha', 0) > 0 else (row.get('Valor_Unitario', 0) * row.get('Quantidade', 0)))
-                    return float(val)
+                    vl = row.get('Valor_Liquido') or 0
+                    vtl = row.get('Valor_Total_Linha') or 0
+                    vu = row.get('Valor_Unitario') or 0
+                    qty = row.get('Quantidade') or 0
+                    
+                    if vl > 0: return float(vl)
+                    if vtl > 0: return float(vtl)
+                    return float(vu * qty)
 
                 total_val = sum(get_row_val(row) for _, row in group.iterrows())
                 
