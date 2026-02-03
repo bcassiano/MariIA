@@ -5,7 +5,7 @@ import { Platform } from 'react-native';
 // Prod: Cloud Run
 const PROD_URL = 'https://mariia-backend-635293407607.us-central1.run.app';
 // Dev Local (IP da sua máquina para Mobile / localhost para Web)
-const LOCAL_IP = '192.168.0.60';
+const LOCAL_IP = '192.168.0.23';
 
 const API_URL = Platform.OS === 'web'
     ? (__DEV__ ? 'http://localhost:8005' : PROD_URL)

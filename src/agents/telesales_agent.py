@@ -138,6 +138,10 @@ class TelesalesAgent:
                 5. Erros: Se uma ferramenta falhar, avise o usuário e tente outra abordagem.
                 
                 Lembre-se: Você deve sempre filtrar os dados pela carteira do vendedor atual quando utilizar as ferramentas de busca.
+                
+                REGRAS DE FORMATAÇÃO DE DADOS:
+                1. SKUs: Mantenha SEMPRE o formato original com zeros à esquerda (ex: "0005", "0201.1"). NÃO remova os zeros.
+                2. Valores: Use duas casas decimais.
                 """,
                 tools=[telesales_tools]
             )
@@ -154,6 +158,18 @@ class TelesalesAgent:
         print("DEBUG: Init concluído.", flush=True)
 
     # --- Métodos de Negócio (Implementação das Tools) ---
+
+    @staticmethod
+    def _format_sku(val):
+        """Padroniza SKU para ter pelo menos 4 dígitos inteiros (ex: 5 -> 0005, 201.1 -> 0201.1)."""
+        if val is None: return ""
+        s = str(val).strip()
+        if '.' in s:
+            parts = s.split('.')
+            return parts[0].zfill(4) + '.' + parts[1]
+        else:
+            return s.zfill(4)
+
 
     def get_customer_history_markdown(self, card_code: str, limit: int = 10) -> str:
         """Busca histórico de pedidos (Versão Chat/Markdown)."""
@@ -178,7 +194,10 @@ class TelesalesAgent:
         WHERE Codigo_Cliente = :card_code 
         ORDER BY Data_Emissao DESC
         """
-        return self.db.get_dataframe(query, params={"card_code": card_code})
+        df = self.db.get_dataframe(query, params={"card_code": card_code})
+        if not df.empty and 'SKU' in df.columns:
+            df['SKU'] = df['SKU'].apply(self._format_sku)
+        return df
 
     def get_customer_details_json_string(self, card_code: str) -> str:
         """Busca detalhes do cliente (Versão Chat/JSON String)."""
@@ -362,7 +381,11 @@ class TelesalesAgent:
         GROUP BY SKU
         ORDER BY Media_SKU DESC
         """
-        return self.db.get_dataframe(query, params={"card_code": card_code})
+
+        df = self.db.get_dataframe(query, params={"card_code": card_code})
+        if not df.empty and 'SKU' in df.columns:
+            df['SKU'] = df['SKU'].apply(self._format_sku)
+        return df
 
     def get_inactive_customers_markdown(self, days_without_purchase: int = 30, vendor_filter: str = None) -> str:
         """Clientes inativos (Versão Chat/Markdown)."""
@@ -424,6 +447,8 @@ class TelesalesAgent:
             
         query += " GROUP BY SKU ORDER BY Total DESC"
         df = self.db.get_dataframe(query)
+        if not df.empty and 'SKU' in df.columns:
+            df['SKU'] = df['SKU'].apply(self._format_sku)
         return df.to_markdown(index=False)
 
     def get_company_kpis(self, days: int = 30) -> str:

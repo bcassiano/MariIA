@@ -214,7 +214,7 @@ export default function CustomerScreen({ route }) {
                             </View>
                             <View style={tw`flex-1`}>
                                 <Text style={tw`text-xl font-bold text-gray-900 dark:text-white leading-tight`}>
-                                    {customerName || 'Carregando...'}
+                                    {cardCode} - {customerName || 'Carregando...'}
                                 </Text>
                                 <Text style={tw`text-sm text-gray-500 mt-1`}>
                                     {details?.AtivoDesde ? `Cliente Ativo desde ${details.AtivoDesde}` : 'Carregando...'}

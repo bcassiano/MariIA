@@ -77,7 +77,7 @@ export default function HomeScreen({ navigation }) {
 
     const handleMediaFDPress = async (item) => {
         try {
-            setSelectedCustomerName(item.Nome_Cliente);
+            setSelectedCustomerName(`${item.Codigo_Cliente} - ${item.Nome_Cliente}`);
             setBreakdownLoading(true);
             setShowBreakdownModal(true);
             const result = await getBalesBreakdown(item.Codigo_Cliente);
@@ -158,13 +158,13 @@ export default function HomeScreen({ navigation }) {
                     <View style={tw`flex-row items-center`}>
                         {item.Media_Fardos != null && (
                             <TouchableOpacity
-                                style={tw`items-end bg-green-50 px-2 py-1 rounded-lg border border-green-100`}
+                                style={tw`items-end bg-blue-50 px-2 py-1 rounded-lg border border-blue-100`}
                                 onPress={() => handleMediaFDPress(item)}
                             >
-                                <Text style={tw`text-[10px] uppercase tracking-wider text-green-700 mb-0.5 font-bold`}>
+                                <Text style={tw`text-[10px] uppercase tracking-wider text-blue-600 mb-0.5 font-bold`}>
                                     Média FD:
                                 </Text>
-                                <Text style={tw`text-sm font-bold text-green-600`}>
+                                <Text style={tw`text-sm font-bold text-blue-900`}>
                                     {item.Media_Fardos}
                                 </Text>
                             </TouchableOpacity>
