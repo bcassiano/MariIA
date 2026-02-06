@@ -184,6 +184,36 @@ class TelesalesAgent:
         self.profile_cache = TTLCache(maxsize=2000, ttl=3600 * 24)
         print("DEBUG: Init concluído.", flush=True)
 
+    def _resolve_vendor_filter(self, vendor_filter: str) -> str:
+        """
+        Resolve o filtro de vendedor.
+        Se receber um ID numérico (SlpCode), busca o nome (SlpName) na tabela OSLP.
+        Se receber texto, assume que já é o nome.
+        """
+        if not vendor_filter:
+            return None
+            
+        # Se for numérico, tenta resolver o nome
+        if str(vendor_filter).isdigit():
+            try:
+                slp_code = int(vendor_filter)
+                # Tenta buscar pelo SlpCode na tabela oficial de vendedores
+                query = "SELECT SlpName FROM OSLP WHERE SlpCode = :code"
+                df = self.db.get_dataframe(query, params={"code": slp_code})
+                
+                if not df.empty and 'SlpName' in df.columns:
+                    resolved_name = df.iloc[0]['SlpName']
+                    print(f"DEBUG: SlpCode {slp_code} resolvido para '{resolved_name}'")
+                    return resolved_name
+                else:
+                    print(f"AVISO: SlpCode {slp_code} não encontrado na OSLP.")
+                    return str(vendor_filter) # Retorna o ID mesmo, talvez a view aceite ou falhe graciosamente
+            except Exception as e:
+                print(f"Erro ao resolver SlpCode: {e}")
+                return str(vendor_filter)
+        
+        return vendor_filter
+
     # --- Métodos de Negócio (Implementação das Tools) ---
 
     @staticmethod
@@ -307,8 +337,10 @@ class TelesalesAgent:
             print(f"Erro em get_sales_trend: {str(e)}")
             return {"labels": [], "datasets": []}
 
-    def get_sales_insights_markdown(self, days: int = 30, vendor_filter: str = None) -> str:
         """Busca vendas recentes carteira (Versão Chat/Markdown)."""
+        # Resolve SlpCode -> Name
+        vendor_filter = self._resolve_vendor_filter(vendor_filter)
+
         query = f"""
         SELECT TOP 10 Nome_Cliente, Valor_Liquido, Data_Emissao 
         FROM FAL_IA_Dados_Vendas_Televendas 
@@ -399,8 +431,10 @@ class TelesalesAgent:
             print(f"Erro ao calcular média de perfil para {card_code}: {e}")
             return 0.0
 
-    def get_sales_insights(self, min_days: int = 0, max_days: int = 30, vendor_filter: str = None) -> pd.DataFrame:
         """Busca vendas agregadas por cliente (Versão Dashboard/DataFrame)."""
+        # Resolve SlpCode -> Name
+        vendor_filter = self._resolve_vendor_filter(vendor_filter)
+
         # Query ultra-rápida focada no ranking dinâmico
         query = f"""
         SELECT 
@@ -412,7 +446,7 @@ class TelesalesAgent:
             MAX(Data_Emissao) as Ultima_Compra
         FROM FAL_IA_Dados_Vendas_Televendas 
         WHERE Data_Emissao >= DATEADD(day, -{max_days}, GETDATE()) 
-          AND Data_Emissao <= DATEADD(day, -{min_days}, GETDATE())
+        AND Data_Emissao <= DATEADD(day, -{min_days}, GETDATE())
         """
         
         if vendor_filter:
@@ -453,6 +487,7 @@ class TelesalesAgent:
 
     def get_inactive_customers_markdown(self, days_without_purchase: int = 30, vendor_filter: str = None) -> str:
         """Clientes inativos (Versão Chat/Markdown)."""
+        vendor_filter = self._resolve_vendor_filter(vendor_filter)
         vendor_clause = f" AND Vendedor_Atual = '{vendor_filter}'" if vendor_filter else ""
         query = f"""
         SELECT TOP 15 Codigo_Cliente, MAX(Nome_Cliente) as Nome, MAX(Data_Emissao) as Ultima_Compra 
@@ -466,10 +501,53 @@ class TelesalesAgent:
         if df.empty: return "Nenhum cliente inativo relevante encontrado na sua carteira."
         return df.to_markdown(index=False)
 
+    def get_sales_insights(self, min_days: int = 0, max_days: int = 30, vendor_filter: str = None) -> pd.DataFrame:
+        """
+        Busca insights de vendas (clientes positivados/ativos) no período.
+        Retorna lista de clientes com total de vendas e última compra no range.
+        """
+        # Filtro de vendedor
+        vendor_filter = self._resolve_vendor_filter(vendor_filter)
+        vendor_clause = f" AND Vendedor_Atual = '{vendor_filter}'" if vendor_filter else ""
+        
+        # Ajuste para garantir que min < max
+        if min_days > max_days:
+            min_days, max_days = max_days, min_days
+
+        query = f"""
+        WITH Base_Ativos AS (
+            SELECT 
+                Codigo_Cliente,
+                MAX(Nome_Cliente) as Nome_Cliente,
+                MAX(Cidade) as Cidade,
+                MAX(Estado) as Estado,
+                MAX(Data_Emissao) as Ultima_Compra,
+                SUM(Valor_Total_Linha) as Total_Venda
+            FROM FAL_IA_Dados_Vendas_Televendas 
+            WHERE 1=1 {vendor_clause}
+            AND Data_Emissao >= DATEADD(day, -{max_days}, GETDATE())
+            AND Data_Emissao <= DATEADD(day, -{min_days}, GETDATE())
+            GROUP BY Codigo_Cliente
+        )
+        SELECT * FROM Base_Ativos ORDER BY Total_Venda DESC
+        """
+        
+        df = self.db.get_dataframe(query)
+        
+        # Enriquecimento com Média de Perfil (Opcional, mas a tela mostra Media_Fardos)
+        if not df.empty:
+             df['Media_Fardos'] = df.apply(
+                lambda row: self.get_customer_profile_average(row['Codigo_Cliente'], row['Ultima_Compra']), 
+                axis=1
+            )
+            
+        return df
+
     def get_inactive_customers(self, min_days: int = 30, max_days: int = 365, vendor_filter: str = None) -> pd.DataFrame:
         """Busca clientes inativos (sem compras no período) para o dashboard."""
         
         # Filtro de vendedor
+        vendor_filter = self._resolve_vendor_filter(vendor_filter)
         vendor_clause = f" AND Vendedor_Atual = '{vendor_filter}'" if vendor_filter else ""
         
         query = f"""
@@ -501,6 +579,7 @@ class TelesalesAgent:
         return df
 
     def get_top_products(self, days: int = 90, vendor_filter: str = None) -> str:
+        vendor_filter = self._resolve_vendor_filter(vendor_filter)
         query = f"""
         SELECT TOP 20 SKU, MAX(Nome_Produto) as Produto, SUM(Valor_Liquido) as Total 
         FROM FAL_IA_Dados_Vendas_Televendas 
@@ -562,7 +641,8 @@ class TelesalesAgent:
         chat = self.model.start_chat(history=history_instruction)
 
         # Envia instrução de sistema dinâmica para o vendedor atual
-        vendor_context = f"\n\nCONTEXTO DO USUÁRIO:\nVocê está conversando com: {vendor_filter or 'Vendedor'}.\nLembre-se: Use as ferramentas de busca e elas automaticamente filtrarão os dados para a sua carteira, se necessário."
+        resolved_vendor = self._resolve_vendor_filter(vendor_filter)
+        vendor_context = f"\n\nCONTEXTO DO USUÁRIO:\nVocê está conversando com: {resolved_vendor or 'Vendedor'}.\nLembre-se: Use as ferramentas de busca e elas automaticamente filtrarão os dados para a sua carteira, se necessário."
         
         # Envia mensagem inicial
         response_stream = await chat.send_message_async(user_message + vendor_context, stream=True)
@@ -748,6 +828,9 @@ class TelesalesAgent:
     # generate_pitch precisa ser mantido pois é um fluxo específico
     async def generate_pitch(self, card_code: str, target_sku: str = "", vendor_filter: str = None) -> dict:
         """Gera um pitch de vendas estruturado (Versão API)."""
+        # Resolve Filter (para uso futuro se precisar filtrar contexto)
+        vendor_filter = self._resolve_vendor_filter(vendor_filter) # Apenas resolve, mas pitch usa card_code
+        
         # 1. Recupera dados de contexto
         details = self.get_customer_details(card_code)
         hist = self.get_customer_history(card_code, limit=20)

@@ -11,11 +11,28 @@ const API_URL = Platform.OS === 'web'
     ? (__DEV__ ? 'http://localhost:8005' : PROD_URL)
     : (__DEV__ ? `http://${LOCAL_IP}:8005` : PROD_URL);
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 const api = axios.create({
     baseURL: API_URL,
     headers: {
         'x-api-key': process.env.EXPO_PUBLIC_API_KEY || 'mariia-secret-key-123'
     }
+});
+
+// Adiciona interceptor para injetar o x-user-id dinâmico da sessão
+api.interceptors.request.use(async (config) => {
+    try {
+        const userId = await AsyncStorage.getItem('user_session_id');
+        if (userId) {
+            config.headers['x-user-id'] = userId;
+        }
+    } catch (error) {
+        console.error("Erro ao ler sessão:", error);
+    }
+    return config;
+}, (error) => {
+    return Promise.reject(error);
 });
 
 export const getInsights = async (minDays = 0, maxDays = 30) => {

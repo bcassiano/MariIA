@@ -9,21 +9,43 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import HomeScreen from './src/screens/HomeScreen';
 import CustomerScreen from './src/screens/CustomerScreen';
 import ChatScreen from './src/screens/ChatScreen';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Linking from 'expo-linking';
 
 const Stack = createStackNavigator();
 
 export default function App() {
     // State for font loading
     const [fontsLoaded, setFontsLoaded] = React.useState(false);
+    const [sessionReady, setSessionReady] = React.useState(false);
 
     React.useEffect(() => {
-        async function loadFonts() {
+        async function init() {
             try {
-                // Load fonts for Web and Mobile
+                // 1. Session Logic
+                let userId = null;
+                if (Platform.OS === 'web') {
+                    const params = new URLSearchParams(window.location.search);
+                    userId = params.get('user_id');
+                } else {
+                    const initialUrl = await Linking.getInitialURL();
+                    if (initialUrl) {
+                        const { queryParams } = Linking.parse(initialUrl);
+                        userId = queryParams?.user_id;
+                    }
+                }
+
+                if (userId) {
+                    console.log("Session Init: Found user_id =", userId);
+                    await AsyncStorage.setItem('user_session_id', userId);
+                }
+
+                // 2. Font Loading
                 await Font.loadAsync({
                     ...MaterialIcons.font,
                 });
 
+                // 3. Web Styles
                 if (Platform.OS === 'web') {
                     const style = document.createElement('style');
                     style.textContent = `
@@ -36,16 +58,18 @@ export default function App() {
                      `;
                     document.head.appendChild(style);
                 }
+
             } catch (e) {
-                console.warn("Error loading fonts", e);
+                console.warn("Error initializing app", e);
             } finally {
                 setFontsLoaded(true);
+                setSessionReady(true);
             }
         }
-        loadFonts();
+        init();
     }, []);
 
-    if (!fontsLoaded) {
+    if (!fontsLoaded || !sessionReady) {
         return null; // Or a Loading indicator
     }
 

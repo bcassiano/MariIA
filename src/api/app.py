@@ -43,8 +43,16 @@ async def get_api_key(api_key_header: str = Security(api_key_header)):
 # Instância global do agente (para reuso de conexão)
 agent = TelesalesAgent()
 
-# Configuração de Vendedor Atual (Hardcoded conforme solicitação)
-CURRENT_VENDOR = "V.vp - Renata Rodrigues"
+# Configuração de Vendedor Atual (Dinâmico via Header)
+# CURRENT_VENDOR removed
+
+from fastapi import Header
+
+async def get_current_vendor(x_user_id: Optional[str] = Header(None, alias="x-user-id")):
+    if x_user_id:
+        return x_user_id
+    # Fallback para dev se necessário, ou usar um default
+    return "123" # Default para testes
 
 # --- Modelos de Dados (Pydantic) ---
 
@@ -87,12 +95,12 @@ def clean_data(df):
 def health_check():
     return {"status": "online", "agent": "TelesalesAgent"}
 
-@app.get("/insights", dependencies=[Depends(get_api_key)])
-def get_insights(min_days: int = 0, max_days: int = 30):
+@app.get("/insights")
+def get_insights(min_days: int = 0, max_days: int = 30, vendor_filter: str = Depends(get_current_vendor)):
     """Retorna o ranking de vendas dos últimos N dias."""
     try:
-        sys.stderr.write(f"DEBUG: get_insights REQUEST - min={min_days} max={max_days} vendor={CURRENT_VENDOR}\n")
-        df = agent.get_sales_insights(min_days=min_days, max_days=max_days, vendor_filter=CURRENT_VENDOR)
+        sys.stderr.write(f"DEBUG: get_insights REQUEST - min={min_days} max={max_days} vendor={vendor_filter}\n")
+        df = agent.get_sales_insights(min_days=min_days, max_days=max_days, vendor_filter=vendor_filter)
         sys.stderr.write(f"DEBUG: get_insights RESULT from Agent - Lines={len(df)}\n")
         
         if not df.empty:
@@ -109,11 +117,11 @@ def get_insights(min_days: int = 0, max_days: int = 30):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/inactive", dependencies=[Depends(get_api_key)])
-def get_inactive(min_days: int = 30, max_days: int = 365):
+@app.get("/inactive")
+def get_inactive(min_days: int = 30, max_days: int = 365, vendor_filter: str = Depends(get_current_vendor)):
     """Retorna clientes inativos (sem compras) há X dias."""
     try:
-        df = agent.get_inactive_customers(min_days=min_days, max_days=max_days, vendor_filter=CURRENT_VENDOR)
+        df = agent.get_inactive_customers(min_days=min_days, max_days=max_days, vendor_filter=vendor_filter)
         # Converte datas para string
         if not df.empty and 'Ultima_Compra' in df.columns:
             df['Ultima_Compra'] = df['Ultima_Compra'].astype(str)
@@ -244,11 +252,11 @@ class FeedbackRequest(BaseModel):
     feedback_type: str # 'useful' | 'sold'
     user_id: Optional[str] = None
 
-@app.post("/pitch", dependencies=[Depends(get_api_key)])
-async def generate_pitch(request: PitchRequest):
+@app.post("/pitch")
+async def generate_pitch(request: PitchRequest, vendor_filter: str = Depends(get_current_vendor)):
     """Gera um pitch de vendas usando IA."""
     try:
-        pitch = await agent.generate_pitch(request.card_code, request.target_sku, vendor_filter=CURRENT_VENDOR)
+        pitch = await agent.generate_pitch(request.card_code, request.target_sku, vendor_filter=vendor_filter)
         pitch_id = str(uuid.uuid4())
         
         if not isinstance(pitch, dict):
@@ -306,11 +314,11 @@ def pitch_feedback(request: FeedbackRequest):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/chat", dependencies=[Depends(get_api_key)])
-async def chat_with_agent(request: ChatRequest):
+@app.post("/chat")
+async def chat_with_agent(request: ChatRequest, vendor_filter: str = Depends(get_current_vendor)):
     """Conversa com o assistente."""
     try:
-        response = await agent.chat(request.message, request.history, vendor_filter=CURRENT_VENDOR)
+        response = await agent.chat(request.message, request.history, vendor_filter=vendor_filter)
         return {"response": response}
     except Exception as e:
         import traceback
@@ -319,12 +327,12 @@ async def chat_with_agent(request: ChatRequest):
 
 from fastapi.responses import StreamingResponse
 
-@app.post("/chat/stream", dependencies=[Depends(get_api_key)])
-async def chat_stream_endpoint(request: ChatRequest):
+@app.post("/chat/stream")
+async def chat_stream_endpoint(request: ChatRequest, vendor_filter: str = Depends(get_current_vendor)):
     """Conversa com o assistente via Streaming (Server-Sent Events style)."""
     async def event_generator():
         try:
-            async for chunk in agent.chat_stream(request.message, request.history, vendor_filter=CURRENT_VENDOR):
+            async for chunk in agent.chat_stream(request.message, request.history, vendor_filter=vendor_filter):
                 yield chunk
         except Exception as e:
             yield f"Erro no stream: {e}"
@@ -334,4 +342,4 @@ async def chat_stream_endpoint(request: ChatRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8005)

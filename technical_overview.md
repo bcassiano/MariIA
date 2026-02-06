@@ -51,7 +51,7 @@ graph TD
 ### Componentes Principais
 - **`src/api/app.py`**: O ponto de entrada.
     - Expõe endpoints como `/insights` (ranking), `/pitch` (gerar discurso de vendas) e `/chat/stream`.
-    - Implementa autenticação por Chave de API (`x-api-key`).
+    - Implementa autenticação baseada em Sessão (`x-user-id`) para mobile, mantendo `x-api-key` para segurança de infraestrutura.
     - Usa uma instância global de `TelesalesAgent` para reutilização de conexão.
     - Cuida da limpeza de dados (tratamento de NaN, conversão de Decimal) antes da serialização JSON.
 
@@ -61,6 +61,7 @@ graph TD
         - `get_customer_history_markdown`: Busca histórico de compras.
         - `get_sales_insights_markdown`: Analisa vendas de clientes ativos.
         - `get_inactive_customers_markdown`: Identifica risco de churn.
+        - `get_sales_insights`: (API) Retorna insights estruturados de vendas para cards do App.
     - **Geração**: `generate_pitch` constrói um prompt estruturado combinando dados do cliente + produtos principais + regras de negócio para gerar um JSON com texto do pitch e sugestões de pedido.
     - **Chat**: Implementa um loop de chat em streaming (`chat_stream`) que lida com o loop manual de "Chamada de Função Automática" (detecta chamada de ferramenta -> executa SQL -> alimenta de volta para a IA).
 
