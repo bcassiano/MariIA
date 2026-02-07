@@ -9,6 +9,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import HomeScreen from './src/screens/HomeScreen';
 import CustomerScreen from './src/screens/CustomerScreen';
 import ChatScreen from './src/screens/ChatScreen';
+import PortfolioScreen from './src/screens/PortfolioScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
 
@@ -35,10 +36,15 @@ export default function App() {
                     }
                 }
 
-                if (userId) {
+                // Se não houver user_id, usa vendedor padrão
+                if (!userId) {
+                    userId = 'V.vp - Renata Rodrigues'; // Vendedor padrão exato do banco
+                    console.log("Session Init: No user_id provided, using default =", userId);
+                } else {
                     console.log("Session Init: Found user_id =", userId);
-                    await AsyncStorage.setItem('user_session_id', userId);
                 }
+
+                await AsyncStorage.setItem('user_session_id', userId);
 
                 // 2. Font Loading
                 await Font.loadAsync({
@@ -119,6 +125,14 @@ export default function App() {
                             headerShown: true,
                             title: 'Mari IA - Assistente',
                             headerTitleAlign: 'center'
+                        }}
+                    />
+                    <Stack.Screen
+                        name="Portfolio"
+                        component={PortfolioScreen}
+                        options={{
+                            headerShown: false,
+                            title: 'Minha Carteira'
                         }}
                     />
                 </Stack.Navigator>

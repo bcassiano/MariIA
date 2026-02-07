@@ -15,6 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const api = axios.create({
     baseURL: API_URL,
+    timeout: 60000, // 60 segundos (aumentado para acomodar queries lentas)
     headers: {
         'x-api-key': process.env.EXPO_PUBLIC_API_KEY || 'mariia-secret-key-123'
     }
@@ -67,6 +68,17 @@ export const getBalesBreakdown = async (cardCode) => {
         return [];
     }
 };
+
+export const getPortfolio = async () => {
+    try {
+        const response = await api.get('/portfolio');
+        return response.data;
+    } catch (error) {
+        console.error("Erro ao buscar portfólio:", error);
+        return { error: error.message };
+    }
+};
+
 
 export const getCustomer = async (cardCode) => {
     try {

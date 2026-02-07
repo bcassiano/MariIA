@@ -537,18 +537,18 @@ export default function CustomerScreen({ route }) {
                                 <ActivityIndicator size="large" color="#1A2F5A" />
                                 <Text style={tw`mt-4 text-gray-500`}>Carregando dados...</Text>
                             </View>
-                        ) : chartData && chartData.labels ? (
+                        ) : chartData && chartData.labels && chartData.datasets && chartData.datasets.length > 0 ? (
                             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                                 <View>
                                     <LineChart
                                         data={{
                                             labels: chartData.labels,
                                             datasets: chartData.datasets.map(ds => ({
-                                                data: ds.data,
+                                                data: Array.isArray(ds.data) ? ds.data : [0], // Garante array
                                                 color: (opacity = 1) => ds.color || `rgba(26, 47, 90, ${opacity})`,
                                                 strokeWidth: 2
                                             })),
-                                            legend: chartData.datasets.map(ds => ds.name)
+                                            legend: chartData.datasets.map(ds => ds.name || 'Série')
                                         }}
                                         width={Dimensions.get("window").width + 100} // Horizontal scroll
                                         height={300}

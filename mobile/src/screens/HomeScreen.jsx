@@ -43,15 +43,20 @@ export default function HomeScreen({ navigation }) {
             let minDays, maxDays;
 
             if (filter.min !== undefined) {
-                // Range específico (Ex: 15-25)
+                // Range específico (Ex: 15-25 dias)
                 minDays = filter.min;
                 maxDays = filter.max;
             } else {
-                // Padrão (30/60/90)
+                // Padrão (30/60/90 dias)
                 if (mode === 'active') {
+                    // Positivados: últimos X dias (range inclusivo de 0 até X)
+                    // Ex: "30 dias" = clientes que compraram nos últimos 0-30 dias
                     minDays = 0;
                     maxDays = filter.val;
                 } else {
+                    // Em Recuperação: X dias ou mais (range acumulativo)
+                    // Ex: "30 dias" = clientes sem compras há 30+ dias
+                    // Isso garante que sempre haverá resultados se existirem inativos
                     minDays = filter.val;
                     maxDays = 9999;
                 }
@@ -165,7 +170,7 @@ export default function HomeScreen({ navigation }) {
                                     Média FD:
                                 </Text>
                                 <Text style={tw`text-sm font-bold text-blue-900`}>
-                                    {item.Media_Fardos}
+                                    {typeof item.Media_Fardos === 'number' ? item.Media_Fardos.toFixed(1) : item.Media_Fardos}
                                 </Text>
                             </TouchableOpacity>
                         )}
@@ -209,6 +214,24 @@ export default function HomeScreen({ navigation }) {
                         <Text style={tw`text-xs text-text-sub-light`}>Análise de vendas e recuperação</Text>
                     </View>
                 </View>
+
+                {/* Botão Minha Carteira */}
+                <TouchableOpacity
+                    style={[tw`rounded-2xl p-4 mb-6 shadow-lg flex-row items-center justify-between`, { backgroundColor: '#1A2F5A' }]}
+                    onPress={() => navigation.navigate('Portfolio')}
+                    activeOpacity={0.8}
+                >
+                    <View style={tw`flex-row items-center gap-3`}>
+                        <View style={[tw`w-12 h-12 rounded-full items-center justify-center`, { backgroundColor: '#0F1F3D' }]}>
+                            <Icon name="donut_large" size={28} color="#FFF" />
+                        </View>
+                        <View>
+                            <Text style={tw`text-white font-bold text-lg`}>📊 Minha Carteira</Text>
+                            <Text style={tw`text-blue-100 text-sm font-semibold`}>Análise de positivação</Text>
+                        </View>
+                    </View>
+                    <Icon name="chevron_right" size={28} color="#FFF" />
+                </TouchableOpacity>
 
                 {/* Toggle Buttons */}
                 <View style={tw`flex-row bg-white rounded-2xl shadow-sm border border-gray-100 mb-6`}>

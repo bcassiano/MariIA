@@ -587,37 +587,46 @@ class TelesalesAgent:
         if min_days > max_days:
             min_days, max_days = max_days, min_days
 
+        # Query simplificada sem CTE para melhor performance
         query = f"""
-        WITH Base_Ativos AS (
-            SELECT 
-                Codigo_Cliente,
-                MAX(Nome_Cliente) as Nome_Cliente,
-                MAX(Cidade) as Cidade,
-                MAX(Estado) as Estado,
-                MAX(Data_Emissao) as Ultima_Compra,
-                SUM(Valor_Total_Linha) as Total_Venda
-            FROM FAL_IA_Dados_Vendas_Televendas 
-            WHERE 1=1 {vendor_clause}
-            AND Data_Emissao >= DATEADD(day, -{max_days}, GETDATE())
-            AND Data_Emissao <= DATEADD(day, -{min_days}, GETDATE())
-            GROUP BY Codigo_Cliente
-        )
-        SELECT * FROM Base_Ativos ORDER BY Total_Venda DESC
+        SELECT 
+            Codigo_Cliente,
+            MAX(Nome_Cliente) as Nome_Cliente,
+            MAX(Cidade) as Cidade,
+            MAX(Estado) as Estado,
+            MAX(Data_Emissao) as Ultima_Compra,
+            SUM(Valor_Total_Linha) as Total_Venda,
+            -- Média de Volume por Pedido (Media Fardos)
+            CASE 
+                WHEN COUNT(DISTINCT Numero_Documento) > 0 
+                THEN CAST(SUM(Quantidade) AS FLOAT) / COUNT(DISTINCT Numero_Documento)
+                ELSE 0 
+            END as Media_Fardos
+        FROM FAL_IA_Dados_Vendas_Televendas 
+        WHERE Data_Emissao >= DATEADD(day, -{max_days}, GETDATE())
+          AND Data_Emissao <= DATEADD(day, -{min_days}, GETDATE())
+          {vendor_clause}
+        GROUP BY Codigo_Cliente
+        ORDER BY Total_Venda DESC
         """
         
         df = self.db.get_dataframe(query)
         
-        # Enriquecimento com Média de Perfil (Opcional, mas a tela mostra Media_Fardos)
-        if not df.empty:
-             df['Media_Fardos'] = df.apply(
-                lambda row: self.get_customer_profile_average(row['Codigo_Cliente'], row['Ultima_Compra']), 
-                axis=1
-            )
+        # REMOVIDO: Enriquecimento com Média de Perfil para evitar timeout
+        # O cálculo de Media_Fardos fazia N queries adicionais (uma por cliente)
+        # causando lentidão extrema. Pode ser calculado sob demanda se necessário.
+        # if not df.empty:
+        #     df['Media_Fardos'] = df.apply(
+        #         lambda row: self.get_customer_profile_average(row['Codigo_Cliente'], row['Ultima_Compra']), 
+        #         axis=1
+        #     )
             
         return df
 
     def get_inactive_customers(self, min_days: int = 30, max_days: int = 365, vendor_filter: str = None) -> pd.DataFrame:
-        """Busca clientes inativos (sem compras no período) para o dashboard."""
+        """Busca clientes inativos (sem compras no período) para o dashboard.
+           Ordenação: Maior Média de Fardos e Valor.
+        """
         
         # Filtro de vendedor
         vendor_filter = self._resolve_vendor_filter(vendor_filter)
@@ -630,24 +639,34 @@ class TelesalesAgent:
                 MAX(Nome_Cliente) as Nome_Cliente,
                 MAX(Cidade) as Cidade,
                 MAX(Estado) as Estado,
-                MAX(Data_Emissao) as Ultima_Compra
+                MAX(Data_Emissao) as Ultima_Compra,
+                -- Valor total histórico (ou no período analítico disponível na view)
+                SUM(Valor_Total_Linha) as Valor_Total_Historico
             FROM FAL_IA_Dados_Vendas_Televendas 
             WHERE 1=1 {vendor_clause}
             GROUP BY Codigo_Cliente
             HAVING MAX(Data_Emissao) < DATEADD(day, -{min_days}, GETDATE())
                AND MAX(Data_Emissao) >= DATEADD(day, -{max_days}, GETDATE())
         )
-        SELECT * FROM Base_Inativos ORDER BY Ultima_Compra DESC
+        SELECT * FROM Base_Inativos
         """
         
         df = self.db.get_dataframe(query)
         
-        # Enriquecimento com Média de Perfil (usando Cache)
         if not df.empty:
+            # Calcular Media_Fardos (idealmente seria no SQL, mas mantendo lógica existente por compatibilidade)
+            # Para evitar N queries se houver muitos, idealmente cache ajuda.
+            # Se for muito lento, considerar mover logica para SQL.
             df['Media_Fardos'] = df.apply(
                 lambda row: self.get_customer_profile_average(row['Codigo_Cliente'], row['Ultima_Compra']), 
                 axis=1
             )
+            
+            # Ordenação solicitada: Maior Media de Fardos e Valor
+            df = df.sort_values(by=['Media_Fardos', 'Valor_Total_Historico'], ascending=[False, False])
+        else:
+            # Garante colunas mesmo vazio
+            df['Media_Fardos'] = 0.0
             
         return df
 
@@ -687,6 +706,115 @@ class TelesalesAgent:
         """
         df = self.db.get_dataframe(query)
         return df.to_markdown(index=False)
+    
+    def get_portfolio_analysis(self, vendor_filter: str = None, period_days: int = 30) -> dict:
+        """
+        Analisa a carteira completa do vendedor.
+        
+        Retorna:
+        - Total de clientes únicos
+        - Clientes positivados (com vendas no período)
+        - Clientes não positivados (sem vendas no período)
+        - Taxa de positivação
+        - Lista completa de clientes
+        """
+        vendor_filter = self._resolve_vendor_filter(vendor_filter)
+        vendor_clause = f"AND Vendedor_Atual = '{vendor_filter}'" if vendor_filter else ""
+        
+        # Query para análise da carteira
+        query = f"""
+        WITH Carteira_Completa AS (
+            SELECT DISTINCT 
+                Codigo_Cliente,
+                MAX(Nome_Cliente) as Nome_Cliente,
+                MAX(Cidade) as Cidade,
+                MAX(Estado) as Estado
+            FROM FAL_IA_Dados_Vendas_Televendas
+            WHERE 1=1 {vendor_clause}
+            GROUP BY Codigo_Cliente
+        ),
+        Vendas_Periodo AS (
+            SELECT 
+                Codigo_Cliente,
+                SUM(Valor_Liquido) as Total_Vendas,
+                MAX(Data_Emissao) as Ultima_Compra,
+                DATEDIFF(day, MAX(Data_Emissao), GETDATE()) as Dias_Desde_Compra
+            FROM FAL_IA_Dados_Vendas_Televendas
+            WHERE Data_Emissao >= DATEADD(day, -{period_days}, GETDATE())
+                  {vendor_clause}
+            GROUP BY Codigo_Cliente
+        )
+        SELECT 
+            c.Codigo_Cliente,
+            c.Nome_Cliente,
+            c.Cidade,
+            c.Estado,
+            CASE WHEN v.Codigo_Cliente IS NOT NULL THEN 1 ELSE 0 END as Positivado,
+            ISNULL(v.Total_Vendas, 0) as Total_Vendas,
+            v.Ultima_Compra,
+            v.Dias_Desde_Compra,
+            ISNULL(m.Media_Fardos, 0) as Media_Fardos
+        FROM Carteira_Completa c
+        LEFT JOIN Vendas_Periodo v ON c.Codigo_Cliente = v.Codigo_Cliente
+        OUTER APPLY (
+            SELECT TOP 1 
+                AVG(CAST(sub.Qtd_Total AS DECIMAL(10,2))) as Media_Fardos
+            FROM (
+                SELECT 
+                    Data_Emissao, 
+                    SUM(Quantidade) as Qtd_Total
+                FROM FAL_IA_Dados_Vendas_Televendas v_inner
+                WHERE v_inner.Codigo_Cliente = c.Codigo_Cliente
+                  AND v_inner.Data_Emissao >= DATEADD(month, -6, GETDATE()) -- Média dos últimos 6 meses
+                GROUP BY Data_Emissao
+            ) sub
+        ) m
+        ORDER BY Positivado DESC, Total_Vendas DESC
+        """
+        
+        df = self.db.get_dataframe(query)
+        
+        if df.empty:
+            return {
+                "summary": {
+                    "total_clients": 0,
+                    "positivated_clients": 0,
+                    "non_positivated_clients": 0,
+                    "positivation_rate": 0.0
+                },
+                "clients": []
+            }
+        
+        # Calcular métricas
+        total = len(df)
+        positivated = df[df['Positivado'] == 1].shape[0]
+        non_positivated = total - positivated
+        rate = (positivated / total * 100) if total > 0 else 0
+        
+        # Formatar clientes
+        clients = []
+        for _, row in df.iterrows():
+            clients.append({
+                "card_code": row['Codigo_Cliente'],
+                "name": row['Nome_Cliente'],
+                "city": row['Cidade'],
+                "state": row['Estado'],
+                "is_positivated": bool(row['Positivado']),
+                "total_sales": float(row['Total_Vendas']),
+                "last_purchase": row['Ultima_Compra'].isoformat() if pd.notna(row['Ultima_Compra']) else None,
+                "days_since_purchase": int(row['Dias_Desde_Compra']) if pd.notna(row['Dias_Desde_Compra']) else None
+            })
+        
+        return {
+            "summary": {
+                "total_clients": total,
+                "positivated_clients": positivated,
+                "non_positivated_clients": non_positivated,
+                "positivation_rate": round(rate, 1)
+            },
+            "clients": clients
+        }
+    
     
     # --- Chat Stream ---
 
@@ -929,13 +1057,30 @@ class TelesalesAgent:
         TAREFAS E REGRAS DE NEGÓCIO:
         1. **Perfil de Compra**: Resuma o que o cliente compra (ex: Foco em Arroz, itens de cesta básica).
         2. **Frequência**: Avalie a recorrência e dias desde o último pedido faturado.
-        3. **Pitch de Venda**: Crie uma abordagem curta (2-3 frases), matadora e persuasiva.
-        4. **Pedido Ideal**: Sugira 2 a 4 SKUs. Inclua ITENS RECORRENTES (que ele sempre compra) e 1 OPORTUNIDADE (um item do Top Selling que ele NÃO comprou recentemente).
+        3. **Pitch de Venda**: Crie uma abordagem curta (2-3 frases), matadora e persuasiva focada em DIVERSIFICAÇÃO e VOLUME.
+        4. **Pedido Ideal (ESTRATÉGIA DE PULVERIZAÇÃO - PRIORIDADE MÁXIMA)**: 
+           Sugira 3 a 5 SKUs seguindo esta HIERARQUIA OBRIGATÓRIA:
+           
+           a) **1 Item Âncora** (20-30% da quantidade): O SKU recorrente principal do cliente (giro garantido).
+           
+           b) **2-3 Itens de Pulverização** (50-60% da quantidade - FOCO PRINCIPAL):
+              - Selecione produtos do Top Selling que o cliente NÃO comprou nos últimos 60 dias
+              - PRIORIZE itens com MAIOR VOLUME de vendas da empresa (>3.000 unidades/mês)
+              - DIVERSIFIQUE categorias (se compra Arroz, sugira Feijão + Massas + Óleo)
+              - Foque em produtos com alta rotatividade e giro rápido garantido
+           
+           c) **1 Item Estratégico** (10-20% - Opcional):
+              - Produto premium, lançamento ou margem superior
+              - Justifique o valor agregado
+           
+           REGRA CRÍTICA: Pelo menos 60% da QUANTIDADE TOTAL deve vir de SKUs de categorias 
+           DIFERENTES das recorrentes do cliente. Priorize PULVERIZAÇÃO com VOLUME.
+        
         5. **Transparência (REGRAS ESTRITAS)**: Você DEVE retornar exatamente 3 motivos na lista `reasons`, com os seguintes títulos e ícones:
            - Título: "Timing Ideal" | Ícone: "history" | Conteúdo: Análise de dias desde a última compra e risco de ruptura.
-           - Título: "Giro Garantido" | Ícone: "star" | Conteúdo: SKU recorrente do cliente que não pode faltar.
-           - Título: "Oportunidade" | Ícone: "trending_up" | Conteúdo: Por que ele deve comprar o item novo sugerido (ex: é o mais vendido da cia).
-        6. **Motivação**: Uma frase curta no campo `motivation` que resuma a estratégia (ex: "Reposição de estoque + Oportunidade de Mix").
+           - Título: "Giro Garantido" | Ícone: "star" | Conteúdo: SKU recorrente do cliente que não pode faltar (item âncora).
+           - Título: "Oportunidade de Mix" | Ícone: "trending_up" | Conteúdo: Explicar QUANTITATIVAMENTE o VOLUME de vendas dos produtos de pulverização sugeridos (ex: "Feijão Preto vendeu 15.000 unidades no último trimestre, com crescimento de 25% na região. Diversificar seu mix garante giro rápido e reduz risco de concentração").
+        6. **Motivação**: Uma frase curta no campo `motivation` que resuma a estratégia de PULVERIZAÇÃO (ex: "Mix estratégico: 1 âncora + 3 categorias de alto volume").
 
         REGRAS DO JSON:
         - "suggested_order": [ {{"product_name": "...", "sku": "...", "quantity": 10, "unit_price": 25.50}} ]
