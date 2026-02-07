@@ -230,6 +230,12 @@ export default function PitchCard({ pitch, onFeedback }) {
                     <Text style={tw`text-xs text-indigo-500 font-bold text-center mt-2`}>Obrigado pelo seu feedback!</Text>
                 )}
 
+                <View style={tw`mt-4 pt-4 border-t border-gray-100 items-center`}>
+                    <Text style={tw`text-[10px] text-gray-400 text-center leading-tight`}>
+                        A Mari IA pode cometer erros. As informações devem ser verificadas.
+                    </Text>
+                </View>
+
             </View>
         </View>
     );

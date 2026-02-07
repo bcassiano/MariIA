@@ -306,6 +306,12 @@ export default function ChatScreen({ navigation }) {
                     </TouchableOpacity>
                 </View>
             </View>
+
+            <View style={tw`pb-4 pt-2 px-6 items-center bg-white dark:bg-surface-dark`}>
+                <Text style={tw`text-[10px] text-gray-400 text-center leading-tight`}>
+                    A Mari IA pode cometer erros. As informações devem ser verificadas.
+                </Text>
+            </View>
         </KeyboardAvoidingView>
     );
 }

@@ -51,8 +51,8 @@ from fastapi import Header
 async def get_current_vendor(x_user_id: Optional[str] = Header(None, alias="x-user-id")):
     if x_user_id:
         return x_user_id
-    # Fallback para dev se necessário, ou usar um default
-    return "123" # Default para testes
+    # Segurança: Não permitir acesso sem ID explícito em produção
+    raise HTTPException(status_code=403, detail="Acesso Negado: ID do Vendedor não fornecido. Use ?user_id=SEU_CODIGO")
 
 # --- Modelos de Dados (Pydantic) ---
 

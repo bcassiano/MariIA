@@ -289,6 +289,13 @@ export default function HomeScreen({ navigation }) {
                     style={{ flex: 1 }}
                     contentContainerStyle={{ paddingBottom: 100 }}
                     showsVerticalScrollIndicator={false}
+                    ListFooterComponent={
+                        <View style={tw`py-4 px-6 items-center`}>
+                            <Text style={tw`text-[10px] text-gray-400 text-center leading-tight`}>
+                                A Mari IA pode cometer erros. As informações devem ser verificadas.
+                            </Text>
+                        </View>
+                    }
                 />
             )}
 
