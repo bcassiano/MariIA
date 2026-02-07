@@ -134,12 +134,19 @@ export const streamChatMessage = async (message, history, onChunk, signal) => {
     const fullUrl = `${api.defaults.baseURL}/chat/stream`;
 
     try {
+        // Retrieve session ID manually since we are using fetch, not the axios instance
+        const userId = await AsyncStorage.getItem('user_session_id');
+        const headers = {
+            'Content-Type': 'application/json',
+            'x-api-key': api.defaults.headers['x-api-key']
+        };
+        if (userId) {
+            headers['x-user-id'] = userId;
+        }
+
         const response = await fetch(fullUrl, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': api.defaults.headers['x-api-key']
-            },
+            headers: headers,
             body: JSON.stringify({ message, history }),
             signal
         });

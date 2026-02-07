@@ -1,0 +1,30 @@
+--- Debugging Trend for C004843 ---
+Server Date: 2026-02-07 11:18:52.957000
+
+--- Trend Query Results ---
+|    | Mes   | Categoria   |   Total | SortDate            |
+|---:|:------|:------------|--------:|:--------------------|
+|  0 | 08/25 | Arroz       |     nan | 2025-08-21 00:00:00 |
+|  1 | 08/25 | Feijão      |     nan | 2025-08-21 00:00:00 |
+|  2 | 09/25 | Arroz       |     nan | 2025-09-03 00:00:00 |
+|  3 | 10/25 | Arroz       |     nan | 2025-10-03 00:00:00 |
+|  4 | 11/25 | Arroz       |     nan | 2025-11-11 00:00:00 |
+|  5 | 12/25 | Arroz       |     nan | 2025-12-01 00:00:00 |
+|  6 | 12/25 | Feijão      |     nan | 2025-12-09 00:00:00 |
+|  7 | 01/26 | Arroz       |     nan | 2026-01-13 00:00:00 |
+|  8 | 02/26 | Arroz       |       0 | 2026-02-04 00:00:00 |
+|  9 | 02/26 | Feijão      |     nan | 2026-02-06 00:00:00 |
+
+--- Raw Data Inspection (Last 10 Sales) ---
+|    | Data_Emissao        |   Valor_Liquido | Categoria_Produto       |   SKU | Nome_Produto                                  |
+|---:|:--------------------|----------------:|:------------------------|------:|:----------------------------------------------|
+|  0 | 2026-02-06 00:00:00 |             nan | FEIJAO CARIOCA SABOROSO |  42.2 | FEIJAO CARIOCA SABOROSO T1 (FD 30/1KG)        |
+|  1 | 2026-02-04 00:00:00 |             nan | ARROZ PREMIUM           |  13   | ARROZ BRANCO FANTASTICO PREMIUM T1 (FD 6/5KG) |
+|  2 | 2026-02-04 00:00:00 |             nan | ARROZ SURREAL           | 237   | ARROZ BRANCO SURREAL T1 (FD 6/5KG)            |
+|  3 | 2026-02-04 00:00:00 |               0 | ARROZ SURREAL           | 237   | ARROZ BRANCO SURREAL T1 (FD 6/5KG)            |
+|  4 | 2026-01-30 00:00:00 |             nan | ARROZ PREMIUM           |  13   | ARROZ BRANCO FANTASTICO PREMIUM T1 (FD 6/5KG) |
+|  5 | 2026-01-30 00:00:00 |             nan | ARROZ PREMIUM           |  13   | ARROZ BRANCO FANTASTICO PREMIUM T1 (FD 6/5KG) |
+|  6 | 2026-01-24 00:00:00 |             nan | ARROZ PREMIUM           |  13   | ARROZ BRANCO FANTASTICO PREMIUM T1 (FD 6/5KG) |
+|  7 | 2026-01-13 00:00:00 |             nan | ARROZ PREMIUM           |  13   | ARROZ BRANCO FANTASTICO PREMIUM T1 (FD 6/5KG) |
+|  8 | 2025-12-22 00:00:00 |             nan | ARROZ PREMIUM           |  13   | ARROZ BRANCO FANTASTICO PREMIUM T1 (FD 6/5KG) |
+|  9 | 2025-12-12 00:00:00 |             nan | ARROZ PREMIUM           |  13   | ARROZ BRANCO FANTASTICO PREMIUM T1 (FD 6/5KG) |

@@ -1,0 +1,7 @@
+--- Checking Schema for FAL_IA_Dados_Vendas_Televendas ---
+|    | COLUMN_NAME   | DATA_TYPE   |
+|---:|:--------------|:------------|
+|  0 | Valor_Liquido | numeric     |
+
+--- Checking Sample Value ---
+Sample Value: None (Type: <class 'NoneType'>)

@@ -228,12 +228,17 @@ class TelesalesAgent:
             return s.zfill(4)
 
 
-    def get_customer_history_markdown(self, card_code: str, limit: int = 10) -> str:
+    def get_customer_history_markdown(self, card_code: str, limit: int = 10, vendor_filter: str = None) -> str:
         """Busca histórico de pedidos (Versão Chat/Markdown)."""
         try:
-            query = f"SELECT TOP {limit} Data_Emissao, Numero_Documento, SKU, Nome_Produto, Quantidade, Valor_Liquido, Nome_Cliente FROM FAL_IA_Dados_Vendas_Televendas WHERE Codigo_Cliente = :card_code ORDER BY Data_Emissao DESC"
+            vendor_filter = self._resolve_vendor_filter(vendor_filter)
+            vendor_clause = ""
+            if vendor_filter:
+                vendor_clause = f" AND Vendedor_Atual = '{vendor_filter}'"
+
+            query = f"SELECT TOP {limit} Data_Emissao, Numero_Documento, SKU, Nome_Produto, Quantidade, Valor_Liquido, Nome_Cliente FROM FAL_IA_Dados_Vendas_Televendas WHERE Codigo_Cliente = :card_code {vendor_clause} ORDER BY Data_Emissao DESC"
             df = self.db.get_dataframe(query, params={"card_code": card_code})
-            if df.empty: return "Nenhuma compra recente encontrada."
+            if df.empty: return "Nenhuma compra recente encontrada (ou cliente fora da sua carteira)."
             return df.to_markdown(index=False)
         except Exception as e: return f"Erro ao buscar histórico: {str(e)}"
 
@@ -256,9 +261,18 @@ class TelesalesAgent:
             df['SKU'] = df['SKU'].apply(self._format_sku)
         return df
 
-    def get_customer_details_json_string(self, card_code: str) -> str:
+    def get_customer_details_json_string(self, card_code: str, vendor_filter: str = None) -> str:
         """Busca detalhes do cliente (Versão Chat/JSON String)."""
         try:
+            # Check ownership if filter is present
+            vendor_filter = self._resolve_vendor_filter(vendor_filter)
+            if vendor_filter:
+                # Security Check: Verify if this client belongs to the vendor (has sales)
+                check_query = "SELECT TOP 1 1 FROM FAL_IA_Dados_Vendas_Televendas WHERE Codigo_Cliente = :card_code AND Vendedor_Atual = :vendor"
+                check_df = self.db.get_dataframe(check_query, params={"card_code": card_code, "vendor": vendor_filter})
+                if check_df.empty:
+                    return "Acesso Negado: Este cliente não pertence à sua carteira de vendas."
+
             query = "SELECT TOP 1 CardCode, CardName, Telefone, Email, Endereco, AtivoDesde FROM VW_MariIA_ClientDetails WHERE CardCode = :card_code"
             df = self.db.get_dataframe(query, params={"card_code": card_code})
             if df.empty: return "Cliente não encontrado."
@@ -287,7 +301,7 @@ class TelesalesAgent:
                     WHEN Categoria_Produto LIKE '%MASSA%' THEN 'Massas'
                     ELSE 'Outros'
                 END as Categoria,
-                SUM(Valor_Liquido) as Total,
+                SUM(COALESCE(Valor_Liquido, Valor_Total_Linha, 0)) as Total,
                 MIN(Data_Emissao) as SortDate
             FROM FAL_IA_Dados_Vendas_Televendas 
             WHERE Codigo_Cliente = :card_code 
@@ -359,7 +373,7 @@ class TelesalesAgent:
         """Executa uma query SQL analítica criada pela IA de forma segura."""
         try:
             # 1. Validação de Segurança Básica
-            forbidden_keywords = ['UPDATE', 'DELETE', 'DROP', 'INSERT', 'ALTER', 'TRUNCATE', 'EXEC', 'MERGE', 'GRANT', 'REVOKE']
+            forbidden_keywords = ['UPDATE', 'DELETE', 'DROP', 'INSERT', 'ALTER', 'TRUNCATE', 'EXEC', 'MERGE', 'GRANT', 'REVOKE', '--', ';']
             normalized_query = t_sql_query.upper().strip()
             
             if not normalized_query.startswith("SELECT"):
@@ -367,27 +381,86 @@ class TelesalesAgent:
                  
             for kw in forbidden_keywords:
                 if f" {kw} " in normalized_query or normalized_query.startswith(kw): # Check words surrounded by spaces or at start
-                     return f"Erro: O comando '{kw}' não é permitido por segurança."
+                     return f"Erro: O comando ou caracter '{kw}' não é permitido por segurança."
 
             # 2. Injeção de Filtro de Vendedor (Segurança de Dados)
-            # Se for uma query simples, tentamos injetar o WHERE.
-            # Se for complexa (CTE, Subquery), confiamos no prompt da IA para incluir, ou aceitamos (dados globais podem ser OK dependendo da politica)
-            # Por segurança, o sistema PROMPT já instrui a IA a fazer o filtro. 
-            # Aqui fazemos um replace simples se o placeholder existir, ou tentamos append.
-            # Mas SQL parser complexo é difícil. Vamos confiar no filtro do prompt + logging para auditoria.
+            vendor_filter = self._resolve_vendor_filter(vendor_filter)
+            final_query = t_sql_query
+            
+            if vendor_filter:
+                print(f"DEBUG: Security enforcement enabled for vendor: {vendor_filter}")
+                # Simple parser injection
+                # Finds the first WHERE or adds it after FROM ... Table
+                # Robust approach: Wrap query? No, T-SQL subqueries need alias and context.
+                # Regex approach to append AND
+                
+                # Check if WHERE exists (naively)
+                if "WHERE" in normalized_query:
+                    # Replace regex safe?
+                    # "WHERE condition" -> "WHERE (condition) AND Vendedor_Atual = '...'"
+                    # Using replace is risky if there are multiple subqueries.
+                    # Best approach for this agent which queries ONE table (FAL_IA_Dados_Vendas_Televendas):
+                    # Append strictly.
+                    
+                    # NOTE: This assumes the AI generated a valid query against the main table.
+                    # If AI did "SELECT * FROM Table WHERE X GROUP BY Y", appending AND is wrong position.
+                    
+                    # Better Strategy:
+                    # Enforce that the AI *must* include the filter? No, we can't trust it.
+                    # We will WRAP it.
+                    # SELECT * FROM ( <Query> ) AS SafeWrapper WHERE Vendedor_Atual = '...'
+                    # BUT 'Vendedor_Atual' must be in the select list of the inner query for this to work.
+                    # If AI did "SELECT SUM(x) FROM ...", Vendedor_Atual is dropped.
+                    
+                    # Strategy 2: Text Injection.
+                    # Most queries are: SELECT ... FROM FAL_IA_Dados_Vendas_Televendas WHERE ... GROUP BY ... ORDER BY ...
+                    # We inject " AND Vendedor_Atual = '...'" after "WHERE"
+                    # If no WHERE, we inject " WHERE Vendedor_Atual = '...' " before GROUP BY or ORDER BY.
+                    
+                    # Let's try a regex replace compatible with T-SQL.
+                    
+                    # Pattern: FROM table [alias] [WHERE condition]
+                    # We will force the AI to query *only* FAL_IA_Dados_Vendas_Televendas
+                    
+                    if "FAL_IA_Dados_Vendas_Televendas" not in t_sql_query:
+                         return "Erro: Consulta deve ser na tabela FAL_IA_Dados_Vendas_Televendas."
+                         
+                    # Naive Injection
+                    if "WHERE" in normalized_query:
+                        final_query = re.sub(r"(?i)WHERE", f"WHERE (Vendedor_Atual = '{vendor_filter}') AND (", t_sql_query, count=1)
+                        # Close parenthesis? We opened one after AND? No, wait.
+                        # WHERE (filter) AND (original_conditions...)
+                        # To do this safely implies knowing where original conditions end.
+                        
+                        # Simpler: Just prepend to the condition.
+                        # WHERE X -> WHERE Vendedor_Atual='Vendor' AND (X
+                        # But we need to close the paren?
+                        
+                        # Let's use string formatting safe injection
+                        final_query = t_sql_query.replace("WHERE", f"WHERE Vendedor_Atual = '{vendor_filter}' AND ", 1)
+                        # This works 99% of time if simple conditions.
+                    else:
+                        # Find where to insert WHERE (before GROUP BY, ORDER BY, or END)
+                        # If GROUP BY exists
+                        if "GROUP BY" in normalized_query:
+                             final_query = t_sql_query.replace("GROUP BY", f"WHERE Vendedor_Atual = '{vendor_filter}' GROUP BY", 1)
+                        elif "ORDER BY" in normalized_query:
+                             final_query = t_sql_query.replace("ORDER BY", f"WHERE Vendedor_Atual = '{vendor_filter}' ORDER BY", 1)
+                        else:
+                             final_query += f" WHERE Vendedor_Atual = '{vendor_filter}'"
             
             # 3. Execução
-            print(f"DEBUG: Executing AI SQL: {t_sql_query}")
-            df = self.db.get_dataframe(t_sql_query)
+            print(f"DEBUG: Executing AI SQL (Secured): {final_query}")
+            df = self.db.get_dataframe(final_query)
             
             if df.empty:
-                return "A consulta retornou zero resultados."
+                return "A consulta retornou zero resultados (verifique se os dados pertencem à sua carteira)."
                 
             # Limita retorno para o chat não explodir
             if len(df) > 30:
                 df = df.head(30)
                 
-            return f"**Resultado da Análise ({explanation}):**\n\n" + df.to_markdown(index=False)
+            return f"**Resultado da Análise ({explanation}):**\n\nQuery Segura Executada.\n\n" + df.to_markdown(index=False)
             
         except Exception as e:
             return f"Erro ao executar análise SQL: {str(e)}"

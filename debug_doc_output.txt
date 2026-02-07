@@ -1,0 +1,5 @@
+--- Debugging Document 248875 ---
+|    |   Numero_Documento | Data_Emissao        | Valor_Liquido   | Vendedor_Atual     | Codigo_Cliente   |
+|---:|-------------------:|:--------------------|:----------------|:-------------------|:-----------------|
+|  0 |             248875 | 2026-02-06 00:00:00 |                 | V.tv - Elen Hasman | C004843          |
+Value: None Type: <class 'NoneType'>

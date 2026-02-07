@@ -4,7 +4,7 @@ import { Platform, TouchableOpacity, Text } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import * as Font from 'expo-font';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, FontAwesome } from '@expo/vector-icons';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import HomeScreen from './src/screens/HomeScreen';
 import CustomerScreen from './src/screens/CustomerScreen';
@@ -43,6 +43,7 @@ export default function App() {
                 // 2. Font Loading
                 await Font.loadAsync({
                     ...MaterialIcons.font,
+                    ...FontAwesome.font,
                 });
 
                 // 3. Web Styles
