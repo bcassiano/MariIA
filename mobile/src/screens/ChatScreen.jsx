@@ -3,10 +3,10 @@ import { View, Text, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { sendChatMessage, streamChatMessage } from '../services/api';
 import { create } from 'twrnc';
-import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import TypingIndicator from '../components/TypingIndicator';
 import Markdown from 'react-native-markdown-display';
+import Icon from '../components/Icon';
 
 // Tailwind Config
 const tw = create(require('../../tailwind.config.js'));
@@ -114,7 +114,7 @@ export default function ChatScreen({ navigation }) {
         navigation.setOptions({
             headerRight: () => (
                 <TouchableOpacity onPress={confirmNewChat} style={tw`mr-4`}>
-                    <MaterialIcons name="delete-outline" size={24} color="white" />
+                    <Icon name="delete_outline" size={24} color="white" />
                 </TouchableOpacity>
             ),
         });
@@ -268,7 +268,7 @@ export default function ChatScreen({ navigation }) {
                 <View style={tw`flex-row items-end gap-2 max-w-lg mx-auto w-full`}>
                     {!inputText && !loading && (
                         <TouchableOpacity style={tw`p-2.5 rounded-full bg-gray-50 dark:bg-gray-800 items-center justify-center`}>
-                            <MaterialIcons name="add" size={24} color="#64748B" />
+                            <Icon name="add" size={24} color="#64748B" />
                         </TouchableOpacity>
                     )}
 
@@ -284,7 +284,7 @@ export default function ChatScreen({ navigation }) {
                         />
                         {!inputText && !loading && (
                             <TouchableOpacity style={tw`p-2`}>
-                                <MaterialIcons name="sticky-note-2" size={22} color="#94A3B8" />
+                                <Icon name="sticky_note_2" size={22} color="#94A3B8" />
                             </TouchableOpacity>
                         )}
                     </View>
@@ -297,11 +297,11 @@ export default function ChatScreen({ navigation }) {
                         onPress={loading ? handleStop : (inputText ? handleSend : null)}
                     >
                         {loading ? (
-                            <MaterialIcons name="stop" size={24} color="white" />
+                            <Icon name="stop" size={24} color="white" />
                         ) : inputText ? (
-                            <MaterialIcons name="send" size={24} color="white" />
+                            <Icon name="send" size={24} color="white" />
                         ) : (
-                            <MaterialIcons name="mic" size={24} color="#64748B" />
+                            <Icon name="mic" size={24} color="#64748B" />
                         )}
                     </TouchableOpacity>
                 </View>

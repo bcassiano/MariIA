@@ -7,6 +7,8 @@ import os
 import pandas as pd
 import numpy as np
 from decimal import Decimal
+from datetime import datetime, timedelta
+import hashlib
 
 # Adiciona o diretório raiz ao path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
@@ -17,11 +19,21 @@ app = FastAPI(title="MariIA API", description="API para Inteligência de Vendas"
 # Configuração de CORS (Permite acesso do React Native Web)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Em produção, especifique os domínios
+    allow_origins=[
+        "https://mariia-telesales.web.app",
+        "https://mariia-telesales.firebaseapp.com",
+        "http://localhost:8081",
+        "http://localhost:8082",
+        "http://localhost:8005",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# --- Cache simples ---
+_cache = {}
+CACHE_TTL = 60  # segundos
 
 # --- Segurança (API Key) ---
 from fastapi import Security, Depends
@@ -99,7 +111,17 @@ def health_check():
 def get_insights(min_days: int = 0, max_days: int = 30, vendor_filter: str = Depends(get_current_vendor)):
     """Retorna o ranking de vendas dos últimos N dias."""
     try:
-        sys.stderr.write(f"DEBUG: get_insights REQUEST - min={min_days} max={max_days} vendor={vendor_filter}\n")
+        # Gera chave de cache
+        cache_key = f"insights_{vendor_filter}_{min_days}_{max_days}"
+        
+        # Verifica cache
+        if cache_key in _cache:
+            cached_data, cached_time = _cache[cache_key]
+            if datetime.now() - cached_time < timedelta(seconds=CACHE_TTL):
+                sys.stderr.write(f"DEBUG: Cache HIT para {cache_key}\n")
+                return cached_data
+                
+        sys.stderr.write(f"DEBUG: Cache MISS - get_insights REQUEST - min={min_days} max={max_days} vendor={vendor_filter}\n")
         df = agent.get_sales_insights(min_days=min_days, max_days=max_days, vendor_filter=vendor_filter)
         sys.stderr.write(f"DEBUG: get_insights RESULT from Agent - Lines={len(df)}\n")
         
@@ -111,7 +133,13 @@ def get_insights(min_days: int = 0, max_days: int = 30, vendor_filter: str = Dep
         
         data = df.to_dict(orient="records")
         sys.stderr.write(f"DEBUG: Final JSON Items: {len(data)}\n")
-        return {"data": data}
+        
+        result = {"data": data}
+        
+        # Salva no cache
+        _cache[cache_key] = (result, datetime.now())
+        
+        return result
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -339,6 +367,16 @@ async def chat_stream_endpoint(request: ChatRequest, vendor_filter: str = Depend
 
     return StreamingResponse(event_generator(), media_type="text/plain")
 
+@app.get("/portfolio")
+def get_portfolio(vendor_filter: str = Depends(get_current_vendor)):
+    """Retorna análise completa da carteira do vendedor."""
+    try:
+        result = agent.get_portfolio_analysis(vendor_filter=vendor_filter)
+        return result
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn

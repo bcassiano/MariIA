@@ -36,7 +36,15 @@ const ICON_MAPPING = {
     'bar_chart': { native: 'bar-chart', web: 'bar_chart' },
     'analytics': { native: 'analytics', web: 'analytics' },
     'chat_bubble': { native: 'chat-bubble', web: 'chat_bubble' },
-    'chat': { native: 'chat-bubble', web: 'chat_bubble' }
+    'chat': { native: 'chat-bubble', web: 'chat_bubble' },
+
+    // Chat Screen Icons
+    'delete_outline': { native: 'delete-outline', web: 'delete_outline' },
+    'add': { native: 'add', web: 'add' },
+    'sticky_note_2': { native: 'sticky-note-2', web: 'sticky_note_2' },
+    'stop': { native: 'stop', web: 'stop' },
+    'send': { native: 'send', web: 'send' },
+    'mic': { native: 'mic', web: 'mic' }
 };
 
 export default function Icon({ name, size = 24, color = '#000', style }) {

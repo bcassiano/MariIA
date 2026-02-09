@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Platform, ScrollView, Image, Modal } from 'react-native';
 import { getInsights, getInactiveCustomers, getBalesBreakdown } from '../services/api';
 import { create } from 'twrnc';
-import { MaterialIcons } from '@expo/vector-icons';
 import Svg, { Rect, Path, G } from 'react-native-svg';
 import Icon from '../components/Icon';
 
@@ -343,7 +342,7 @@ export default function HomeScreen({ navigation }) {
                                 }}
                                 style={tw`bg-gray-100 p-2 rounded-full`}
                             >
-                                <MaterialIcons name="close" size={24} color="#64748B" />
+                                <Icon name="close" size={24} color="#64748B" />
                             </TouchableOpacity>
                         </View>
 
@@ -370,7 +369,7 @@ export default function HomeScreen({ navigation }) {
                                 )}
                                 ListEmptyComponent={() => (
                                     <View style={tw`items-center justify-center mt-20`}>
-                                        <MaterialIcons name="inventory_2" size={48} color="#E2E8F0" />
+                                        <Icon name="inventory_2" size={48} color="#E2E8F0" />
                                         <Text style={tw`text-gray-400 mt-4 font-medium`}>Nenhum histórico detalhado nos últimos 180 dias.</Text>
                                     </View>
                                 )}
@@ -379,7 +378,7 @@ export default function HomeScreen({ navigation }) {
                         )}
 
                         <View style={tw`mt-4 p-4 bg-gray-50 rounded-2xl flex-row items-center gap-3`}>
-                            <MaterialIcons name="info" size={20} color="#64748B" />
+                            <Icon name="info" size={20} color="#64748B" />
                             <Text style={tw`text-[11px] text-gray-500 flex-1 leading-snug`}>
                                 Estes valores representam a média de fardos por SKU considerando os pedidos dos últimos 6 meses.
                             </Text>

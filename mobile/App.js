@@ -12,6 +12,7 @@ import ChatScreen from './src/screens/ChatScreen';
 import PortfolioScreen from './src/screens/PortfolioScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
+import Icon from './src/components/Icon';
 
 const Stack = createStackNavigator();
 
@@ -46,13 +47,7 @@ export default function App() {
 
                 await AsyncStorage.setItem('user_session_id', userId);
 
-                // 2. Font Loading
-                await Font.loadAsync({
-                    ...MaterialIcons.font,
-                    ...FontAwesome.font,
-                });
-
-                // 3. Web Styles
+                // 2. Web Styles
                 if (Platform.OS === 'web') {
                     const style = document.createElement('style');
                     style.textContent = `
@@ -76,7 +71,7 @@ export default function App() {
         init();
     }, []);
 
-    if (!fontsLoaded || !sessionReady) {
+    if (!sessionReady) {
         return null; // Or a Loading indicator
     }
 
@@ -91,6 +86,8 @@ export default function App() {
                             elevation: 0, // Remove shadow for cleaner look
                         },
                         headerTintColor: '#fff',
+                        headerBackTitleVisible: false,
+                        headerBackImage: () => <Icon name="chevron_left" size={28} color="#fff" style={{ marginLeft: 10 }} />,
                         headerTitleStyle: {
                             fontWeight: 'bold',
                             fontFamily: Platform.OS === 'web' ? 'sans-serif' : undefined,
