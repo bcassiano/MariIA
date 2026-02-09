@@ -232,22 +232,27 @@ class TelesalesAgent:
         """Busca histórico de pedidos (Versão Chat/Markdown)."""
         try:
             vendor_filter = self._resolve_vendor_filter(vendor_filter)
+            
+            # 🛡️ SECURITY: Use safe parameterization instead of f-string concatenation
+            params = {"card_code": card_code, "limit": limit}
             vendor_clause = ""
+            
             if vendor_filter:
-                vendor_clause = f" AND Vendedor_Atual = '{vendor_filter}'"
+                vendor_clause = " AND Vendedor_Atual = :vendor_filter"
+                params["vendor_filter"] = vendor_filter
 
-            query = f"SELECT TOP {limit} Data_Emissao, Numero_Documento, SKU, Nome_Produto, Quantidade, Valor_Liquido, Nome_Cliente FROM FAL_IA_Dados_Vendas_Televendas WHERE Codigo_Cliente = :card_code {vendor_clause} ORDER BY Data_Emissao DESC"
-            df = self.db.get_dataframe(query, params={"card_code": card_code})
+            query = f"SELECT TOP (:limit) Data_Emissao, Numero_Documento, SKU, Nome_Produto, Quantidade, Valor_Liquido, Nome_Cliente FROM FAL_IA_Dados_Vendas_Televendas WHERE Codigo_Cliente = :card_code {vendor_clause} ORDER BY Data_Emissao DESC"
+            df = self.db.get_dataframe(query, params=params)
+            
             if df.empty: return "Nenhuma compra recente encontrada (ou cliente fora da sua carteira)."
             return df.to_markdown(index=False)
         except Exception as e: return f"Erro ao buscar histórico: {str(e)}"
 
     def get_customer_history(self, card_code: str, limit: int = 20) -> pd.DataFrame:
         """Busca histórico de pedidos (Versão API/DataFrame)."""
-        # Aumentei o limit default para API
-        # Nota: Corrigido Valor_Unitario -> Preco_Unitario_Original
-        query = f"""
-        SELECT TOP {limit} 
+        # 🛡️ SECURITY: Use safe parameterization for card_code and limit
+        query = """
+        SELECT TOP (:limit) 
             Data_Emissao, Numero_Documento, SKU, Nome_Produto, 
             Quantidade, Valor_Liquido, Nome_Cliente, Tipo_Documento, 
             Status_Documento, Valor_Total_Linha, 
@@ -256,7 +261,7 @@ class TelesalesAgent:
         WHERE Codigo_Cliente = :card_code 
         ORDER BY Data_Emissao DESC
         """
-        df = self.db.get_dataframe(query, params={"card_code": card_code})
+        df = self.db.get_dataframe(query, params={"card_code": card_code, "limit": limit})
         if not df.empty and 'SKU' in df.columns:
             df['SKU'] = df['SKU'].apply(self._format_sku)
         return df
@@ -706,6 +711,35 @@ class TelesalesAgent:
         """
         df = self.db.get_dataframe(query)
         return df.to_markdown(index=False)
+
+    def get_volume_insights(self, days: int = 90) -> str:
+        """
+        Retorna produtos de alto volume com métricas quantitativas.
+        Usa f-strings internamente com os dias (seguro pois é int interno) 
+        mas a lógica de colunas e filtros é estática.
+        """
+        query = f"""
+        SELECT TOP 15 
+            SKU,
+            MAX(Nome_Produto) as Produto,
+            SUM(Quantidade) as Volume_Total,
+            COUNT(DISTINCT Codigo_Cliente) as Clientes_Ativos,
+            ROUND(AVG(Valor_Liquido), 2) as Ticket_Medio,
+            MAX(Categoria_Produto) as Categoria
+        FROM FAL_IA_Dados_Vendas_Televendas 
+        WHERE Data_Emissao >= DATEADD(day, :days, GETDATE())
+        GROUP BY SKU
+        HAVING SUM(Quantidade) > 3000
+        ORDER BY Volume_Total DESC
+        """
+        df = self.db.get_dataframe(query, params={"days": -days})
+        if not df.empty and 'SKU' in df.columns:
+            df['SKU'] = df['SKU'].apply(self._format_sku)
+        
+        if df.empty:
+            return "Nenhum dado de volume significativo encontrado no período."
+            
+        return df.to_markdown(index=False)
     
     def get_portfolio_analysis(self, vendor_filter: str = None, period_days: int = 30) -> dict:
         """
@@ -1036,6 +1070,7 @@ class TelesalesAgent:
         details = self.get_customer_details(card_code)
         hist = self.get_customer_history(card_code, limit=20)
         top_selling = self.get_top_products(days=90) # Top produtos gerais como sugestão
+        volume_insights = self.get_volume_insights(days=90) # Nova ferramenta de Pulverização
         
         customer_name = details.get('CardName', card_code)
         
@@ -1051,27 +1086,30 @@ class TelesalesAgent:
         HISTÓRICO RECENTE DE COMPRAS:
         {hist.to_markdown(index=False) if not hist.empty else "Nenhuma compra recente encontrada."}
 
-        PRODUTOS MAIS VENDIDOS DA EMPRESA (PARA OPORTUNIDADES):
+        PRODUTOS MAIS VENDIDOS DA EMPRESA (OPORTUNIDADES DE MIX):
         {top_selling}
+
+        INSIGHTS DE VOLUME (ÚLTIMOS 90 DIAS):
+        {volume_insights}
 
         TAREFAS E REGRAS DE NEGÓCIO:
         1. **Perfil de Compra**: Resuma o que o cliente compra (ex: Foco em Arroz, itens de cesta básica).
         2. **Frequência**: Avalie a recorrência e dias desde o último pedido faturado.
-        3. **Pitch de Venda**: Crie uma abordagem curta (2-3 frases), matadora e persuasiva focada em DIVERSIFICAÇÃO e VOLUME.
+        3. **Pitch de Venda**: Crie uma abordagem curta (2-3 frases), matadora e persuasiva focada em DIVERSIFICAÇÃO e VOLUME. Use os dados de volume para dar autoridade.
         4. **Pedido Ideal (ESTRATÉGIA DE PULVERIZAÇÃO - PRIORIDADE MÁXIMA)**: 
            Sugira 3 a 5 SKUs seguindo esta HIERARQUIA OBRIGATÓRIA:
            
            a) **1 Item Âncora** (20-30% da quantidade): O SKU recorrente principal do cliente (giro garantido).
            
            b) **2-3 Itens de Pulverização** (50-60% da quantidade - FOCO PRINCIPAL):
-              - Selecione produtos do Top Selling que o cliente NÃO comprou nos últimos 60 dias
-              - PRIORIZE itens com MAIOR VOLUME de vendas da empresa (>3.000 unidades/mês)
+              - Selecione produtos dos INSIGHTS DE VOLUME que o cliente NÃO comprou nos últimos 60 dias
+              - PRIORIZE itens com maior Volume_Total da lista
               - DIVERSIFIQUE categorias (se compra Arroz, sugira Feijão + Massas + Óleo)
               - Foque em produtos com alta rotatividade e giro rápido garantido
            
            c) **1 Item Estratégico** (10-20% - Opcional):
               - Produto premium, lançamento ou margem superior
-              - Justifique o valor agregado
+              - Justifique o valor agregado (Ex: Margem ou Inovação)
            
            REGRA CRÍTICA: Pelo menos 60% da QUANTIDADE TOTAL deve vir de SKUs de categorias 
            DIFERENTES das recorrentes do cliente. Priorize PULVERIZAÇÃO com VOLUME.
@@ -1079,8 +1117,8 @@ class TelesalesAgent:
         5. **Transparência (REGRAS ESTRITAS)**: Você DEVE retornar exatamente 3 motivos na lista `reasons`, com os seguintes títulos e ícones:
            - Título: "Timing Ideal" | Ícone: "history" | Conteúdo: Análise de dias desde a última compra e risco de ruptura.
            - Título: "Giro Garantido" | Ícone: "star" | Conteúdo: SKU recorrente do cliente que não pode faltar (item âncora).
-           - Título: "Oportunidade de Mix" | Ícone: "trending_up" | Conteúdo: Explicar QUANTITATIVAMENTE o VOLUME de vendas dos produtos de pulverização sugeridos (ex: "Feijão Preto vendeu 15.000 unidades no último trimestre, com crescimento de 25% na região. Diversificar seu mix garante giro rápido e reduz risco de concentração").
-        6. **Motivação**: Uma frase curta no campo `motivation` que resuma a estratégia de PULVERIZAÇÃO (ex: "Mix estratégico: 1 âncora + 3 categorias de alto volume").
+           - Título: "Oportunidade de Mix" | Ícone: "trending_up" | Conteúdo: Explicar QUANTITATIVAMENTE o VOLUME de vendas dos produtos de pulverização sugeridos usando os dados dos INSIGHTS DE VOLUME (ex: "Sugerimos X pois vendeu Y unidades nos últimos 90 dias com penetração em Z clientes. Diversificar seu mix reduz risco de concentração").
+        6. **Motivação**: Uma frase curta no campo `motivation` que resuma a estratégia de PULVERIZAÇÃO (ex: "Mix estratégico: 1 âncora + 4 produtos de alto volume").
 
         REGRAS DO JSON:
         - "suggested_order": [ {{"product_name": "...", "sku": "...", "quantity": 10, "unit_price": 25.50}} ]

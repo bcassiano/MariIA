@@ -35,6 +35,27 @@ app.add_middleware(
 _cache = {}
 CACHE_TTL = 60  # segundos
 
+# --- Middleware de Segurança ---
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        # HSTS (1 ano)
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        # CSP (Básico para proteção contra XSS e injeção)
+        response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://mariia-telesales.web.app"
+        # Prevenção de Sniffing
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        # Prevenção de Clickjacking
+        response.headers["X-Frame-Options"] = "DENY"
+        # Referrer Policy
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        return response
+
+app.add_middleware(SecurityHeadersMiddleware)
+
 # --- Segurança (API Key) ---
 from fastapi import Security, Depends
 from fastapi.security.api_key import APIKeyHeader
@@ -106,6 +127,27 @@ def clean_data(df):
 @app.get("/", dependencies=[Depends(get_api_key)])
 def health_check():
     return {"status": "online", "agent": "TelesalesAgent"}
+
+@app.get("/auth/sap-id", dependencies=[Depends(get_api_key)])
+def get_sap_id(email: str):
+    """Retorna o SlpCode (SAP ID) vinculado ao email corporativo."""
+    try:
+        if not email:
+            raise HTTPException(status_code=400, detail="E-mail é obrigatório.")
+        
+        # 🛡️ SECURITY: Use safe parameterization (already implemented in get_dataframe)
+        query = "SELECT SlpCode FROM OSLP WHERE Email = :email"
+        df = agent.db.get_dataframe(query, params={"email": email.strip().lower()})
+        
+        if df.empty:
+            return {"slpCode": None, "message": f"Nenhum vendedor encontrado para o e-mail: {email}"}
+        
+        # O SlpCode pode ser retornado como int
+        slp_code = int(df.iloc[0]['SlpCode'])
+        return {"slpCode": slp_code}
+    except Exception as e:
+        sys.stderr.write(f"ERRO /auth/sap-id: {str(e)}\n")
+        raise HTTPException(status_code=500, detail="Erro interno ao consultar SAP.")
 
 @app.get("/insights")
 def get_insights(min_days: int = 0, max_days: int = 30, vendor_filter: str = Depends(get_current_vendor)):
