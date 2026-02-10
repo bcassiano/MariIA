@@ -29,7 +29,7 @@ export default function DonutChart({ positivated, nonPositivated, rate }) {
         <View style={tw`items-center justify-center w-full`}>
             <View style={{ width: size, height: size }}>
                 <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-                    <G rotation="-90" origin={`${center}, ${center}`}>
+                    <G transform={`rotate(-90, ${center}, ${center})`}>
                         {/* Background circle (não positivados) */}
                         <Circle
                             cx={center}
