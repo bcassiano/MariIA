@@ -1,0 +1,10 @@
+{
+  "projectId": "amazing-firefly-475113-p3",
+  "appId": "1:635293407607:web:2d10c573f1bf0c27d6a972",
+  "storageBucket": "amazing-firefly-475113-p3.firebasestorage.app",
+  "apiKey": "AIzaSyBv05Nvqdpk5wzbRgFK2hjIEkpr8cGa6t4",
+  "authDomain": "amazing-firefly-475113-p3.firebaseapp.com",
+  "messagingSenderId": "635293407607",
+  "projectNumber": "635293407607",
+  "version": "2"
+}

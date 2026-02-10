@@ -1,0 +1,27 @@
+{
+  "status": "success",
+  "result": [
+    {
+      "projectId": "amazing-firefly-475113-p3",
+      "projectNumber": "635293407607",
+      "displayName": "IA Multimodal Fantastico",
+      "name": "projects/amazing-firefly-475113-p3",
+      "resources": {
+        "hostingSite": "amazing-firefly-475113-p3"
+      },
+      "state": "ACTIVE",
+      "etag": "1_8878cd55-9a03-46bb-8499-091eba821e6f"
+    },
+    {
+      "projectId": "app-investmanager",
+      "projectNumber": "790846401352",
+      "displayName": "app-InvestManager",
+      "name": "projects/app-investmanager",
+      "resources": {
+        "hostingSite": "app-investmanager"
+      },
+      "state": "ACTIVE",
+      "etag": "1_a0e47770-5f13-4bae-947b-1ea8d203d7b9"
+    }
+  ]
+}

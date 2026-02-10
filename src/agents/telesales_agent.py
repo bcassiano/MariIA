@@ -549,9 +549,15 @@ class TelesalesAgent:
         SELECT 
             SKU,
             MAX(Nome_Produto) as Produto,
-            ROUND(AVG(Quantidade), 1) as Media_SKU,
+            ROUND(AVG(
+                CASE 
+                    WHEN ISNULL(o.NumInSale, 0) > 1 THEN v.Quantidade / o.NumInSale 
+                    ELSE v.Quantidade 
+                END
+            ), 1) as Media_SKU,
             COUNT(Numero_Documento) as Vezes_Comprado
-        FROM FAL_IA_Dados_Vendas_Televendas 
+        FROM FAL_IA_Dados_Vendas_Televendas v
+        LEFT JOIN OITM o ON o.ItemCode = v.SKU COLLATE DATABASE_DEFAULT
         WHERE Codigo_Cliente = :card_code 
           AND Data_Emissao >= DATEADD(day, -{days}, GETDATE())
         GROUP BY SKU
@@ -722,14 +728,25 @@ class TelesalesAgent:
         SELECT TOP 15 
             SKU,
             MAX(Nome_Produto) as Produto,
-            SUM(Quantidade) as Volume_Total,
+            SUM(
+                CASE 
+                    WHEN ISNULL(o.NumInSale, 0) > 1 THEN v.Quantidade / o.NumInSale 
+                    ELSE v.Quantidade 
+                END
+            ) as Volume_Total,
             COUNT(DISTINCT Codigo_Cliente) as Clientes_Ativos,
             ROUND(AVG(Valor_Liquido), 2) as Ticket_Medio,
             MAX(Categoria_Produto) as Categoria
-        FROM FAL_IA_Dados_Vendas_Televendas 
+        FROM FAL_IA_Dados_Vendas_Televendas v
+        LEFT JOIN OITM o ON o.ItemCode = v.SKU COLLATE DATABASE_DEFAULT
         WHERE Data_Emissao >= DATEADD(day, :days, GETDATE())
         GROUP BY SKU
-        HAVING SUM(Quantidade) > 3000
+        HAVING SUM(
+            CASE 
+                WHEN ISNULL(o.NumInSale, 0) > 1 THEN v.Quantidade / o.NumInSale 
+                ELSE v.Quantidade 
+            END
+        ) > 100 -- Ajustado limite para fardos (antes 3000 unidades)
         ORDER BY Volume_Total DESC
         """
         df = self.db.get_dataframe(query, params={"days": -days})
@@ -792,15 +809,21 @@ class TelesalesAgent:
         LEFT JOIN Vendas_Periodo v ON c.Codigo_Cliente = v.Codigo_Cliente
         OUTER APPLY (
             SELECT TOP 1 
-                AVG(CAST(sub.Qtd_Total AS DECIMAL(10,2))) as Media_Fardos
+                AVG(CAST(sub.Qtd_Fardos AS DECIMAL(10,2))) as Media_Fardos
             FROM (
                 SELECT 
-                    Data_Emissao, 
-                    SUM(Quantidade) as Qtd_Total
+                    v_inner.Data_Emissao, 
+                    SUM(
+                        CASE 
+                            WHEN ISNULL(o.NumInSale, 0) > 1 THEN v_inner.Quantidade / o.NumInSale 
+                            ELSE v_inner.Quantidade 
+                        END
+                    ) as Qtd_Fardos
                 FROM FAL_IA_Dados_Vendas_Televendas v_inner
+                LEFT JOIN OITM o ON o.ItemCode = v_inner.SKU COLLATE DATABASE_DEFAULT
                 WHERE v_inner.Codigo_Cliente = c.Codigo_Cliente
                   AND v_inner.Data_Emissao >= DATEADD(month, -6, GETDATE()) -- Média dos últimos 6 meses
-                GROUP BY Data_Emissao
+                GROUP BY v_inner.Data_Emissao
             ) sub
         ) m
         ORDER BY Positivado DESC, Total_Vendas DESC

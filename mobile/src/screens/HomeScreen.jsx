@@ -404,7 +404,7 @@ export default function HomeScreen({ navigation }) {
                     <TouchableOpacity
                         style={tw.style(
                             `flex-1 py-3 rounded-xl items-center justify-center flex-row gap-2`,
-                            viewMode === 'inactive' ? 'bg-primary' : 'bg-transparent'
+                            viewMode === 'inactive' ? 'bg-accent-btn' : 'bg-transparent'
                         )}
                         onPress={() => setViewMode('inactive')}
                     >

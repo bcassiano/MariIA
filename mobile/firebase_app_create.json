@@ -1,0 +1,15 @@
+{
+  "status": "success",
+  "result": {
+    "@type": "type.googleapis.com/google.firebase.service.v1beta1.WebApp",
+    "name": "projects/amazing-firefly-475113-p3/webApps/1:635293407607:web:2d10c573f1bf0c27d6a972",
+    "appId": "1:635293407607:web:2d10c573f1bf0c27d6a972",
+    "displayName": "MariIA Mobile",
+    "projectId": "amazing-firefly-475113-p3",
+    "webId": "N2QyYjVhOGItZGQwOS00ODM3LWIzYmEtNDk1NTFlMjVkNjIz",
+    "apiKeyId": "a4767bbf-be02-43ef-80c7-30324ca1fed4",
+    "state": "ACTIVE",
+    "expireTime": "1970-01-01T00:00:00Z",
+    "etag": "1_efaf2c00-93cf-4442-b378-266b9eb005a4"
+  }
+}
