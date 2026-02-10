@@ -1,10 +1,14 @@
 // Force update
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Platform, ScrollView, Image, Modal } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getInsights, getInactiveCustomers, getBalesBreakdown } from '../services/api';
 import { create } from 'twrnc';
 import Svg, { Rect, Path, G } from 'react-native-svg';
 import Icon from '../components/Icon';
+
+import { AuthService } from '../services/auth';
+import { SapService } from '../services/sapService';
 
 // Load Tailwind config
 const tw = create(require('../../tailwind.config.js'));
@@ -22,6 +26,7 @@ export default function HomeScreen({ navigation }) {
     // Filtro inicial: 30 dias
     const [selectedFilter, setSelectedFilter] = useState({ label: '30', val: 30 });
     const [viewMode, setViewMode] = useState('active'); // 'active' | 'inactive'
+    const [userStatus, setUserStatus] = useState('checking'); // 'checking' | 'active' | 'pending'
 
     const filters = [
         { label: '15-25', min: 15, max: 25 },
@@ -32,10 +37,97 @@ export default function HomeScreen({ navigation }) {
     ];
 
     useEffect(() => {
-        loadData(selectedFilter, viewMode);
-    }, [selectedFilter, viewMode]);
+        checkUserStatus(true); // true = initial check (silent/local)
+    }, []);
+
+    useEffect(() => {
+        if (userStatus === 'active') {
+            loadData(selectedFilter, viewMode);
+        }
+    }, [selectedFilter, viewMode, userStatus]);
+
+    const checkUserStatus = async (isInitial = false) => {
+        try {
+            if (!isInitial) setLoading(true);
+
+            // 1. Try Local Storage first (fastest)
+            const localStatus = await AsyncStorage.getItem('user_status');
+            if (isInitial && localStatus) {
+                console.log("HomeScreen: Initial local status:", localStatus);
+                setUserStatus(localStatus);
+                if (localStatus === 'pending') setLoading(false);
+                return;
+            }
+
+            // 2. If manual check or no local status, verify with Server
+            const user = AuthService.getCurrentUser();
+            if (!user) {
+                console.warn("HomeScreen: No auth user found during check.");
+                setUserStatus('pending'); // Safety net
+                setLoading(false);
+                return;
+            }
+
+            let slpCode = null;
+            try {
+                // Race condition: Firestore fetch vs 3s timeout (Same logic as App.js)
+                const firestorePromise = AuthService.getSapId(user.uid);
+                const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error("Firestore timeout")), 3000)
+                );
+
+                slpCode = await Promise.race([firestorePromise, timeoutPromise]);
+            } catch (firestoreErr) {
+                console.warn("HomeScreen: Firestore unavailable/slow. Using SapService fallback.");
+                slpCode = await SapService.getSlpCodeByEmail(user.email);
+            }
+
+            // Retry logic if first attempt failed/returned null
+            if (!slpCode) {
+                slpCode = await SapService.getSlpCodeByEmail(user.email);
+            }
+
+            if (slpCode) {
+                console.log("HomeScreen: User Activated! SAP ID:", slpCode);
+                await AsyncStorage.setItem('user_session_id', slpCode.toString());
+                await AsyncStorage.setItem('auth_strategy', 'firebase');
+                await AsyncStorage.setItem('user_status', 'active');
+                setUserStatus('active');
+                // Effect will trigger loadData
+            } else {
+                console.log("HomeScreen: User still pending.");
+                await AsyncStorage.setItem('user_status', 'pending');
+                setUserStatus('pending');
+                alert("Seu cadastro ainda está em análise. Por favor, aguarde a ativação.");
+            }
+        } catch (e) {
+            console.error("Error checking user status:", e);
+
+            // Check if it's a specific "User not found" error from SapService
+            if (e.message && e.message.includes("não foi encontrado")) {
+                await AsyncStorage.setItem('user_status', 'pending');
+                setUserStatus('pending');
+                if (!isInitial) alert("Seu cadastro ainda não foi ativado no SAP. Por favor, aguarde.");
+                return;
+            }
+
+            // Don't block active users on error, but block pending ones
+            const currentStatus = await AsyncStorage.getItem('user_status');
+            if (currentStatus === 'active') {
+                setUserStatus('active');
+            } else {
+                setUserStatus('pending');
+                if (!isInitial) alert("Erro ao verificar status. Verifique sua conexão.");
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const loadData = async (filter, mode) => {
+        // Prevent loading if not active
+        if (userStatus !== 'active') return;
+
         setLoading(true);
         setErrorMsg(null);
         try {
@@ -178,6 +270,57 @@ export default function HomeScreen({ navigation }) {
             </View>
         </TouchableOpacity>
     );
+
+    if (loading || userStatus === 'checking') {
+        return (
+            <View style={tw`flex-1 justify-center items-center bg-gray-50`}>
+                <ActivityIndicator size="large" color="#1A2F5A" />
+                <Text style={tw`text-gray-500 mt-4 font-medium`}>
+                    {userStatus === 'checking' ? 'Validando acesso...' : 'Carregando insights...'}
+                </Text>
+            </View>
+        );
+    }
+
+    // PENDING ACTIVATION STATE
+    if (userStatus === 'pending') {
+        return (
+            <View style={tw`flex-1 bg-gray-50 px-6 justify-center items-center`}>
+                <View style={tw`bg-white p-8 rounded-2xl shadow-lg w-full items-center`}>
+                    <View style={tw`bg-yellow-100 p-4 rounded-full mb-4`}>
+                        <Icon name="timer" size={48} color="#f59e0b" />
+                    </View>
+                    <Text style={tw`text-2xl font-bold text-gray-800 text-center mb-2`}>
+                        Cadastro em Análise
+                    </Text>
+                    <Text style={tw`text-gray-600 text-center mb-6 leading-6`}>
+                        Olá! Seu usuário foi criado, mas ainda não está vinculado a uma equipe de vendas no SAP.
+                    </Text>
+                    <View style={tw`bg-blue-50 p-4 rounded-xl mb-6 w-full`}>
+                        <Text style={tw`text-blue-800 text-center font-medium`}>
+                            Solicite a ativação ao TI ou ao seu Gerente Comercial.
+                        </Text>
+                    </View>
+                    <TouchableOpacity
+                        style={tw`bg-[#1A2F5A] py-3.5 px-8 rounded-full mb-4 shadow-md flex-row items-center gap-2`}
+                        onPress={() => checkUserStatus(false)}
+                    >
+                        <Icon name="refresh" size={20} color="#FFF" />
+                        <Text style={tw`text-white font-bold text-base`}>Verificar Novamente</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        onPress={() => AuthService.logout()}
+                        style={tw`flex-row items-center justify-center py-2 px-4 rounded-full border border-gray-100 bg-white shadow-sm`}
+                    >
+                        <Icon name="logout" size={18} color="#EF4444" />
+                        <Text style={tw`text-gray-600 font-medium ml-2`}>Sair</Text>
+                    </TouchableOpacity>
+
+                </View>
+            </View>
+        );
+    }
 
     return (
         <View style={tw`flex-1 bg-background-light p-4`}>

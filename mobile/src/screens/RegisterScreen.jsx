@@ -42,7 +42,13 @@ export default function RegisterScreen({ navigation }) {
         setLoadingMessage("Mapeando SAP...");
         try {
             // 1. Auto-extract SlpCode (Simulated SAP Call -> Real DB in Future)
-            const slpCode = await SapService.getSlpCodeByEmail(email);
+            let slpCode = null;
+            try {
+                slpCode = await SapService.getSlpCodeByEmail(email);
+            } catch (sapError) {
+                console.warn("Register: User not found in SAP. Proceeding as Pending Authorization.", sapError.message);
+                // Allow registration to proceed without SlpCode (handling Pending state later)
+            }
 
             setLoadingMessage("Criando Conta...");
             // 2. Register & Send Verification Email
