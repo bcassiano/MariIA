@@ -560,6 +560,7 @@ class TelesalesAgent:
         LEFT JOIN OITM o ON o.ItemCode = v.SKU COLLATE DATABASE_DEFAULT
         WHERE Codigo_Cliente = :card_code 
           AND Data_Emissao >= DATEADD(day, -{days}, GETDATE())
+          AND v.Unidade_Medida NOT IN ('KG', 'TN') -- Exclui Farelo/Granel
         GROUP BY SKU
         ORDER BY Media_SKU DESC
         """
@@ -607,10 +608,10 @@ class TelesalesAgent:
             MAX(Estado) as Estado,
             MAX(Data_Emissao) as Ultima_Compra,
             SUM(Valor_Total_Linha) as Total_Venda,
-            -- Média de Volume por Pedido (Media Fardos)
+            -- Média de Volume por Pedido (Media Fardos) - Exclui KG/TN
             CASE 
                 WHEN COUNT(DISTINCT Numero_Documento) > 0 
-                THEN CAST(SUM(Quantidade) AS FLOAT) / COUNT(DISTINCT Numero_Documento)
+                THEN CAST(SUM(CASE WHEN Unidade_Medida NOT IN ('KG', 'TN') THEN Quantidade ELSE 0 END) AS FLOAT) / COUNT(DISTINCT Numero_Documento)
                 ELSE 0 
             END as Media_Fardos
         FROM FAL_IA_Dados_Vendas_Televendas 
@@ -740,6 +741,7 @@ class TelesalesAgent:
         FROM FAL_IA_Dados_Vendas_Televendas v
         LEFT JOIN OITM o ON o.ItemCode = v.SKU COLLATE DATABASE_DEFAULT
         WHERE Data_Emissao >= DATEADD(day, :days, GETDATE())
+          AND v.Unidade_Medida NOT IN ('KG', 'TN') -- Exclui Farelo no Volume de Fardos
         GROUP BY SKU
         HAVING SUM(
             CASE 
@@ -823,6 +825,7 @@ class TelesalesAgent:
                 LEFT JOIN OITM o ON o.ItemCode = v_inner.SKU COLLATE DATABASE_DEFAULT
                 WHERE v_inner.Codigo_Cliente = c.Codigo_Cliente
                   AND v_inner.Data_Emissao >= DATEADD(month, -6, GETDATE()) -- Média dos últimos 6 meses
+                  AND v_inner.Unidade_Medida NOT IN ('KG', 'TN') -- Exclui Farelo da Média
                 GROUP BY v_inner.Data_Emissao
             ) sub
         ) m
