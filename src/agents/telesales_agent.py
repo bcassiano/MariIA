@@ -1121,7 +1121,7 @@ class TelesalesAgent:
         6. **Motivação**: Uma frase curta no campo `motivation` que resuma a estratégia de PULVERIZAÇÃO (ex: "Mix estratégico: 1 âncora + 4 produtos de alto volume").
 
         REGRAS DO JSON:
-        - "suggested_order": [ {{"product_name": "...", "sku": "...", "quantity": 10, "unit_price": 25.50}} ]
+        - "suggested_order": [ {{"product_name": "...", "sku": "...", "quantity": 10}} ]
         - "reasons": [ {{"title": "Timing Ideal", "text": "...", "icon": "history"}}, ... ]
         - "motivation": "Frase de impacto"
 

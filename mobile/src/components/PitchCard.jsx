@@ -136,15 +136,11 @@ export default function PitchCard({ pitch, onFeedback }) {
 
                             <View style={tw`flex-row mb-1`}>
                                 <Text style={tw`flex-1 text-[10px] font-bold text-gray-500`}>PRODUTO/SKU</Text>
-                                <Text style={tw`w-12 text-[10px] font-bold text-gray-500 text-center`}>VAL. UN</Text>
-                                <Text style={tw`w-8 text-[10px] font-bold text-gray-500 text-center`}>QTD</Text>
-                                <Text style={tw`w-16 text-[10px] font-bold text-gray-500 text-center`}>TOTAL</Text>
+                                <Text style={tw`w-12 text-[10px] font-bold text-gray-500 text-center`}>QTD</Text>
                             </View>
 
                             {suggestedOrder.map((item, idx) => {
                                 const numericQty = cleanQty(item.quantity);
-                                const numericPrice = parseFloat(item.unit_price) || 0;
-                                const totalItem = numericQty * numericPrice;
 
                                 return (
                                     <View key={idx} style={tw`flex-row py-1.5 border-t border-gray-50 items-center`}>
@@ -152,25 +148,17 @@ export default function PitchCard({ pitch, onFeedback }) {
                                             <Text style={tw`text-[11px] font-bold text-gray-800 leading-tight`}>{item.product_name}</Text>
                                             <Text style={tw`text-[9px] text-gray-400`}>{item.sku}</Text>
                                         </View>
-                                        <Text style={tw`w-12 text-[11px] font-bold text-gray-800 text-center`}>
-                                            {numericPrice > 0 ? numericPrice.toFixed(2) : '--'}
-                                        </Text>
-                                        <Text style={tw`w-8 text-[11px] font-bold text-gray-800 text-center`}>{numericQty}</Text>
-                                        <Text style={tw`w-16 text-[11px] font-bold text-gray-800 text-center`}>
-                                            {totalItem > 0 ? totalItem.toFixed(2) : '--'}
-                                        </Text>
+                                        <Text style={tw`w-12 text-[11px] font-bold text-gray-800 text-center`}>{numericQty}</Text>
                                     </View>
                                 );
                             })}
 
                             <View style={tw`flex-row justify-end items-center mt-2 pt-2 border-t border-gray-200`}>
-                                <Text style={tw`text-xs font-bold text-gray-600 mr-2`}>TOTAL PEDIDO:</Text>
+                                <Text style={tw`text-xs font-bold text-gray-600 mr-2`}>TOTAL (FD):</Text>
                                 <Text style={tw`text-sm font-bold text-green-700`}>
-                                    R$ {suggestedOrder.reduce((acc, item) => {
-                                        const qty = cleanQty(item.quantity);
-                                        const price = parseFloat(item.unit_price) || 0;
-                                        return acc + (qty * price);
-                                    }, 0).toFixed(2)}
+                                    {suggestedOrder.reduce((acc, item) => {
+                                        return acc + cleanQty(item.quantity);
+                                    }, 0)}
                                 </Text>
                             </View>
                         </View>
