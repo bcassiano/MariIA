@@ -151,6 +151,18 @@ export default function App() {
         // Firebase Listener
         const unsubscribe = AuthService.onAuthStateChanged(async (user) => {
             if (user) {
+                // 🔐 ADMIN BYPASS: Masquerade as Renata Rodrigues
+                // This allows the admin/developer to test the app with full data access
+                if (user.email === 'bruno.cassiano@fantasticoalimentos.com.br') {
+                    console.log("🔐 ADMIN BYPASS DETECTED: Activating Renata Mode");
+                    await AsyncStorage.setItem('user_session_id', 'V.vp - Renata Rodrigues');
+                    await AsyncStorage.setItem('auth_strategy', 'firebase');
+                    await AsyncStorage.setItem('user_status', 'active');
+                    setIsAuthenticated(true);
+                    setIsLoading(false);
+                    return;
+                }
+
                 // 🔄 Critical Fix: Force reload to ensure 'emailVerified' is fresh!
                 try {
                     // Safe access to projectId to prevent crashes
@@ -185,12 +197,17 @@ export default function App() {
                     console.log("Smart Login: Firebase User detected (Verified) =", user.uid);
                     // Fetch the linked SAP ID
                     try {
-                        let slpCode = null;
                         try {
-                            slpCode = await AuthService.getSapId(user.uid);
+                            // Race condition: Firestore fetch vs 3s timeout
+                            const firestorePromise = AuthService.getSapId(user.uid);
+                            const timeoutPromise = new Promise((_, reject) =>
+                                setTimeout(() => reject(new Error("Firestore timeout")), 3000)
+                            );
+
+                            slpCode = await Promise.race([firestorePromise, timeoutPromise]);
                             console.log(`[DEBUG App.js] Firestore SAP ID for ${user.uid}:`, slpCode);
                         } catch (firestoreErr) {
-                            console.warn("[DEBUG App.js] Firestore unreachable. Using SapService fallback.");
+                            console.warn("[DEBUG App.js] Firestore unavailable/slow. Using SapService fallback.", firestoreErr.message);
                             slpCode = await SapService.getSlpCodeByEmail(user.email);
                         }
 
@@ -202,14 +219,22 @@ export default function App() {
                         if (slpCode) {
                             await AsyncStorage.setItem('user_session_id', slpCode.toString());
                             await AsyncStorage.setItem('auth_strategy', 'firebase'); // Mark as secure session
+                            await AsyncStorage.setItem('user_status', 'active');
                             setIsAuthenticated(true);
                         } else {
-                            console.warn("Smart Login: User has no SAP Code linked (Firestore & Fallback failed)!");
-                            setIsAuthenticated(false);
+                            console.warn("Smart Login: User has no SAP Code. Activating PENDING mode.");
+                            // Allow login but marked as pending
+                            await AsyncStorage.setItem('user_status', 'pending');
+                            await AsyncStorage.setItem('auth_strategy', 'firebase');
+                            // Clear potential stale session ID
+                            await AsyncStorage.removeItem('user_session_id');
+                            setIsAuthenticated(true);
                         }
                     } catch (err) {
                         console.error("Smart Login Error (UID/Email mapping failed):", err);
-                        setIsAuthenticated(false);
+                        // Even on error, if we have a user, let them in as Pending to avoid lockout
+                        await AsyncStorage.setItem('user_status', 'pending');
+                        setIsAuthenticated(true);
                     }
                 } else {
                     console.log("Smart Login: User detected but Email NOT Verified. Access Denied.");

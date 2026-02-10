@@ -68,6 +68,15 @@ export default function HomeScreen({ navigation }) {
                 return;
             }
 
+            // 🔐 ADMIN BYPASS: Always Active for Admin
+            if (user.email === 'bruno.cassiano@fantasticoalimentos.com.br') {
+                console.log("🔐 HomeScreen: Admin Bypass for Renata active.");
+                await AsyncStorage.setItem('user_status', 'active');
+                setUserStatus('active');
+                setLoading(false);
+                return;
+            }
+
             let slpCode = null;
             try {
                 // Race condition: Firestore fetch vs 3s timeout (Same logic as App.js)
